@@ -554,7 +554,7 @@ try {
 
     function debounce(func: Function, wait: number) {
         let timeout: any;
-        return function (...args: any[]) {
+        return function (this: any, ...args: any[]) {
             clearTimeout(timeout);
             timeout = setTimeout(() => func.apply(this, args), wait);
         };
@@ -647,7 +647,7 @@ try {
             });
 
             if (res.ok) {
-                fetchData(currentPage, searchInput.value); // Reload to reflect single-hero rule
+                fetchData(currentPage); // Reload to reflect single-hero rule
             } else {
                 alert("Failed to update feature status");
             }
@@ -963,7 +963,7 @@ try {
         });
 
         editModal?.classList.add("hidden");
-        fetchData(currentPage, searchInput.value);
+        fetchData(currentPage);
     });
 
     // --- Delete Logic ---
@@ -1032,7 +1032,7 @@ try {
 
                 selectedIds.clear();
                 updateBulkUI();
-                fetchData(currentPage, searchInput.value);
+                fetchData(currentPage);
                 hideDeleteModal();
                 return;
             }
@@ -1044,7 +1044,7 @@ try {
                 method: "DELETE",
                 headers: getHeaders(),
             });
-            fetchData(currentPage, searchInput.value);
+            fetchData(currentPage);
             hideDeleteModal();
         });
     }
