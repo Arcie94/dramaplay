@@ -627,8 +627,8 @@ import Layout from "../../layouts/Layout.astro";
                     const json = await res.json();
 
                     if (json.status === "success") {
-                        // Update UI with absolute URL
-                        const fullUrl = `http://localhost:3000${json.url}`;
+                        // Update UI with absolute URL (relative to domain)
+                        const fullUrl = json.url;
 
                         if (currentUploadTarget === "logo") {
                             logoInput.value = fullUrl;
