@@ -39,7 +39,8 @@ func main() {
 
 	log.Println("Opening PostgreSQL...")
 	dstDB, err := gorm.Open(postgres.Open(pgDSN), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Warn),
+		Logger:                                   logger.Default.LogMode(logger.Warn),
+		DisableForeignKeyConstraintWhenMigrating: true,
 	})
 	if err != nil {
 		log.Fatal("Failed to open PostgreSQL:", err)
