@@ -661,8 +661,9 @@ import Layout from "../layouts/Layout.astro";
                             Security & Login
                         </p>
                         <button
+                            type="button"
                             id="btn-change-password-trigger"
-                            class="w-full bg-white/5 text-white p-5 rounded-2xl flex justify-between items-center hover:bg-white/10 transition-all border border-white/5 group active:scale-[0.99]"
+                            class="w-full bg-white/5 text-white p-5 rounded-2xl flex justify-between items-center hover:bg-white/10 transition-all border border-white/5 group active:scale-[0.99] cursor-pointer"
                         >
                             <span class="font-bold">Change Password</span>
                             <svg
@@ -1132,14 +1133,15 @@ import Layout from "../layouts/Layout.astro";
             const btnCancelChangePass = document.getElementById("btn-cancel-password");
             const btnSavePassword = document.getElementById("btn-save-password");
             
-            const inputOldPass = document.getElementById("input-old-password");
-            const inputNewPass = document.getElementById("input-new-password");
-            const inputConfirmPass = document.getElementById("input-confirm-password");
+            const inputOldPass = document.getElementById("input-old-password") as HTMLInputElement;
+            const inputNewPass = document.getElementById("input-new-password") as HTMLInputElement;
+            const inputConfirmPass = document.getElementById("input-confirm-password") as HTMLInputElement;
             const passError = document.getElementById("password-error");
             const passSuccess = document.getElementById("password-success");
 
             // Open Modal
             btnChangePassTrigger?.addEventListener("click", () => {
+                console.log("Change Password Clicked");
                 // Clear fields
                 if(inputOldPass) inputOldPass.value = "";
                 if(inputNewPass) inputNewPass.value = "";
@@ -1147,6 +1149,8 @@ import Layout from "../layouts/Layout.astro";
                 if(passError) passError.classList.add("hidden");
                 if(passSuccess) passSuccess.classList.add("hidden");
                 
+                // Close Account Modal first for cleaner UI
+                if(accountModal) toggleModal(accountModal, false);
                 toggleModal(changePassModal, true);
             });
 
