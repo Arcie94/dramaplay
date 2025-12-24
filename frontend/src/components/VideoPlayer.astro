@@ -746,7 +746,16 @@ const {
                 commentCount.textContent = `(${allComments.length})`;
                 commentsList.innerHTML = allComments
                     .map((c, i) => {
-                        const isOwner = i < userComments.length;
+                        // Improved Owner Logic: Check Index OR Name match
+                        const isOwner =
+                            i < userComments.length ||
+                            c.name === currentUserName ||
+                            c.name === "You";
+
+                        console.log(
+                            `Comment ${i}: ${c.name}, Owner: ${isOwner} (User: ${currentUserName})`,
+                        );
+
                         // Photo logic
                         const photoToUse =
                             c.photo ||
