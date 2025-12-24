@@ -1,0 +1,46 @@
+---
+import VideoPlayer from '../../../components/VideoPlayer.astro';
+import Layout from '../../../layouts/Layout.astro';
+
+const { id, idx } = Astro.params;
+
+// Fetch Stream Data
+const API_URL = 'http://localhost:3000/api';
+// In a real app we'd pass idx/chapterId to backend. 
+// For now, backend GetStream returns a demo stream regardless of ID, but let's pretend.
+const currentIndex = idx ? parseInt(idx) - 1 : 0; // Convert 1-based URL to 0-based API index
+const res = await fetch(`${API_URL}/stream?bookId=${id}&index=${currentIndex}`);
+const json = await res.json();
+
+if (!json.data) {
+    return Astro.redirect('/404');
+}
+
+const streamData = json.data;
+const videoUrl = streamData.chapter.video.mp4;
+
+// We also need Drama info for title/cover, fetch details again or pass data (optimization needed later)
+const detailRes = await fetch(`${API_URL}/detail?bookId=${id}`);
+const detailJson = await detailRes.json();
+const dramaTitle = detailJson.judul || "Drama";
+const coverUrl = detailJson.cover || "";
+
+// Redefine as number for math
+const currentEpNumber = idx ? parseInt(idx) : 1;
+const nextUrl = `/watch/${id}/${currentEpNumber + 1}`;
+const prevUrl = currentEpNumber > 1 ? `/watch/${id}/${currentEpNumber - 1}` : undefined;
+
+---
+
+<Layout title={`Watch ${dramaTitle}`}>
+    <VideoPlayer 
+        videoUrl={videoUrl} 
+        coverUrl={coverUrl} 
+        title={`${dramaTitle} - Ep ${idx}`}
+        nextUrl={nextUrl}
+        prevUrl={prevUrl}
+        id={id}
+        dramaTitle={dramaTitle}
+        totalEpisodes={detailJson.total_episode}
+    />
+</Layout>

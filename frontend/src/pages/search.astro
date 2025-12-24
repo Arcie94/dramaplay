@@ -1,0 +1,114 @@
+---
+import Layout from '../layouts/Layout.astro';
+import DramaCard from '../components/DramaCard.astro';
+
+const q = Astro.url.searchParams.get('q') || '';
+const page = parseInt(Astro.url.searchParams.get('page') || '1');
+const API_URL = 'http://localhost:3000/api';
+const genre = Astro.url.searchParams.get('genre') || '';
+
+let dramas = [];
+let total = 0;
+let title = 'Browse Library';
+
+try {
+    if (q) {
+        const res = await fetch(`${API_URL}/search?q=${encodeURIComponent(q)}`);
+        const json = await res.json();
+        dramas = json.data || [];
+        total = json.total_results || dramas.length;
+        title = `Search result: "${q}"`;
+    } else if (genre) {
+        const res = await fetch(`${API_URL}/latest?page=${page}&genre=${encodeURIComponent(genre)}`);
+        const json = await res.json();
+        dramas = json.data || [];
+        total = json.total || 0;
+        title = `Genre: ${genre}`;
+    } else {
+        const res = await fetch(`${API_URL}/latest?page=${page}`);
+        const json = await res.json();
+        dramas = json.data || [];
+        total = json.total || 0;
+    }
+} catch (e) {
+    console.error("Error fetching data:", e);
+}
+
+const hasNextPage = !q && dramas.length === 12; // Simple check for latest pagination
+const hasPrevPage = !q && page > 1;
+
+const paginationLink = (p) => {
+    let url = `/search?page=${p}`;
+    if (genre) url += `&genre=${encodeURIComponent(genre)}`;
+    return url;
+};
+---
+
+<Layout title={title}>
+    <main class="pb-20 min-h-screen bg-zinc-950">
+        <!-- Header -->
+        <header class="sticky top-0 z-30 flex items-center gap-3 bg-zinc-950/90 px-4 py-3 backdrop-blur-md border-b border-white/5">
+            <a href="/" class="p-2 -ml-2 text-zinc-400 hover:text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+            </a>
+            
+            <form action="/search" method="GET" class="flex-1 relative">
+                <input 
+                    type="text" 
+                    name="q" 
+                    value={q}
+                    placeholder="Search dramas..." 
+                    class="w-full bg-zinc-900 text-white rounded-full py-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-zinc-800 transition-all text-sm"
+                    autoFocus={!q}
+                />
+                <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    </svg>
+                </button>
+            </form>
+        </header>
+
+        <!-- Content -->
+        <section class="p-4">
+            {dramas.length > 0 ? (
+                <div class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6">
+                    {dramas.map((drama: any) => (
+                        <DramaCard 
+                            id={drama.bookId} 
+                            title={drama.judul} 
+                            cover={drama.cover} 
+                            episodes={drama.total_episode} 
+                        />
+                    ))}
+                </div>
+            ) : (
+                <div class="flex flex-col items-center justify-center py-20 text-zinc-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16 mb-4 opacity-50">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    </svg>
+                    <p>No dramas found</p>
+                </div>
+            )}
+        </section>
+
+        <!-- Pagination (Only for Browse mode) -->
+        {!q && (
+            <div class="flex justify-center items-center gap-4 py-8">
+                {hasPrevPage && (
+                    <a href={paginationLink(page - 1)} class="px-4 py-2 bg-zinc-800 rounded-full text-sm font-semibold text-white hover:bg-zinc-700">
+                        Previous
+                    </a>
+                )}
+                <span class="text-zinc-500 text-sm">Page {page}</span>
+                {hasNextPage && (
+                    <a href={paginationLink(page + 1)} class="px-4 py-2 bg-red-600 rounded-full text-sm font-semibold text-white shadow-lg shadow-red-900/20 hover:bg-red-500">
+                        Next Page
+                    </a>
+                )}
+            </div>
+        )}
+    </main>
+</Layout>

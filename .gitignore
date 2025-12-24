@@ -1,0 +1,25 @@
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backend
+backend/main.exe
+backend/tmp/
+.env
+backend/.env
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.astro/
+frontend/.npm/
+
+# Uploads (Do not commit user uploads, but keep the directory)
+frontend/public/uploads/*
+!frontend/public/uploads/.gitkeep

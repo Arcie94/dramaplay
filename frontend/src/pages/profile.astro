@@ -1,0 +1,1143 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="My Profile - DramaPlay">
+    <!-- Cropper.js CSS (CDN) -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css"
+        referrerpolicy="no-referrer"
+    />
+
+    <!-- Top Nav Back Button -->
+    <nav
+        class="fixed top-0 left-0 right-0 z-30 flex items-center p-4 bg-gradient-to-b from-black/80 to-transparent"
+    >
+        <a
+            href="/"
+            class="rounded-full bg-zinc-900/80 p-2 text-white backdrop-blur-md hover:bg-zinc-800 transition-colors border border-white/10 group"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="2.5"
+                stroke="currentColor"
+                class="w-5 h-5 group-hover:-translate-x-1 transition-transform"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M15.75 19.5L8.25 12l7.5-7.5"></path>
+            </svg>
+        </a>
+    </nav>
+
+    <div class="min-h-screen bg-black text-white pb-24 pt-20 overflow-hidden">
+        <div class="max-w-md mx-auto px-6 relative">
+            <!-- Background Glows -->
+            <div
+                class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-red-600/10 blur-[100px] -z-10 rounded-full pointer-events-none"
+            >
+            </div>
+
+            <!-- Netflix-style Profile Layout -->
+            <div
+                class="flex flex-col items-center mb-10 relative animate-in fade-in slide-in-from-bottom duration-700"
+            >
+                <div
+                    class="relative group cursor-pointer transform hover:scale-105 transition-all duration-300"
+                    id="avatar-container"
+                >
+                    <!-- Avatar Glow -->
+                    <div
+                        class="absolute -inset-4 bg-red-600/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                    >
+                    </div>
+
+                    <div
+                        class="w-32 h-32 rounded-full bg-zinc-800 border-2 border-zinc-800 group-hover:border-red-500 transition-all overflow-hidden relative shadow-2xl shadow-black/50 ring-1 ring-white/10 group-hover:ring-red-500/50"
+                    >
+                        <img
+                            id="profile-avatar"
+                            src=""
+                            alt="Profile"
+                            class="w-full h-full object-cover hidden"
+                        />
+                        <div
+                            id="profile-initial"
+                            class="w-full h-full flex items-center justify-center text-5xl font-black text-zinc-600 bg-zinc-900 group-hover:text-zinc-400 transition-colors"
+                        >
+                            ?
+                        </div>
+
+                        <!-- Edit Overlay -->
+                        <div
+                            class="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.5"
+                                stroke="currentColor"
+                                class="w-10 h-10 text-white drop-shadow-lg scale-90 group-hover:scale-100 transition-transform duration-300"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
+                                ></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <h1
+                    id="profile-name"
+                    class="text-3xl font-black mt-6 text-white tracking-tight drop-shadow-lg"
+                >
+                    User
+                </h1>
+                <p id="profile-email" class="text-sm text-zinc-400 font-medium">
+                    user@example.com
+                </p>
+
+                <button
+                    id="btn-manage-profile"
+                    class="mt-4 px-5 py-2 text-xs font-bold text-zinc-300 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 rounded-full transition-all uppercase tracking-widest backdrop-blur-md"
+                >
+                    Manage Profile
+                </button>
+            </div>
+
+            <!-- Settings Menu -->
+            <div
+                class="flex flex-col gap-4 animate-in slide-in-from-bottom fade-in duration-1000 delay-100 fill-mode-backwards"
+            >
+                <!-- App Settings -->
+                <div
+                    class="bg-zinc-900/40 backdrop-blur-xl rounded-3xl overflow-hidden border border-white/5 divide-y divide-white/5 shadow-2xl ring-1 ring-black/50"
+                >
+                    <button
+                        id="btn-app-settings"
+                        class="w-full flex items-center justify-between p-5 hover:bg-white/5 transition-all group text-left active:bg-white/10"
+                    >
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="p-2.5 bg-gradient-to-br from-zinc-800 to-zinc-900 rounded-xl group-hover:from-red-600 group-hover:to-red-700 transition-all shadow-lg text-zinc-400 group-hover:text-white group-hover:scale-110 duration-300 border border-white/5"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="w-6 h-6"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 18H7.5M3.75 12h9.75m-9.75 0a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0m-3.75 0H7.5"
+                                    ></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <span
+                                    class="font-bold text-base block text-zinc-100 group-hover:text-white transition-colors"
+                                    >App Settings</span
+                                >
+                                <span
+                                    class="text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors"
+                                    >Autoplay, Video Quality</span
+                                >
+                            </div>
+                        </div>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="2.5"
+                            stroke="currentColor"
+                            class="w-5 h-5 text-zinc-600 group-hover:translate-x-1 group-hover:text-white transition-all"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M8.25 4.5l7.5 7.5-7.5 7.5"></path>
+                        </svg>
+                    </button>
+
+                    <button
+                        id="btn-account-settings"
+                        class="w-full flex items-center justify-between p-5 hover:bg-white/5 transition-all group text-left active:bg-white/10"
+                    >
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="p-2.5 bg-gradient-to-br from-zinc-800 to-zinc-900 rounded-xl group-hover:from-blue-600 group-hover:to-blue-700 transition-all shadow-lg text-zinc-400 group-hover:text-white group-hover:scale-110 duration-300 border border-white/5"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="w-6 h-6"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"
+                                    ></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <span
+                                    class="font-bold text-base block text-zinc-100 group-hover:text-white transition-colors"
+                                    >Account</span
+                                >
+                                <span
+                                    class="text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors"
+                                    >Security, Password</span
+                                >
+                            </div>
+                        </div>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="2.5"
+                            stroke="currentColor"
+                            class="w-5 h-5 text-zinc-600 group-hover:translate-x-1 group-hover:text-white transition-all"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M8.25 4.5l7.5 7.5-7.5 7.5"></path>
+                        </svg>
+                    </button>
+
+                    <button
+                        class="w-full flex items-center justify-between p-5 hover:bg-white/5 transition-all group text-left active:bg-white/10"
+                    >
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="p-2.5 bg-gradient-to-br from-zinc-800 to-zinc-900 rounded-xl group-hover:from-green-600 group-hover:to-green-700 transition-all shadow-lg text-zinc-400 group-hover:text-white group-hover:scale-110 duration-300 border border-white/5"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="w-6 h-6"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"
+                                    ></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <span
+                                    class="font-bold text-base block text-zinc-100 group-hover:text-white transition-colors"
+                                    >Help & Support</span
+                                >
+                                <span
+                                    class="text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors"
+                                    >FAQ, Contact Us</span
+                                >
+                            </div>
+                        </div>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="2.5"
+                            stroke="currentColor"
+                            class="w-5 h-5 text-zinc-600 group-hover:translate-x-1 group-hover:text-white transition-all"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M8.25 4.5l7.5 7.5-7.5 7.5"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="px-4">
+                    <button
+                        id="btn-logout"
+                        class="w-full p-4 mt-4 text-center text-white font-bold border border-red-900 rounded-2xl hover:bg-red-900 transition-all active:scale-95 text-sm uppercase tracking-widest bg-red-800 shadow-lg shadow-red-900/20"
+                    >
+                        Sign Out
+                    </button>
+                    <p
+                        class="text-center text-[10px] text-zinc-700 mt-6 font-mono"
+                    >
+                        v1.2.0-beta
+                    </p>
+                </div>
+            </div>
+
+            <!-- Modals -->
+
+            <!-- App Settings Modal -->
+            <div
+                id="modal-app-settings"
+                class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex flex-col animate-in slide-in-from-bottom duration-300"
+            >
+                <div
+                    class="flex items-center justify-between p-6 bg-zinc-900/80 border-b border-white/5"
+                >
+                    <h2 class="text-xl font-black tracking-tight">
+                        App Settings
+                    </h2>
+                    <button
+                        id="close-app-settings"
+                        class="p-2 -mr-2 text-zinc-400 hover:text-white bg-white/5 rounded-full hover:bg-white/10 transition-all"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="2"
+                            stroke="currentColor"
+                            class="w-5 h-5"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="p-6 space-y-6 overflow-y-auto">
+                    <!-- Example Settings -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-white">
+                                Autoplay Next Episode
+                            </h3>
+                            <p class="text-xs text-zinc-400">
+                                Automatically play the next episode when one
+                                ends
+                            </p>
+                        </div>
+                        <div
+                            class="toggle-label block overflow-hidden h-6 rounded-full bg-zinc-700 cursor-pointer"
+                        >
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Logout Confirmation Modal -->
+            <div
+                id="modal-logout"
+                class="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm hidden flex items-center justify-center p-4 animate-in fade-in duration-200"
+            >
+                <div
+                    class="w-full max-w-sm bg-zinc-900 border border-white/10 rounded-2xl p-6 shadow-2xl scale-100 animate-in zoom-in-95 duration-200"
+                >
+                    <h3 class="text-xl font-bold text-white mb-2 text-center">
+                        Sign Out
+                    </h3>
+                    <p class="text-zinc-400 text-center mb-6 text-sm">
+                        Are you sure you want to sign out of active session?
+                    </p>
+                    <div class="flex gap-3">
+                        <button
+                            id="btn-logout-cancel"
+                            class="flex-1 py-3 rounded-xl font-semibold text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-all active:scale-95"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            id="btn-logout-confirm"
+                            class="flex-1 py-3 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 shadow-lg shadow-red-900/20 transition-all active:scale-95"
+                        >
+                            Yes, Sign Out
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Profile Modal (Enhanced) -->
+            <div
+                id="modal-edit-profile"
+                class="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl hidden flex items-center justify-center p-4"
+            >
+                <div
+                    class="w-full max-w-sm bg-zinc-950 border border-white/10 rounded-3xl p-6 relative shadow-2xl animate-in fade-in zoom-in duration-300 ring-1 ring-white/5 max-h-[90vh] overflow-y-auto no-scrollbar"
+                >
+                    <button
+                        id="close-edit-profile"
+                        class="absolute top-4 right-4 z-10 text-zinc-400 hover:text-white bg-white/5 p-2 rounded-full hover:bg-white/10 transition"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="2.5"
+                            stroke="currentColor"
+                            class="w-5 h-5"
+                            ><path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M6 18L18 6M6 6l12 12"></path></svg
+                        >
+                    </button>
+                    <h2
+                        class="text-2xl font-black mb-6 text-center tracking-tight"
+                    >
+                        Edit Profile
+                    </h2>
+
+                    <div class="flex flex-col gap-6">
+                        <!-- Name Input -->
+                        <div>
+                            <label
+                                class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-wide"
+                                >Display Name</label
+                            >
+                            <input
+                                type="text"
+                                id="input-edit-name"
+                                class="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-4 text-white focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all placeholder-zinc-700 font-bold"
+                                placeholder="Enter your name"
+                            />
+                        </div>
+
+                        <!-- Advanced Upload Section -->
+                        <div>
+                            <label
+                                class="block text-xs font-bold text-zinc-500 mb-3 uppercase tracking-wide"
+                                >Profile Picture</label
+                            >
+                            <div class="space-y-4 relative">
+                                <!-- Loading Overlay -->
+                                <div
+                                    id="upload-loading"
+                                    class="hidden absolute inset-0 z-20 bg-black/80 flex flex-col items-center justify-center rounded-xl backdrop-blur-sm transition-all duration-300"
+                                >
+                                    <svg
+                                        class="animate-spin h-8 w-8 text-red-600 mb-2"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <circle
+                                            class="opacity-25"
+                                            cx="12"
+                                            cy="12"
+                                            r="10"
+                                            stroke="currentColor"
+                                            stroke-width="4"></circle>
+                                        <path
+                                            class="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                        ></path>
+                                    </svg>
+                                    <span
+                                        id="loading-text"
+                                        class="text-xs font-bold text-white tracking-widest"
+                                        >PROCESSING</span
+                                    >
+                                </div>
+
+                                <!-- File Upload Trigger -->
+                                <button
+                                    onclick="document.getElementById('file-upload').click()"
+                                    class="w-full py-3 border-2 border-dashed border-zinc-700 rounded-xl flex items-center justify-center gap-2 text-zinc-400 hover:text-white hover:border-zinc-500 hover:bg-white/5 transition-all"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke-width="1.5"
+                                        stroke="currentColor"
+                                        class="w-5 h-5"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+                                        ></path>
+                                    </svg>
+                                    <span class="font-bold text-sm"
+                                        >Upload Photo (Auto-Compress)</span
+                                    >
+                                </button>
+                                <input
+                                    type="file"
+                                    id="file-upload"
+                                    accept="image/*"
+                                    class="hidden"
+                                />
+                                <p
+                                    id="upload-error"
+                                    class="text-red-500 text-xs text-center hidden font-bold"
+                                >
+                                </p>
+
+                                <!-- Cropper Area (Hidden initially) -->
+                                <div
+                                    id="cropper-container"
+                                    class="hidden relative bg-black rounded-xl overflow-hidden aspect-square border border-white/10"
+                                >
+                                    <img
+                                        id="cropper-image"
+                                        src=""
+                                        class="max-w-full block"
+                                    />
+                                </div>
+
+                                <!-- Editor Controls (Hidden initially) -->
+                                <div
+                                    id="editor-controls"
+                                    class="hidden grid grid-cols-4 gap-2"
+                                >
+                                    <button
+                                        type="button"
+                                        id="btn-zoom-in"
+                                        class="bg-zinc-800 p-2 rounded-lg hover:bg-zinc-700 text-white flex justify-center border border-white/5"
+                                        ><svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                            stroke="currentColor"
+                                            class="w-5 h-5"
+                                            ><path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6"
+                                            ></path></svg
+                                        ></button
+                                    >
+                                    <button
+                                        type="button"
+                                        id="btn-zoom-out"
+                                        class="bg-zinc-800 p-2 rounded-lg hover:bg-zinc-700 text-white flex justify-center border border-white/5"
+                                        ><svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                            stroke="currentColor"
+                                            class="w-5 h-5"
+                                            ><path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM13.5 10.5h-6"
+                                            ></path></svg
+                                        ></button
+                                    >
+                                    <button
+                                        type="button"
+                                        id="btn-rotate-left"
+                                        class="bg-zinc-800 p-2 rounded-lg hover:bg-zinc-700 text-white flex justify-center border border-white/5"
+                                        ><svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                            stroke="currentColor"
+                                            class="w-5 h-5"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+                                            ></path>
+                                        </svg></button
+                                    >
+                                    <button
+                                        type="button"
+                                        id="btn-flip-h"
+                                        class="bg-zinc-800 p-2 rounded-lg hover:bg-zinc-700 text-white flex justify-center border border-white/5"
+                                        ><svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke-width="1.5"
+                                            stroke="currentColor"
+                                            class="w-5 h-5"
+                                            ><path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"
+                                            ></path></svg
+                                        ></button
+                                    >
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Avatar Selection Fallback -->
+                        <div class="border-t border-white/5 pt-4">
+                            <label
+                                class="block text-[10px] font-bold text-zinc-600 mb-3 uppercase tracking-wide"
+                                >Or Choose Default</label
+                            >
+                            <div
+                                class="flex gap-3 overflow-x-auto pb-2 p-2 no-scrollbar"
+                            >
+                                {
+                                    [
+                                        "https://api.dicebear.com/9.x/avataaars/svg?seed=Felix",
+                                        "https://api.dicebear.com/9.x/avataaars/svg?seed=Aneka",
+                                        "https://api.dicebear.com/9.x/avataaars/svg?seed=Zoe",
+                                        "https://api.dicebear.com/9.x/avataaars/svg?seed=Luka",
+                                        "https://api.dicebear.com/9.x/avataaars/svg?seed=Jack",
+                                    ].map((src, i) => (
+                                        <div
+                                            class="w-12 h-12 rounded-full bg-zinc-800 flex-shrink-0 cursor-pointer hover:ring-2 ring-red-500 border border-white/5 transition-all flex items-center justify-center hover:scale-110 active:scale-95 overflow-hidden"
+                                            data-avatar-option={src}
+                                        >
+                                            <img
+                                                src={src}
+                                                class="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    ))
+                                }
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 mt-4">
+                            <button
+                                id="cancel-profile-btn"
+                                class="flex-1 py-4 font-bold text-zinc-400 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                id="save-profile-btn"
+                                class="flex-1 bg-red-600 text-white font-bold py-4 rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-900/20 active:scale-[0.98] tracking-wide"
+                            >
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Overlay (Simple) -->
+            <div
+                id="modal-account"
+                class="fixed inset-0 z-50 bg-black/90 hidden flex flex-col animate-in slide-in-from-bottom duration-300"
+            >
+                <div
+                    class="flex items-center justify-between p-6 bg-zinc-900/50 border-b border-white/5"
+                >
+                    <h2 class="text-xl font-bold">Account</h2>
+                    <button
+                        id="close-account"
+                        class="p-2 -mr-2 text-zinc-400 hover:text-white bg-white/5 rounded-full hover:bg-white/10 transition-all"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="2.5"
+                            stroke="currentColor"
+                            class="w-5 h-5"
+                            ><path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M6 18L18 6M6 6l12 12"></path></svg
+                        >
+                    </button>
+                </div>
+                <div class="p-6 space-y-6">
+                    <div>
+                        <p
+                            class="text-zinc-500 text-xs font-bold uppercase mb-4 tracking-wider"
+                        >
+                            Security & Login
+                        </p>
+                        <button
+                            class="w-full bg-white/5 text-white p-5 rounded-2xl flex justify-between items-center hover:bg-white/10 transition-all border border-white/5 group active:scale-[0.99]"
+                        >
+                            <span class="font-bold">Change Password</span>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke-width="2"
+                                stroke="currentColor"
+                                class="w-5 h-5 text-zinc-500 group-hover:translate-x-1 group-hover:text-white transition-all"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M8.25 4.5l7.5 7.5-7.5 7.5"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cropper JS & Compressor JS CDN -->
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"
+            referrerpolicy="no-referrer"></script>
+
+        <script>
+            const API_BASE = "http://localhost:3000/api";
+
+            // 1. Auth Check
+            const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+            const userStr = localStorage.getItem("user");
+            const token = localStorage.getItem("token");
+
+            console.log("Profile Page Loaded. Checking Auth...");
+            console.log("Auth State:", {
+                isLoggedIn,
+                userStr: !!userStr,
+                token: !!token,
+            });
+            console.log("Raw Token:", token);
+
+            if (!isLoggedIn || !userStr || !token) {
+                console.error("Auth Failed! Missing:", {
+                    isLoggedIn: !isLoggedIn,
+                    noUser: !userStr,
+                    noToken: !token,
+                });
+                // TEMPORARY DEBUG: Disable redirect to see logs
+                // localStorage.removeItem("isLoggedIn");
+                // localStorage.removeItem("user");
+                // localStorage.removeItem("token");
+                // window.location.href = "/";
+                // throw new Error("Redirecting to home");
+                alert("Debug Mode: Auth Missing. Check Console.");
+            }
+
+            let user; // Declare user outside try-catch for broader scope
+            try {
+                if (!userStr) throw new Error("User data not found");
+                user = JSON.parse(userStr);
+            } catch (error) {
+                console.error("Failed to parse user data:", error);
+                alert("Error loading user data. Please log in again.");
+                localStorage.removeItem("isLoggedIn");
+                localStorage.removeItem("user");
+                localStorage.removeItem("token");
+                window.location.href = "/";
+                throw new Error("User data parsing failed, redirecting.");
+            }
+
+            let selectedAvatar = user.avatar || ""; // For defaulting to current
+            let cropperInstance: any = null; // To hold Cropper instance
+
+            // 2. Render Profile
+            const nameData = document.getElementById("profile-name");
+            const emailData = document.getElementById("profile-email");
+            const avatarImg = document.getElementById(
+                "profile-avatar",
+            ) as HTMLImageElement;
+            const initialSpan = document.getElementById("profile-initial");
+
+            const updateProfileUI = (usr: any) => {
+                if (nameData) nameData.textContent = usr.name || "User";
+                if (emailData) emailData.textContent = usr.email || "";
+
+                if (usr.avatar) {
+                    if (avatarImg) {
+                        avatarImg.src = usr.avatar;
+                        avatarImg.classList.remove("hidden");
+                    }
+                    if (initialSpan) initialSpan.classList.add("hidden");
+                } else {
+                    if (avatarImg) avatarImg.classList.add("hidden");
+                    if (initialSpan) {
+                        initialSpan.classList.remove("hidden");
+                        initialSpan.textContent = (usr.name || "U")
+                            .charAt(0)
+                            .toUpperCase();
+                    }
+                }
+            };
+
+            updateProfileUI(user);
+
+            // 3. Logout Logic
+            const logoutModal = document.getElementById("modal-logout");
+            const closeLogoutBtn = document.getElementById("btn-logout-cancel");
+            const confirmLogoutBtn =
+                document.getElementById("btn-logout-confirm");
+
+            // Show Modal
+            document
+                .getElementById("btn-logout")
+                ?.addEventListener("click", () => {
+                    if (logoutModal) logoutModal.classList.remove("hidden");
+                });
+
+            // Hide Modal (Cancel)
+            closeLogoutBtn?.addEventListener("click", () => {
+                if (logoutModal) logoutModal.classList.add("hidden");
+            });
+
+            // Confirm Logout
+            confirmLogoutBtn?.addEventListener("click", () => {
+                localStorage.removeItem("isLoggedIn");
+                localStorage.removeItem("user");
+                localStorage.removeItem("token");
+                window.location.href = "/";
+            });
+
+            // --- New Netflix-style Logic ---
+
+            // Modals
+            const appSettingsModal =
+                document.getElementById("modal-app-settings");
+            const editProfileModal =
+                document.getElementById("modal-edit-profile");
+            const accountModal = document.getElementById("modal-account");
+
+            const toggleModal = (modal: HTMLElement | null, show: boolean) => {
+                if (!modal) return;
+                if (show) modal.classList.remove("hidden");
+                else modal.classList.add("hidden");
+            };
+
+            // Open/Close Handlers
+            document
+                .getElementById("btn-app-settings")
+                ?.addEventListener("click", () =>
+                    toggleModal(appSettingsModal, true),
+                );
+            document
+                .getElementById("close-app-settings")
+                ?.addEventListener("click", () =>
+                    toggleModal(appSettingsModal, false),
+                );
+
+            document
+                .getElementById("btn-manage-profile")
+                ?.addEventListener("click", () => {
+                    const nameInput = document.getElementById(
+                        "input-edit-name",
+                    ) as HTMLInputElement;
+                    if (nameInput) nameInput.value = user.name || "";
+
+                    // Reset Upload UI
+                    resetCropper();
+                    document
+                        .getElementById("upload-error")
+                        ?.classList.add("hidden");
+                    document
+                        .getElementById("cropper-container")
+                        ?.classList.add("hidden");
+                    document
+                        .getElementById("editor-controls")
+                        ?.classList.add("hidden");
+                    document
+                        .getElementById("editor-controls")
+                        ?.classList.remove("grid");
+
+                    toggleModal(editProfileModal, true);
+                });
+
+            document
+                .getElementById("avatar-container")
+                ?.addEventListener("click", () =>
+                    document.getElementById("btn-manage-profile")?.click(),
+                );
+            document
+                .getElementById("close-edit-profile")
+                ?.addEventListener("click", () =>
+                    toggleModal(editProfileModal, false),
+                );
+
+            document
+                .getElementById("cancel-profile-btn")
+                ?.addEventListener("click", () =>
+                    toggleModal(editProfileModal, false),
+                );
+
+            document
+                .getElementById("btn-account-settings")
+                ?.addEventListener("click", () =>
+                    toggleModal(accountModal, true),
+                );
+            document
+                .getElementById("close-account")
+                ?.addEventListener("click", () =>
+                    toggleModal(accountModal, false),
+                );
+
+            // App Settings Logic
+            const toggleAutoplay = document.getElementById(
+                "toggle-autoplay",
+            ) as HTMLInputElement;
+            const selectQuality = document.getElementById(
+                "select-quality",
+            ) as HTMLSelectElement;
+
+            if (toggleAutoplay)
+                toggleAutoplay.checked =
+                    localStorage.getItem("pref_autoplay") === "true";
+            if (selectQuality)
+                selectQuality.value =
+                    localStorage.getItem("pref_quality") || "auto";
+
+            toggleAutoplay?.addEventListener("change", (e) => {
+                localStorage.setItem(
+                    "pref_autoplay",
+                    (e.target as HTMLInputElement).checked.toString(),
+                );
+            });
+            selectQuality?.addEventListener("change", (e) => {
+                localStorage.setItem(
+                    "pref_quality",
+                    (e.target as HTMLSelectElement).value,
+                );
+            });
+
+            // --- Upload & Cropper Logic ---
+            const fileUpload = document.getElementById("file-upload");
+            const uploadError = document.getElementById("upload-error");
+            const uploadLoading = document.getElementById("upload-loading");
+            const loadingText = document.getElementById("loading-text");
+            const cropperImage = document.getElementById(
+                "cropper-image",
+            ) as HTMLImageElement;
+            const cropperContainer =
+                document.getElementById("cropper-container");
+            const editorControls = document.getElementById("editor-controls");
+
+            const resetCropper = () => {
+                if (cropperInstance) {
+                    cropperInstance.destroy();
+                    cropperInstance = null;
+                }
+                if (cropperImage) cropperImage.src = "";
+                selectedAvatar = user.avatar; // Reset to current
+            };
+
+            // Helper to start cropper from a file (or compressed blob)
+            const startCropper = (imageFile: File | Blob) => {
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    resetCropper(); // Clean old
+                    if (cropperImage)
+                        cropperImage.src = evt.target?.result as string;
+                    if (cropperContainer)
+                        cropperContainer.classList.remove("hidden");
+                    if (editorControls) {
+                        editorControls.classList.remove("hidden");
+                        editorControls.classList.add("grid");
+                    }
+
+                    // Init Cropper
+                    // @ts-ignore
+                    cropperInstance = new Cropper(cropperImage, {
+                        aspectRatio: 1, // Square
+                        viewMode: 1,
+                        dragMode: "move",
+                        autoCropArea: 0.8,
+                        background: false,
+                    });
+
+                    // Hide loading
+                    if (uploadLoading) uploadLoading.classList.add("hidden");
+                };
+                reader.readAsDataURL(imageFile);
+            };
+
+            fileUpload?.addEventListener("change", (e: any) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                // Reset error
+                if (uploadError) uploadError.classList.add("hidden");
+
+                // Show Loading
+                if (uploadLoading) {
+                    uploadLoading.classList.remove("hidden");
+                    if (loadingText) loadingText.textContent = "PROCESSING...";
+                }
+
+                const MAX_SIZE = 150 * 1024; // 150KB
+
+                // 1. Check if Compression Needed
+                if (file.size > MAX_SIZE) {
+                    if (loadingText) loadingText.textContent = "COMPRESSING...";
+
+                    // Use Compressor.js
+                    // @ts-ignore
+                    new Compressor(file, {
+                        quality: 0.6,
+                        maxWidth: 600, // Reduced from 1024 for speed (Avatar is small)
+                        maxHeight: 600,
+                        mimeType: "image/jpeg",
+                        success(result: Blob) {
+                            startCropper(result);
+                        },
+                        error(err: any) {
+                            if (uploadLoading)
+                                uploadLoading.classList.add("hidden");
+                            if (uploadError) {
+                                uploadError.textContent =
+                                    "Compression failed: " + err.message;
+                                uploadError.classList.remove("hidden");
+                            }
+                        },
+                    });
+                } else {
+                    // No compression needed
+                    startCropper(file);
+                }
+            });
+
+            // Editor Controls
+            document
+                .getElementById("btn-zoom-in")
+                ?.addEventListener("click", () => cropperInstance?.zoom(0.1));
+            document
+                .getElementById("btn-zoom-out")
+                ?.addEventListener("click", () => cropperInstance?.zoom(-0.1));
+            document
+                .getElementById("btn-rotate-left")
+                ?.addEventListener("click", () => cropperInstance?.rotate(-90));
+
+            let scaleX = 1;
+            document
+                .getElementById("btn-flip-h")
+                ?.addEventListener("click", () => {
+                    scaleX = -scaleX;
+                    cropperInstance?.scaleX(scaleX);
+                });
+
+            // Default Avatar Selection
+            document.querySelectorAll("[data-avatar-option]").forEach((el) => {
+                el.addEventListener("click", () => {
+                    // Visual Update: Clear others, highlight active
+                    document
+                        .querySelectorAll("[data-avatar-option]")
+                        .forEach((item) => {
+                            item.classList.remove(
+                                "ring-2",
+                                "ring-red-500",
+                                "scale-110",
+                                "opacity-100",
+                            );
+                            item.classList.add("opacity-70");
+                        });
+                    el.classList.remove("opacity-70");
+                    el.classList.add(
+                        "ring-2",
+                        "ring-red-500",
+                        "scale-110",
+                        "opacity-100",
+                    );
+
+                    const src = el.getAttribute("data-avatar-option");
+                    resetCropper();
+                    // Hide editor
+                    if (cropperContainer)
+                        cropperContainer.classList.add("hidden");
+                    if (editorControls) {
+                        editorControls.classList.add("hidden");
+                        editorControls.classList.remove("grid");
+                    }
+
+                    selectedAvatar = src;
+                    // Removed alert as requested
+                });
+            });
+
+            // Save Profile
+            document
+                .getElementById("save-profile-btn")
+                ?.addEventListener("click", () => {
+                    // Show loading
+                    if (uploadLoading) {
+                        uploadLoading.classList.remove("hidden");
+                        if (loadingText) loadingText.textContent = "SAVING...";
+                    }
+
+                    const nameInput = document.getElementById(
+                        "input-edit-name",
+                    ) as HTMLInputElement;
+                    const newName = nameInput.value;
+
+                    // Small delay just to let UI update
+                    setTimeout(async () => {
+                        // 1. Determine Avatar
+                        let finalAvatar = selectedAvatar;
+
+                        // If Cropper is active, get the cropped result
+                        if (cropperInstance) {
+                            const canvas = cropperInstance.getCroppedCanvas({
+                                width: 300, // Reasonable size for avatar
+                                height: 300,
+                            });
+                            finalAvatar = canvas.toDataURL("image/jpeg", 0.8); // Compress slightly
+                        }
+
+                        // 2. Save to LocalStorage
+                        const updatedUser = {
+                            ...user,
+                            name: newName,
+                            avatar: finalAvatar,
+                        };
+                        localStorage.setItem(
+                            "user",
+                            JSON.stringify(updatedUser),
+                        ); // Update Local
+
+                        // 3. Sync with Backend
+                        try {
+                            await fetch(`${API_BASE}/user/profile`, {
+                                method: "PUT",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({
+                                    id: user.id || 0, // Ensure ID is sent
+                                    name: newName,
+                                    avatar: finalAvatar,
+                                }),
+                            });
+                        } catch (err) {
+                            console.error("Failed to sync profile", err);
+                            // Silently fail or show toast? For now silent, local storage is king for user.
+                        }
+
+                        // 4. Update UI
+                        updateProfileUI(updatedUser);
+
+                        // Hide loading & Close
+                        if (uploadLoading)
+                            uploadLoading.classList.add("hidden");
+                        toggleModal(editProfileModal, false);
+                    }, 300); // Reduced delay
+                });
+        </script>
+
+        <style>
+            /* Toggle Switch CSS */
+            .toggle-checkbox:checked {
+                right: 0;
+                border-color: #ef4444; /* Red-600 */
+            }
+            .toggle-checkbox:checked + .toggle-label {
+                background-color: #ef4444;
+            }
+            .toggle-checkbox {
+                right: auto;
+                left: 0;
+                transition: all 0.3s;
+            }
+        </style>
+    </div></Layout
+>
