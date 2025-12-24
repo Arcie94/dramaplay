@@ -408,6 +408,45 @@ try {
             </div>
         </div>
     </div>
+    <!-- Action Confirmation Modal -->
+    <div
+        id="action-modal"
+        class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 hidden backdrop-blur-sm animate-in fade-in duration-200"
+    >
+        <div
+            class="bg-zinc-900 w-full max-w-sm rounded-xl border border-zinc-700 p-6 shadow-2xl scale-in-95 animate-in duration-200"
+        >
+            <h3 class="text-xl font-bold text-white mb-2" id="action-title">
+                Confirm Action
+            </h3>
+            <p class="text-zinc-400 mb-6 text-sm" id="action-desc">
+                Are you sure?
+            </p>
+            <div class="flex justify-end gap-3">
+                <button
+                    type="button"
+                    id="btn-cancel-action"
+                    class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    id="btn-confirm-action"
+                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-lg transition-all"
+                >
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div
+        id="toast-container"
+        class="fixed bottom-6 right-6 z-[60] flex flex-col gap-2 pointer-events-none"
+    >
+    </div>
 </Layout>
 
 <script>
@@ -617,29 +656,106 @@ try {
         fetchData(1, (e.target as HTMLInputElement).value);
     });
 
-    // --- Actions ---
-    document
-        .getElementById("btn-ingest")
-        ?.addEventListener("click", async () => {
-            if (!confirm("Start mass ingestion? This might take a while."))
-                return;
-            await fetch(`${API_BASE}/admin/action/ingest`, {
-                method: "POST",
-                headers: getHeaders(),
-            });
-            alert("Ingest process triggered in background.");
-        });
+    // --- Toast Logic ---
+    function showToast(msg: string, type: "success" | "error" = "success") {
+        const container = document.getElementById("toast-container");
+        if (!container) return;
 
-    document
-        .getElementById("btn-dedup")
-        ?.addEventListener("click", async () => {
-            if (!confirm("Start deduplication?")) return;
-            await fetch(`${API_BASE}/admin/action/dedup`, {
-                method: "POST",
-                headers: getHeaders(),
-            });
-            alert("Deduplication triggered.");
-        });
+        const toast = document.createElement("div");
+        toast.className = `pointer-events-auto px-4 py-3 rounded-lg text-white text-sm font-medium shadow-xl flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-300 ${
+            type === "success" ? "bg-green-600" : "bg-red-600"
+        }`;
+        toast.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                ${
+                    type === "success"
+                        ? '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />'
+                        : '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />'
+                }
+            </svg>
+            ${msg}
+        `;
+
+        container.appendChild(toast);
+
+        // Remove after 3s
+        setTimeout(() => {
+            toast.classList.add("opacity-0", "translate-y-2", "transition-all");
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // --- Action Modal Logic ---
+    const actionModal = document.getElementById("action-modal");
+    const btnCancelAction = document.getElementById("btn-cancel-action");
+    const btnConfirmAction = document.getElementById("btn-confirm-action");
+    let pendingAction: (() => void) | null = null;
+
+    function confirmAction(
+        title: string,
+        desc: string,
+        action: () => void,
+        confirmColorClass = "bg-blue-600",
+    ) {
+        if (!actionModal) return;
+        const titleEl = document.getElementById("action-title");
+        const descEl = document.getElementById("action-desc");
+        const btn = document.getElementById("btn-confirm-action");
+
+        if (titleEl) titleEl.textContent = title;
+        if (descEl) descEl.textContent = desc;
+
+        if (btn) {
+            btn.className = `px-4 py-2 text-white text-sm font-medium rounded-lg shadow-lg transition-all ${confirmColorClass} hover:opacity-90`;
+            // Remove old listeners to prevent stacking? Actually we trigger pendingAction
+        }
+
+        pendingAction = action;
+        actionModal.classList.remove("hidden");
+        actionModal.classList.add("flex");
+    }
+
+    btnCancelAction?.addEventListener("click", () => {
+        actionModal?.classList.add("hidden");
+        pendingAction = null;
+    });
+
+    btnConfirmAction?.addEventListener("click", () => {
+        if (pendingAction) pendingAction();
+        actionModal?.classList.add("hidden");
+        pendingAction = null;
+    });
+
+    // --- Updated Actions ---
+    document.getElementById("btn-ingest")?.addEventListener("click", () => {
+        confirmAction(
+            "Trigger Ingest?",
+            "This will start the scraping process in the background. It might take a while.",
+            async () => {
+                await fetch(`${API_BASE}/admin/action/ingest`, {
+                    method: "POST",
+                    headers: getHeaders(),
+                });
+                showToast("Ingest process started in background", "success");
+            },
+            "bg-blue-600",
+        );
+    });
+
+    document.getElementById("btn-dedup")?.addEventListener("click", () => {
+        confirmAction(
+            "Run Deduplication?",
+            "This will scan and remove duplicate dramas based on titles.",
+            async () => {
+                await fetch(`${API_BASE}/admin/action/dedup`, {
+                    method: "POST",
+                    headers: getHeaders(),
+                });
+                showToast("Deduplication started", "success");
+            },
+            "bg-purple-600",
+        );
+    });
 
     // --- Edit Logic ---
     const editModal = document.getElementById("edit-modal");
