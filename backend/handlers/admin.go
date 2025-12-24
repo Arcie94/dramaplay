@@ -128,15 +128,24 @@ func DeleteDrama(c *fiber.Ctx) error {
 
 // TriggerIngest runs the ingest script
 func TriggerIngest(c *fiber.Ctx) error {
+	models.LogInfo(database.DB, "Ingest Process Triggered")
 	// Run in background
 	go func() {
 		cmd := exec.Command("go", "run", "cmd/ingest/main.go")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			fmt.Println("Ingest Error:", err)
+			models.LogError(database.DB, fmt.Sprintf("Ingest Failed: %v", err))
 			return
 		}
+		// Log explicit success or output summary?
+		// Truncate output if too long
+		outStr := string(output)
+		if len(outStr) > 100 {
+			outStr = outStr[:100] + "..."
+		}
 		fmt.Println("Ingest Output:", string(output))
+		models.LogSuccess(database.DB, "Ingest Finished: "+outStr)
 	}()
 
 	return c.JSON(fiber.Map{"status": "success", "message": "Ingest process started in background"})
@@ -144,18 +153,34 @@ func TriggerIngest(c *fiber.Ctx) error {
 
 // TriggerDedup runs the dedup script
 func TriggerDedup(c *fiber.Ctx) error {
+	models.LogInfo(database.DB, "Deduplication Process Triggered")
 	// Run in background
 	go func() {
 		cmd := exec.Command("go", "run", "cmd/dedup/main.go")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			fmt.Println("Dedup Error:", err)
+			models.LogError(database.DB, fmt.Sprintf("Dedup Failed: %v", err))
 			return
 		}
+		outStr := string(output)
+		if len(outStr) > 100 {
+			outStr = outStr[:100] + "..."
+		}
 		fmt.Println("Dedup Output:", string(output))
+		models.LogSuccess(database.DB, "Dedup Finished: "+outStr)
 	}()
 
 	return c.JSON(fiber.Map{"status": "success", "message": "Deduplication process started in background"})
+}
+
+// GetSystemLogs retrieves recent logs
+func GetSystemLogs(c *fiber.Ctx) error {
+	var logs []models.SystemLog
+	if err := database.DB.Order("created_at desc").Limit(50).Find(&logs).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Result error"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": logs})
 }
 
 // ToggleFeatured updates the IsFeatured status of a drama

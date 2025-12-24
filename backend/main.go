@@ -35,6 +35,7 @@ func main() {
 	models.MigrateSettings(database.DB)
 	models.MigrateUsers(database.DB)
 	models.MigrateHistory(database.DB)
+	models.MigrateLogs(database.DB)
 
 	// Routes
 	api := app.Group("/api")
@@ -78,6 +79,7 @@ func main() {
 	admin.Delete("/dramas/:id", handlers.DeleteDrama)
 	admin.Post("/action/ingest", handlers.TriggerIngest)
 	admin.Post("/action/dedup", handlers.TriggerDedup)
+	admin.Get("/logs", handlers.GetSystemLogs)
 
 	// Settings
 	admin.Get("/settings", handlers.GetSettings)
