@@ -99,6 +99,7 @@ npm run dev
 
 ## 📖 Additional Documentation
 -   [**DEPLOYMENT.md**](./DEPLOYMENT.md): Detailed guide for deploying to **Proxmox** or Linux servers using Cloudflare Tunnels.
+-   [**DEVELOPMENT_LOG.md**](./DEVELOPMENT_LOG.md): Comprehensive history of features, changes, and technical decisions.
 -   [**task.md**](./.agent/task.md): Development log and feature checklist.
 
 ## ⚙️ Configuration
