@@ -47,7 +47,11 @@ func main() {
 
 	// 3. Migrate Schema (Ensure tables exist)
 	log.Println("Migrating Target Schema...")
-	dstDB.AutoMigrate(&models.Drama{}, &models.Episode{}, &models.Setting{}, &models.User{}, &models.UserHistory{})
+	// 3. Migrate Schema (Ensure tables exist)
+	log.Println("Migrating Target Schema...")
+	if err := dstDB.AutoMigrate(&models.Drama{}, &models.Episode{}, &models.Setting{}, &models.User{}, &models.UserHistory{}); err != nil {
+		log.Fatal("Failed to auto-migrate schema:", err)
+	}
 
 	// 4. Copy Data
 	copyTable(srcDB, dstDB, &[]models.Setting{}, "Settings")
