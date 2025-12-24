@@ -26,9 +26,9 @@ func UploadFile(c *fiber.Ctx) error {
 	// 3. Generate unique filename
 	filename := fmt.Sprintf("%d_%s%s", time.Now().Unix(), uuid.New().String(), ext)
 
-	// 4. Save to frontend/public/uploads
-	// Note: Ideally read from config, but hardcoded for this workspace structure
-	savePath := fmt.Sprintf("../frontend/public/uploads/%s", filename)
+	// 4. Save to public/uploads
+	// In Docker, this maps to /app/public/uploads which is mounted to ./uploads on host
+	savePath := filepath.Join("public", "uploads", filename)
 
 	if err := c.SaveFile(file, savePath); err != nil {
 		fmt.Println("Upload Error:", err)
