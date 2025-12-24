@@ -21,7 +21,7 @@ try {
     }
 } catch (e) {
     console.error("Error fetching settings:", e);
-    debugMsg = `Error: ${e.message}`;
+    debugMsg = `Error: ${(e as Error).message}`;
 }
 ---
 
@@ -520,7 +520,7 @@ try {
                     <img src="${d.cover}" 
                          class="w-10 h-14 object-cover rounded bg-zinc-800 inline-block" 
                          loading="lazy"
-                         onerror="this.src='/placeholder-poster.jpg'; this.onerror=null;">
+                         onerror="this.src='/placeholder-poster.png'; this.onerror=null;">
                 </td>
                 <td class="p-4 font-medium text-white text-center">${d.judul}</td>
                 <td class="p-4 text-zinc-400 text-center">${d.total_episode}</td>
@@ -745,6 +745,27 @@ try {
 
     if (btnConfirmDelete) {
         btnConfirmDelete.addEventListener("click", async () => {
+            // Bulk Delete
+            if (isBulkDelete && selectedIds.size > 0) {
+                const ids = Array.from(selectedIds);
+                // Execute deletes sequentially to avoid overwhelming server (or use Promise.all)
+                await Promise.all(
+                    ids.map((id) =>
+                        fetch(`${API_BASE}/admin/dramas/${id}`, {
+                            method: "DELETE",
+                            headers: getHeaders(),
+                        }),
+                    ),
+                );
+
+                selectedIds.clear();
+                updateBulkUI();
+                fetchData(currentPage, searchInput.value);
+                hideDeleteModal();
+                return;
+            }
+
+            // Single Delete
             if (!dramaToDeleteId) return;
 
             await fetch(`${API_BASE}/admin/dramas/${dramaToDeleteId}`, {
