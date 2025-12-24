@@ -202,16 +202,35 @@ try {
             </div>
 
             <!-- Search & Filter -->
-            <div class="flex gap-4 mb-6">
+            <!-- Search & Filter -->
+            <div class="flex flex-col md:flex-row gap-4 mb-6">
                 <input
                     type="text"
                     id="admin-search"
                     placeholder="Search by title..."
                     class="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-red-600 transition-colors"
                 />
+
+                <input
+                    type="text"
+                    id="filter-genre"
+                    placeholder="Genre..."
+                    class="w-full md:w-48 bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-red-600 transition-colors"
+                />
+
+                <select
+                    id="filter-sort"
+                    class="w-full md:w-40 bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-red-600 transition-colors appearance-none cursor-pointer"
+                >
+                    <option value="">Newest</option>
+                    <option value="oldest">Oldest</option>
+                    <option value="title_asc">Name A-Z</option>
+                    <option value="title_desc">Name Z-A</option>
+                </select>
+
                 <button
                     id="btn-refresh"
-                    class="p-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-white"
+                    class="p-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-white shrink-0"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -469,6 +488,12 @@ try {
     const searchInput = document.getElementById(
         "admin-search",
     ) as HTMLInputElement;
+    const genreInput = document.getElementById(
+        "filter-genre",
+    ) as HTMLInputElement;
+    const sortInput = document.getElementById(
+        "filter-sort",
+    ) as HTMLSelectElement;
 
     function getHeaders() {
         return {
@@ -477,10 +502,14 @@ try {
         };
     }
 
-    async function fetchData(page = 1, query = "") {
+    async function fetchData(page = 1) {
         try {
+            const query = searchInput.value;
+            const genre = genreInput.value;
+            const sort = sortInput.value;
+
             const res = await fetch(
-                `${API_BASE}/admin/dramas?page=${page}&limit=${currentLimit}&q=${query}`,
+                `${API_BASE}/admin/dramas?page=${page}&limit=${currentLimit}&q=${query}&genre=${genre}&sort=${sort}`,
                 {
                     headers: getHeaders(),
                 },
@@ -502,7 +531,7 @@ try {
             }
         } catch (err) {
             console.error(err);
-            alert("Error fetching data: " + err);
+            showToast("Error fetching data", "error");
         }
     }
 
@@ -640,21 +669,27 @@ try {
     });
 
     document.getElementById("btn-prev")?.addEventListener("click", () => {
-        if (currentPage > 1) fetchData(currentPage - 1, searchInput.value);
+        document.getElementById("btn-prev")?.addEventListener("click", () => {
+            if (currentPage > 1) fetchData(currentPage - 1);
+        });
     });
 
     document.getElementById("btn-next")?.addEventListener("click", () => {
-        fetchData(currentPage + 1, searchInput.value);
+        document.getElementById("btn-next")?.addEventListener("click", () => {
+            fetchData(currentPage + 1);
+        });
     });
 
     document.getElementById("btn-refresh")?.addEventListener("click", () => {
-        fetchData(currentPage, searchInput.value);
+        fetchData(currentPage);
     });
 
     searchInput?.addEventListener("input", (e) => {
-        // Debounce could be added here
-        fetchData(1, (e.target as HTMLInputElement).value);
+        fetchData(1);
     });
+
+    genreInput?.addEventListener("input", () => fetchData(1));
+    sortInput?.addEventListener("change", () => fetchData(1));
 
     // --- Toast Logic ---
     function showToast(msg: string, type: "success" | "error" = "success") {

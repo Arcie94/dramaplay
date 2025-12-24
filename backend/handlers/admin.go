@@ -43,20 +43,41 @@ func GetAdminDramas(c *fiber.Ctx) error {
 
 	// Base query
 	query := database.DB.Model(&models.Drama{})
+	genre := c.Query("genre")
+	sortBy := c.Query("sort")
+
 	if search != "" {
 		query = query.Where("judul LIKE ?", "%"+search+"%")
+	}
+	if genre != "" {
+		query = query.Where("genre LIKE ?", "%"+genre+"%")
 	}
 
 	// Count
 	query.Count(&total)
 
-	// Fetch Data (Re-apply query conditions or use session)
-	// Safest is to rebuild chain or use session, but let's just re-apply for clarity/safety.
+	// Fetch Data
 	dataQuery := database.DB.Model(&models.Drama{})
 	if search != "" {
 		dataQuery = dataQuery.Where("judul LIKE ?", "%"+search+"%")
 	}
-	dataQuery.Limit(limit).Offset(offset).Order("book_id desc").Find(&dramas)
+	if genre != "" {
+		dataQuery = dataQuery.Where("genre LIKE ?", "%"+genre+"%")
+	}
+
+	// Sort
+	switch sortBy {
+	case "oldest":
+		dataQuery = dataQuery.Order("book_id asc")
+	case "title_asc":
+		dataQuery = dataQuery.Order("judul asc")
+	case "title_desc":
+		dataQuery = dataQuery.Order("judul desc")
+	default:
+		dataQuery = dataQuery.Order("book_id desc") // newest
+	}
+
+	dataQuery.Limit(limit).Offset(offset).Find(&dramas)
 
 	return c.JSON(fiber.Map{
 		"status": "success",
