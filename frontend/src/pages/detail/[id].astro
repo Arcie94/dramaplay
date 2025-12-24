@@ -22,7 +22,8 @@ try {
     console.error("Detail Fetch Error:", e);
 }
 
-if (!drama) {
+if (!drama || !drama.judul) {
+    console.error("Drama not found or empty:", drama);
     return Astro.redirect("/404");
 }
 
