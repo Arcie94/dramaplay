@@ -20,6 +20,7 @@ WORKDIR /app
 
 # Copy build artifacts
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
 
 # Expose port
 ENV HOST=0.0.0.0

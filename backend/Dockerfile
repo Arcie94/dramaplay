@@ -23,7 +23,7 @@ WORKDIR /app
 
 # Install runtime dependencies (e.g. for sqlite cgo if needed, though alpine usually has musl)
 # But standard binary might need libc compatibility or we use CGO_ENABLED=1 above with musl-dev.
-RUN apk add --no-cache ca-certificates
+RUN apk add --no-cache ca-certificates tzdata
 
 # Create directories for data and uploads
 RUN mkdir -p /app/data /app/public/uploads
