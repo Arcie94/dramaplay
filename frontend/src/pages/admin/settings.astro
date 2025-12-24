@@ -213,6 +213,12 @@ import Layout from "../../layouts/Layout.astro";
             </div>
         </div>
     </div>
+    <!-- Toast Container -->
+    <div
+        id="toast-container"
+        class="fixed bottom-6 right-6 z-[60] flex flex-col gap-2 pointer-events-none"
+    >
+    </div>
 </Layout>
 
 <!-- CropperJS -->
@@ -460,6 +466,35 @@ import Layout from "../../layouts/Layout.astro";
     const API_BASE = "/api";
     const token = localStorage.getItem("admin_token");
 
+    // --- Toast Logic ---
+    function showToast(msg: string, type: "success" | "error" = "success") {
+        const container = document.getElementById("toast-container");
+        if (!container) return;
+
+        const toast = document.createElement("div");
+        toast.className = `pointer-events-auto px-4 py-3 rounded-lg text-white text-sm font-medium shadow-xl flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-300 ${
+            type === "success" ? "bg-green-600" : "bg-red-600"
+        }`;
+        toast.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                ${
+                    type === "success"
+                        ? '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />'
+                        : '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />'
+                }
+            </svg>
+            ${msg}
+        `;
+
+        container.appendChild(toast);
+
+        // Remove after 3s
+        setTimeout(() => {
+            toast.classList.add("opacity-0", "translate-y-2", "transition-all");
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
     if (!token) {
         window.location.href = "/admin/login";
     }
@@ -639,12 +674,13 @@ import Layout from "../../layouts/Layout.astro";
                         }
 
                         closeEditor();
+                        showToast("Image uploaded successfully", "success");
                     } else {
-                        alert("Upload failed: " + json.message);
+                        showToast("Upload failed: " + json.message, "error");
                     }
                 } catch (e) {
                     console.error(e);
-                    alert("Error uploading file");
+                    showToast("Error uploading file", "error");
                 } finally {
                     btnCropSave.innerText = originalText;
                     (btnCropSave as HTMLButtonElement).disabled = false;
@@ -745,13 +781,13 @@ import Layout from "../../layouts/Layout.astro";
             });
 
             if (res.ok) {
-                alert("Settings saved successfully!");
+                showToast("Settings saved successfully!", "success");
             } else {
-                alert("Failed to save settings");
+                showToast("Failed to save settings", "error");
             }
         } catch (err) {
             console.error(err);
-            alert("Error saving settings");
+            showToast("Error saving settings", "error");
         } finally {
             saveBtn.innerText = originalText;
             (saveBtn as HTMLButtonElement).disabled = false;
