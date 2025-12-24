@@ -732,12 +732,14 @@ const {
 
                 commentCount.textContent = `(${allComments.length})`;
                 commentsList.innerHTML = allComments
-                    .map(
-                        (c) => `
+                    .map((c) => {
+                        const avatarHtml = c.photo
+                            ? `<img src="${c.photo}" class="w-8 h-8 rounded-full object-cover shrink-0">`
+                            : `<div class="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-white shrink-0">${c.name[0]}</div>`;
+
+                        return `
                     <div class="flex gap-3">
-                        <div class="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-white shrink-0">
-                            ${c.name[0]}
-                        </div>
+                        ${avatarHtml}
                         <div class="flex-1 space-y-1">
                             <div class="flex items-baseline justify-between">
                                 <span class="text-sm font-bold text-white">${c.name}</span>
@@ -746,8 +748,8 @@ const {
                             <p class="text-sm text-zinc-300 leading-snug">${c.text}</p>
                         </div>
                     </div>
-                `,
-                    )
+                `;
+                    })
                     .join("");
             } catch (err) {
                 console.error("Error loading comments:", err);
@@ -813,8 +815,22 @@ const {
                 const text = commentInput.value.trim();
                 if (!text) return;
 
+                // Get User Data
+                const userStr = localStorage.getItem("user");
+                let userName = "You";
+                let userPhoto = "";
+
+                if (userStr) {
+                    try {
+                        const user = JSON.parse(userStr);
+                        if (user.username) userName = user.username;
+                        if (user.photo_profile) userPhoto = user.photo_profile;
+                    } catch (e) {}
+                }
+
                 const newComment = {
-                    name: "You",
+                    name: userName,
+                    photo: userPhoto,
                     text: text,
                     time: "Just now",
                 };
