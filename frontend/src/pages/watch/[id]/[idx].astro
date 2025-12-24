@@ -5,23 +5,41 @@ import Layout from "../../../layouts/Layout.astro";
 const { id, idx } = Astro.params;
 
 // Fetch Stream Data
-const API_URL = import.meta.env.INTERNAL_API_URL || "http://localhost:3000/api";
-// In a real app we'd pass idx/chapterId to backend.
-// For now, backend GetStream returns a demo stream regardless of ID, but let's pretend.
-const currentIndex = idx ? parseInt(idx) - 1 : 0; // Convert 1-based URL to 0-based API index
-const res = await fetch(`${API_URL}/stream?bookId=${id}&index=${currentIndex}`);
-const json = await res.json();
+// Fetch Stream Data
+const API_URL = process.env.INTERNAL_API_URL || "http://backend:3000/api";
+const currentIndex = idx ? parseInt(idx) - 1 : 0;
+let streamData = null;
+let detailJson = {};
 
-if (!json.data) {
+try {
+    const res = await fetch(
+        `${API_URL}/stream?bookId=${id}&index=${currentIndex}`,
+    );
+    if (res.ok) {
+        const json = await res.json();
+        streamData = json.data;
+    }
+} catch (e) {
+    console.error("Stream Fetch Error:", e);
+}
+
+if (!streamData) {
+    console.error("No stream data found");
     return Astro.redirect("/404");
 }
 
-const streamData = json.data;
-const videoUrl = streamData.chapter.video.mp4;
+const videoUrl = streamData.chapter?.video?.mp4 || "";
 
-// We also need Drama info for title/cover, fetch details again or pass data (optimization needed later)
-const detailRes = await fetch(`${API_URL}/detail?bookId=${id}`);
-const detailJson = await detailRes.json();
+// Fetch Detail for title
+try {
+    const detailRes = await fetch(`${API_URL}/detail?bookId=${id}`);
+    if (detailRes.ok) {
+        detailJson = await detailRes.json();
+    }
+} catch (e) {
+    console.error("Detail Fetch Error (Watch Page):", e);
+}
+
 const dramaTitle = detailJson.judul || "Drama";
 const coverUrl = detailJson.cover || "";
 
