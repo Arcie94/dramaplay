@@ -1,6 +1,6 @@
-# Deployment Guide for DramaBang (Proxmox/Docker)
+# Deployment Guide for DramaPlay (Proxmox/Docker)
 
-This guide covers how to deploy the DramaBang application on a Proxmox server using Docker and make it accessible via the internet.
+This guide covers how to deploy the DramaPlay application on a Proxmox server using Docker and make it accessible via the internet.
 
 ## 📋 Prerequisites
 
