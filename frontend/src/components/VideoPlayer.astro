@@ -730,11 +730,30 @@ const {
                 );
                 const allComments = [...userComments, ...dummyComments];
 
+                // Get current user for fallback/retroactive fix
+                const userStr = localStorage.getItem("user");
+                let currentUserPhoto = "";
+                let currentUserName = "You";
+                if (userStr) {
+                    try {
+                        const u = JSON.parse(userStr);
+                        currentUserPhoto = u.photo_profile || "";
+                        currentUserName = u.username || "You";
+                    } catch (e) {}
+                }
+
                 commentCount.textContent = `(${allComments.length})`;
                 commentsList.innerHTML = allComments
                     .map((c) => {
-                        const avatarHtml = c.photo
-                            ? `<img src="${c.photo}" class="w-8 h-8 rounded-full object-cover shrink-0">`
+                        // Logic: Use saved photo, OR if name matches current user/You, use current photo
+                        const photoToUse =
+                            c.photo ||
+                            (c.name === currentUserName || c.name === "You"
+                                ? currentUserPhoto
+                                : "");
+
+                        const avatarHtml = photoToUse
+                            ? `<img src="${photoToUse}" class="w-8 h-8 rounded-full object-cover shrink-0">`
                             : `<div class="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-white shrink-0">${c.name[0]}</div>`;
 
                         return `
