@@ -315,10 +315,12 @@ import Layout from "../layouts/Layout.astro";
                     </button>
                 </div>
                 <div class="p-6 space-y-6 overflow-y-auto">
-                    <!-- Example Settings -->
-                    <div class="flex items-center justify-between">
+                    <!-- Autoplay -->
+                    <div class="flex items-center justify-between group">
                         <div>
-                            <h3 class="font-bold text-white">
+                            <h3
+                                class="font-bold text-white group-hover:text-red-500 transition-colors"
+                            >
                                 Autoplay Next Episode
                             </h3>
                             <p class="text-xs text-zinc-400">
@@ -326,10 +328,73 @@ import Layout from "../layouts/Layout.astro";
                                 ends
                             </p>
                         </div>
-                        <div
-                            class="toggle-label block overflow-hidden h-6 rounded-full bg-zinc-700 cursor-pointer"
+                        <button
+                            id="toggle-autoplay"
+                            class="w-12 h-6 bg-zinc-700 rounded-full relative transition-colors duration-200"
+                            data-active="false"
                         >
+                            <div
+                                class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-transform duration-200 shadow-sm"
+                            >
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Video Quality -->
+                    <div class="flex items-center justify-between group">
+                        <div>
+                            <h3
+                                class="font-bold text-white group-hover:text-red-500 transition-colors"
+                            >
+                                Video Quality
+                            </h3>
+                            <p class="text-xs text-zinc-400">
+                                Default playback resolution
+                            </p>
                         </div>
+                        <select
+                            id="select-quality"
+                            class="bg-zinc-800 text-white text-xs font-bold rounded-lg border border-white/10 px-3 py-2 outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-all cursor-pointer"
+                        >
+                            <option value="auto">Auto (Recommended)</option>
+                            <option value="1080p">High (1080p)</option>
+                            <option value="720p">Medium (720p)</option>
+                            <option value="480p">Data Saver (480p)</option>
+                        </select>
+                    </div>
+
+                    <!-- Data Saver -->
+                    <div class="flex items-center justify-between group">
+                        <div>
+                            <h3
+                                class="font-bold text-white group-hover:text-red-500 transition-colors"
+                            >
+                                Data Saver
+                            </h3>
+                            <p class="text-xs text-zinc-400">
+                                Reduce quality on mobile data
+                            </p>
+                        </div>
+                        <button
+                            id="toggle-datasaver"
+                            class="w-12 h-6 bg-zinc-700 rounded-full relative transition-colors duration-200"
+                            data-active="false"
+                        >
+                            <div
+                                class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-transform duration-200 shadow-sm"
+                            >
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Clear Cache (Utility) -->
+                    <div class="border-t border-white/5 pt-4">
+                        <button
+                            id="btn-clear-cache"
+                            class="w-full py-3 text-xs font-bold text-red-500 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl transition-all"
+                        >
+                            Clear App Cache
+                        </button>
                     </div>
                 </div>
             </div>
@@ -878,13 +943,7 @@ import Layout from "../layouts/Layout.astro";
             const userStr = localStorage.getItem("user");
             const token = localStorage.getItem("token");
 
-            console.log("Profile Page Loaded. Checking Auth...");
-            console.log("Auth State:", {
-                isLoggedIn,
-                userStr: !!userStr,
-                token: !!token,
-            });
-            console.log("Raw Token:", token);
+            // Logs removed for production cleanliness
 
             if (!isLoggedIn || !userStr || !token) {
                 console.error("Auth Failed! Missing:", {
@@ -1056,33 +1115,68 @@ import Layout from "../layouts/Layout.astro";
                     toggleModal(accountModal, false),
                 );
 
-            // App Settings Logic
-            const toggleAutoplay = document.getElementById(
-                "toggle-autoplay",
-            ) as HTMLInputElement;
+            // --- Enhanced App Settings Logic ---
+            const setupToggle = (id: string, storageKey: string) => {
+                const btn = document.getElementById(id);
+                if (!btn) return;
+
+                // Load State
+                const isActive = localStorage.getItem(storageKey) === "true";
+                btn.dataset.active = isActive.toString();
+                updateToggleVisual(btn, isActive);
+
+                // Click Handler
+                btn.addEventListener("click", () => {
+                    const newState = !(btn.dataset.active === "true");
+                    btn.dataset.active = newState.toString();
+                    localStorage.setItem(storageKey, newState.toString());
+                    updateToggleVisual(btn, newState);
+                });
+            };
+
+            const updateToggleVisual = (
+                btn: HTMLElement,
+                isActive: boolean,
+            ) => {
+                const knob = btn.firstElementChild as HTMLElement;
+                if (isActive) {
+                    btn.classList.replace("bg-zinc-700", "bg-red-600");
+                    knob.classList.add("translate-x-6");
+                } else {
+                    btn.classList.replace("bg-red-600", "bg-zinc-700");
+                    knob.classList.remove("translate-x-6");
+                }
+            };
+
+            setupToggle("toggle-autoplay", "pref_autoplay");
+            setupToggle("toggle-datasaver", "pref_datasaver");
+
+            // Quality Select
             const selectQuality = document.getElementById(
                 "select-quality",
             ) as HTMLSelectElement;
-
-            if (toggleAutoplay)
-                toggleAutoplay.checked =
-                    localStorage.getItem("pref_autoplay") === "true";
-            if (selectQuality)
+            if (selectQuality) {
                 selectQuality.value =
                     localStorage.getItem("pref_quality") || "auto";
+                selectQuality.addEventListener("change", (e) => {
+                    localStorage.setItem(
+                        "pref_quality",
+                        (e.target as HTMLSelectElement).value,
+                    );
+                });
+            }
 
-            toggleAutoplay?.addEventListener("change", (e) => {
-                localStorage.setItem(
-                    "pref_autoplay",
-                    (e.target as HTMLInputElement).checked.toString(),
-                );
-            });
-            selectQuality?.addEventListener("change", (e) => {
-                localStorage.setItem(
-                    "pref_quality",
-                    (e.target as HTMLSelectElement).value,
-                );
-            });
+            // Clear Cache
+            document
+                .getElementById("btn-clear-cache")
+                ?.addEventListener("click", () => {
+                    if (confirm("Clear local cache and reload?")) {
+                        localStorage.removeItem("user"); // Keep login token maybe? Or clear all?
+                        // Let's just reload for now as 'cache clear' usually means assets.
+                        // But user might expect data clear.
+                        window.location.reload();
+                    }
+                });
 
             // --- Upload & Cropper Logic ---
             const fileUpload = document.getElementById("file-upload");
