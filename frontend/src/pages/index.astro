@@ -4,20 +4,43 @@ import Layout from "../layouts/Layout.astro";
 import DramaCard from "../components/DramaCard.astro";
 
 // Fetch Data from Backend
-const API_URL = import.meta.env.INTERNAL_API_URL || "http://localhost:3000/api";
+const API_URL = process.env.INTERNAL_API_URL || "http://localhost:3000/api";
+console.log(`[SSR] Fetching data from: ${API_URL}`);
 
-// Fetch Trending
-const trendingRes = await fetch(`${API_URL}/trending`);
-const trendingData = await trendingRes.json();
-const trending = trendingData.data || [];
+const safeFetch = async (endpoint: string, fallback: any = []) => {
+    try {
+        const res = await fetch(`${API_URL}${endpoint}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        return json.data || fallback;
+    } catch (e) {
+        console.error(`[SSR] Error fetching ${endpoint}:`, e);
+        return fallback;
+    }
+};
 
-// Fetch Hero (Manual or Fallback)
-const heroRes = await fetch(`${API_URL}/hero`);
-const heroData = await heroRes.json();
-const rawHeroList = Array.isArray(heroData.data)
-    ? heroData.data
-    : heroData.data
-      ? [heroData.data]
+// Parallel Fetches
+const [trending, rawHeroData, latest, randomData, romanceData, actionData] =
+    await Promise.all([
+        safeFetch("/trending", []),
+        safeFetch("/hero", {}),
+        safeFetch("/latest", []),
+        safeFetch("/random", []),
+        safeFetch(
+            `/random?genre=${encodeURIComponent("Modern Romance & CEO")}`,
+            [],
+        ),
+        safeFetch(
+            `/random?genre=${encodeURIComponent("Martial Arts Action")}`,
+            [],
+        ),
+    ]);
+
+// Process Hero
+const rawHeroList = Array.isArray(rawHeroData)
+    ? rawHeroData
+    : rawHeroData
+      ? [rawHeroData]
       : [];
 const heroList =
     rawHeroList.length > 0
@@ -26,41 +49,24 @@ const heroList =
           ? [trending[0]]
           : [];
 
-// Fetch Latest
-const latestRes = await fetch(`${API_URL}/latest`);
-const latestData = await latestRes.json();
-const latest = latestData.data || [];
+const random = randomData;
+const romance = romanceData;
+const action = actionData;
 
-// Fetch Random (Recommended)
-const randomRes = await fetch(`${API_URL}/random`);
-const randomData = await randomRes.json();
-const random = randomData.data || [];
-
-// Fetch Top Romance (Using Random to avoid overlap with Latest)
-const romanceRes = await fetch(
-    `${API_URL}/random?genre=${encodeURIComponent("Modern Romance & CEO")}`,
-);
-const romanceData = await romanceRes.json();
-const romance = romanceData.data || [];
-
-// Fetch Action (Using Random)
-const actionRes = await fetch(
-    `${API_URL}/random?genre=${encodeURIComponent("Martial Arts Action")}`,
-);
-const actionData = await actionRes.json();
-const action = actionData.data || [];
 export const prerender = false;
+
 // Fetch Settings (Logo)
 let siteLogo = "/favicon.png";
-let debugLogoUrl = "";
 try {
     const settingsRes = await fetch(`${API_URL}/settings?t=${Date.now()}`);
-    const settingsData = await settingsRes.json();
-    if (settingsData.site_logo) {
-        siteLogo = settingsData.site_logo;
+    if (settingsRes.ok) {
+        const settingsData = await settingsRes.json();
+        if (settingsData.site_logo) {
+            siteLogo = settingsData.site_logo;
+        }
     }
 } catch (e) {
-    console.error("Error fetching settings:", e);
+    console.error(`[SSR] Error fetching settings:`, e);
 }
 ---
 
