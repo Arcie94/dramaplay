@@ -291,6 +291,25 @@ try {
                 </select>
 
                 <button
+                    id="filter-featured"
+                    class="px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-500 hover:text-white hover:border-yellow-500 hover:bg-yellow-500/10 transition-all flex items-center gap-2 group"
+                    data-active="false"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        class="w-5 h-5 group-hover:text-yellow-500 transition-colors"
+                    >
+                        <path
+                            fill-rule="evenodd"
+                            d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="font-medium text-sm">Featured</span>
+                </button>
+
+                <button
                     id="btn-refresh"
                     class="p-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-white shrink-0"
                 >
@@ -533,6 +552,14 @@ try {
 <script>
     const API_BASE = "/api";
 
+    function debounce(func: Function, wait: number) {
+        let timeout: any;
+        return function (...args: any[]) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
     // AUTH CHECK
     const token = localStorage.getItem("admin_token");
     if (!token) {
@@ -569,9 +596,13 @@ try {
             const query = searchInput.value;
             const genre = genreInput.value;
             const sort = sortInput.value;
+            const featured =
+                document
+                    .getElementById("filter-featured")
+                    ?.getAttribute("data-active") === "true";
 
             const res = await fetch(
-                `${API_BASE}/admin/dramas?page=${page}&limit=${currentLimit}&q=${query}&genre=${genre}&sort=${sort}`,
+                `${API_BASE}/admin/dramas?page=${page}&limit=${currentLimit}&q=${query}&genre=${genre}&sort=${sort}&featured=${featured}`,
                 {
                     headers: getHeaders(),
                 },
@@ -736,27 +767,51 @@ try {
     });
 
     document.getElementById("btn-prev")?.addEventListener("click", () => {
-        document.getElementById("btn-prev")?.addEventListener("click", () => {
-            if (currentPage > 1) fetchData(currentPage - 1);
-        });
+        if (currentPage > 1) fetchData(currentPage - 1);
     });
 
     document.getElementById("btn-next")?.addEventListener("click", () => {
-        document.getElementById("btn-next")?.addEventListener("click", () => {
-            fetchData(currentPage + 1);
-        });
+        fetchData(currentPage + 1);
     });
 
     document.getElementById("btn-refresh")?.addEventListener("click", () => {
         fetchData(currentPage);
     });
 
-    searchInput?.addEventListener("input", (e) => {
+    const featuredFilter = document.getElementById("filter-featured");
+    featuredFilter?.addEventListener("click", () => {
+        const isActive = featuredFilter.getAttribute("data-active") === "true";
+        featuredFilter.setAttribute("data-active", (!isActive).toString());
+
+        // Update UI
+        if (!isActive) {
+            featuredFilter.classList.add(
+                "text-yellow-400",
+                "border-yellow-500",
+                "bg-yellow-500/10",
+            );
+            featuredFilter.classList.remove("text-zinc-500");
+        } else {
+            featuredFilter.classList.remove(
+                "text-yellow-400",
+                "border-yellow-500",
+                "bg-yellow-500/10",
+            );
+            featuredFilter.classList.add("text-zinc-500");
+        }
+
         fetchData(1);
     });
 
-    genreInput?.addEventListener("input", () => fetchData(1));
-    sortInput?.addEventListener("change", () => fetchData(1));
+    searchInput.addEventListener(
+        "input",
+        debounce(() => fetchData(1), 500),
+    );
+    genreInput.addEventListener(
+        "input",
+        debounce(() => fetchData(1), 500),
+    );
+    sortInput.addEventListener("change", () => fetchData(1));
 
     // --- Toast Logic ---
     function showToast(msg: string, type: "success" | "error" = "success") {

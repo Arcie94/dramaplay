@@ -45,12 +45,16 @@ func GetAdminDramas(c *fiber.Ctx) error {
 	query := database.DB.Model(&models.Drama{})
 	genre := c.Query("genre")
 	sortBy := c.Query("sort")
+	featured := c.Query("featured")
 
 	if search != "" {
 		query = query.Where("judul LIKE ?", "%"+search+"%")
 	}
 	if genre != "" {
 		query = query.Where("genre LIKE ?", "%"+genre+"%")
+	}
+	if featured == "true" {
+		query = query.Where("is_featured = ?", true)
 	}
 
 	// Count
@@ -63,6 +67,9 @@ func GetAdminDramas(c *fiber.Ctx) error {
 	}
 	if genre != "" {
 		dataQuery = dataQuery.Where("genre LIKE ?", "%"+genre+"%")
+	}
+	if featured == "true" {
+		dataQuery = dataQuery.Where("is_featured = ?", true)
 	}
 
 	// Sort
