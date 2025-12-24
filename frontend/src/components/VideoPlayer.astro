@@ -797,18 +797,27 @@ const {
                             ? `<img src="${photoToUse}" class="w-8 h-8 rounded-full object-cover shrink-0">`
                             : `<div class="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-white shrink-0">${c.name[0]}</div>`;
 
-                        // Actions
+                        // Actions (Three-Dot Menu)
                         const actionsHtml = isOwner
                             ? `
-                           <div class="flex gap-3 ml-2">
-                               <button class="text-zinc-500 hover:text-white transition-colors edit-btn" data-index="${i}">
-                                   <!-- Pencil Icon -->
-                                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
+                           <div class="relative ml-2">
+                               <button class="menu-btn text-zinc-500 hover:text-white p-1 rounded-full transition-colors" data-index="${i}">
+                                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+                                   </svg>
                                </button>
-                               <button class="text-zinc-500 hover:text-red-500 transition-colors delete-btn" data-index="${i}">
-                                   <!-- Trash Icon -->
-                                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
-                               </button>
+                               <!-- Dropdown Menu -->
+                               <div id="menu-dropdown-${i}" class="menu-dropdown hidden absolute right-0 top-8 w-32 bg-zinc-900 border border-zinc-700 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] z-20 overflow-hidden animate-in fade-in zoom-in-95 duration-150 origin-top-right ring-1 ring-white/5">
+                                   <button class="edit-btn w-full text-left px-4 py-2.5 text-xs font-medium text-zinc-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2" data-index="${i}">
+                                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
+                                      Edit
+                                   </button>
+                                   <div class="h-px bg-white/5"></div>
+                                   <button class="delete-btn w-full text-left px-4 py-2.5 text-xs font-medium text-red-500 hover:bg-red-500/10 transition-colors flex items-center gap-2" data-index="${i}">
+                                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                                      Delete
+                                   </button>
+                               </div>
                            </div>
                         `
                             : "";
@@ -897,22 +906,47 @@ const {
                 closeComments();
             }
 
-            // --- Comment Actions (Delete / Edit / Cancel) ---
+            // --- Three Dot Menu Logic ---
+            // 1. Toggle Menu
+            const menuBtn = target.closest(".menu-btn") as HTMLElement;
+            if (menuBtn) {
+                e.stopPropagation(); // Stop bubble so document listener doesn't close it immediately
+                const idx = menuBtn.dataset.index;
+                const menuId = `menu-dropdown-${idx}`;
 
-            // Delete (Open Modal)
-            const deleteBtn = target.closest(".delete-btn") as HTMLElement;
-            if (deleteBtn) {
-                const idx = parseInt(deleteBtn.dataset.index || "-1");
-                if (idx > -1) {
-                    pendingDeleteIndex = idx;
-                    if (deleteModal) deleteModal.classList.remove("hidden");
-                }
+                // Close all other menus
+                document.querySelectorAll(".menu-dropdown").forEach((el) => {
+                    if (el.id !== menuId) el.classList.add("hidden");
+                });
+
+                // Toggle this one
+                const menu = document.getElementById(menuId);
+                if (menu) menu.classList.toggle("hidden");
                 return;
             }
+
+            // 2. Close Menu if clicked outside (General)
+            // If click is NOT on menu, close all menus
+            if (!target.closest(".menu-dropdown")) {
+                document.querySelectorAll(".menu-dropdown").forEach((el) => {
+                    el.classList.add("hidden");
+                });
+            }
+
+            // --- Comment Actions (Delete / Edit / Cancel) ---
+
+            // Action Click automatically closes menu due to 'General' handler above, but safer to force close logic in buttons if prop stopped.
+            // But actually, delete/edit buttons are inside menu-dropdown, so clicking them WONT trigger the "close all" above if we check !closest.
+            // We want clicking Edit/Delete to CLOSE the menu.
 
             // Edit (Show Form)
             const editBtn = target.closest(".edit-btn") as HTMLElement;
             if (editBtn) {
+                // Close Menus
+                document
+                    .querySelectorAll(".menu-dropdown")
+                    .forEach((el) => el.classList.add("hidden"));
+
                 const idx = parseInt(editBtn.dataset.index || "-1");
                 if (idx > -1) {
                     const textEl = document.getElementById(
@@ -927,6 +961,22 @@ const {
                         const ta = formEl.querySelector("textarea");
                         if (ta) ta.focus();
                     }
+                }
+                return;
+            }
+
+            // Delete (Open Modal)
+            const deleteBtn = target.closest(".delete-btn") as HTMLElement;
+            if (deleteBtn) {
+                // Close Menus
+                document
+                    .querySelectorAll(".menu-dropdown")
+                    .forEach((el) => el.classList.add("hidden"));
+
+                const idx = parseInt(deleteBtn.dataset.index || "-1");
+                if (idx > -1) {
+                    pendingDeleteIndex = idx;
+                    if (deleteModal) deleteModal.classList.remove("hidden");
                 }
                 return;
             }
