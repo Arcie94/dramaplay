@@ -268,175 +268,13 @@ import Layout from "../layouts/Layout.astro";
                     </button>
                 </div>
 
-                <div class="px-4">
-                    <button
-                        id="btn-logout"
-                        class="w-full p-4 mt-4 text-center text-white font-bold border border-red-900 rounded-2xl hover:bg-red-900 transition-all active:scale-95 text-sm uppercase tracking-widest bg-red-800 shadow-lg shadow-red-900/20"
-                    >
-                        Sign Out
-                    </button>
-                    <p
-                        class="text-center text-[10px] text-zinc-700 mt-6 font-mono"
-                    >
-                        v1.2.0-beta
-                    </p>
-                </div>
-            </div>
-
-            <!-- Modals -->
-
-            <!-- App Settings Modal -->
-            <div
-                id="modal-app-settings"
-                class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex flex-col animate-in slide-in-from-bottom duration-300"
-            >
-                <div
-                    class="flex items-center justify-between p-6 bg-zinc-900/80 border-b border-white/5"
+                <button
+                    id="btn-donate"
+                    class="w-full flex items-center justify-between p-5 hover:bg-white/5 transition-all group text-left active:bg-white/10 border-t border-white/5"
                 >
-                    <h2 class="text-xl font-black tracking-tight">
-                        App Settings
-                    </h2>
-                    <button
-                        id="close-app-settings"
-                        class="p-2 -mr-2 text-zinc-400 hover:text-white bg-white/5 rounded-full hover:bg-white/10 transition-all"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="2"
-                            stroke="currentColor"
-                            class="w-5 h-5"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-                <div class="p-6 space-y-6 overflow-y-auto">
-                    <!-- Autoplay -->
-                    <div class="flex items-center justify-between group">
-                        <div>
-                            <h3
-                                class="font-bold text-white group-hover:text-red-500 transition-colors"
-                            >
-                                Autoplay Next Episode
-                            </h3>
-                            <p class="text-xs text-zinc-400">
-                                Automatically play the next episode when one
-                                ends
-                            </p>
-                        </div>
-                        <button
-                            id="toggle-autoplay"
-                            class="w-12 h-6 bg-zinc-700 rounded-full relative transition-colors duration-200"
-                            data-active="false"
-                        >
-                            <div
-                                class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-transform duration-200 shadow-sm"
-                            >
-                            </div>
-                        </button>
-                    </div>
-
-                    <!-- Video Quality -->
-                    <div class="flex items-center justify-between group">
-                        <div>
-                            <h3
-                                class="font-bold text-white group-hover:text-red-500 transition-colors"
-                            >
-                                Video Quality
-                            </h3>
-                            <p class="text-xs text-zinc-400">
-                                Default playback resolution
-                            </p>
-                        </div>
-                        <select
-                            id="select-quality"
-                            class="bg-zinc-800 text-white text-xs font-bold rounded-lg border border-white/10 px-3 py-2 outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-all cursor-pointer"
-                        >
-                            <option value="auto">Auto (Recommended)</option>
-                            <option value="1080p">High (1080p)</option>
-                            <option value="720p">Medium (720p)</option>
-                            <option value="480p">Data Saver (480p)</option>
-                        </select>
-                    </div>
-
-                    <!-- Data Saver -->
-                    <div class="flex items-center justify-between group">
-                        <div>
-                            <h3
-                                class="font-bold text-white group-hover:text-red-500 transition-colors"
-                            >
-                                Data Saver
-                            </h3>
-                            <p class="text-xs text-zinc-400">
-                                Reduce quality on mobile data
-                            </p>
-                        </div>
-                        <button
-                            id="toggle-datasaver"
-                            class="w-12 h-6 bg-zinc-700 rounded-full relative transition-colors duration-200"
-                            data-active="false"
-                        >
-                            <div
-                                class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-transform duration-200 shadow-sm"
-                            >
-                            </div>
-                        </button>
-                    </div>
-
-                    <!-- Clear Cache (Utility) -->
-                    <div class="border-t border-white/5 pt-4">
-                        <button
-                            id="btn-clear-cache"
-                            class="w-full py-3 text-xs font-bold text-red-500 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl transition-all"
-                        >
-                            Clear App Cache
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Help & Support Modal -->
-            <div
-                id="modal-help"
-                class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex flex-col animate-in slide-in-from-bottom duration-300"
-            >
-                <div
-                    class="flex items-center justify-between p-6 bg-zinc-900/80 border-b border-white/5"
-                >
-                    <h2 class="text-xl font-black tracking-tight">
-                        Help & Support
-                    </h2>
-                    <button
-                        id="close-help"
-                        class="p-2 -mr-2 text-zinc-400 hover:text-white bg-white/5 rounded-full hover:bg-white/10 transition-all"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="2"
-                            stroke="currentColor"
-                            class="w-5 h-5"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-                <div class="p-6 space-y-6 overflow-y-auto">
-                    <!-- Contact Section -->
-                    <div
-                        class="bg-zinc-800/50 p-6 rounded-3xl border border-white/5 text-center"
-                    >
+                    <div class="flex items-center gap-4">
                         <div
-                            class="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/5 shadow-lg"
+                            class="p-2.5 bg-gradient-to-br from-zinc-800 to-zinc-900 rounded-xl group-hover:from-yellow-600 group-hover:to-orange-600 transition-all shadow-lg text-zinc-400 group-hover:text-white group-hover:scale-110 duration-300 border border-white/5"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -444,215 +282,546 @@ import Layout from "../layouts/Layout.astro";
                                 viewBox="0 0 24 24"
                                 stroke-width="1.5"
                                 stroke="currentColor"
-                                class="w-8 h-8 text-white"
-                                ><path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
-                                ></path></svg
-                            >
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-1">
-                            Need help?
-                        </h3>
-                        <p class="text-zinc-400 text-sm mb-6">
-                            Contact our support team for assistance.
-                        </p>
-                        <a
-                            href="https://t.me/Tanyaay0mi_bot"
-                            target="_blank"
-                            class="block w-full py-3 bg-[#229ED9] text-white font-bold rounded-xl hover:bg-[#1f8dbf] transition-colors shadow-lg active:scale-95 flex items-center justify-center gap-2"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke-width="2"
-                                stroke="currentColor"
-                                class="w-5 h-5"
+                                class="w-6 h-6"
                             >
                                 <path
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
-                                    d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
+                                    d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H4.5a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"
                                 ></path>
                             </svg>
-                            Chat on Telegram
-                        </a>
-                    </div>
-
-                    <!-- FAQ -->
-                    <div>
-                        <h3
-                            class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-4"
-                        >
-                            Common Questions
-                        </h3>
-                        <div class="space-y-5">
-                            <div class="group">
-                                <h4
-                                    class="font-bold text-zinc-200 group-hover:text-white mb-1 text-sm transition-colors"
-                                >
-                                    Video is buffering?
-                                </h4>
-                                <p
-                                    class="text-xs text-zinc-400 leading-relaxed"
-                                >
-                                    Check your internet connection. Try
-                                    switching Video Quality to "Data Saver" or
-                                    "720p".
-                                </p>
-                            </div>
-                            <div class="group">
-                                <h4
-                                    class="font-bold text-zinc-200 group-hover:text-white mb-1 text-sm transition-colors"
-                                >
-                                    Can I download movies?
-                                </h4>
-                                <p
-                                    class="text-xs text-zinc-400 leading-relaxed"
-                                >
-                                    Offline viewing is currently not supported
-                                    in the web version.
-                                </p>
-                            </div>
-                            <div class="group">
-                                <h4
-                                    class="font-bold text-zinc-200 group-hover:text-white mb-1 text-sm transition-colors"
-                                >
-                                    My account
-                                </h4>
-                                <p
-                                    class="text-xs text-zinc-400 leading-relaxed"
-                                >
-                                    You can change your password and manage
-                                    profile in the "Account" section.
-                                </p>
-                            </div>
+                        </div>
+                        <div>
+                            <span
+                                class="font-bold text-base block text-zinc-100 group-hover:text-white transition-colors"
+                                >Donate</span
+                            >
+                            <span
+                                class="text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors"
+                                >Support Us</span
+                            >
                         </div>
                     </div>
-                </div>
-            </div>
-            <div
-                id="modal-logout"
-                class="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm hidden flex items-center justify-center p-4 animate-in fade-in duration-200"
-            >
-                <div
-                    class="w-full max-w-sm bg-zinc-900 border border-white/10 rounded-2xl p-6 shadow-2xl scale-100 animate-in zoom-in-95 duration-200"
-                >
-                    <h3 class="text-xl font-bold text-white mb-2 text-center">
-                        Sign Out
-                    </h3>
-                    <p class="text-zinc-400 text-center mb-6 text-sm">
-                        Are you sure you want to sign out of active session?
-                    </p>
-                    <div class="flex gap-3">
-                        <button
-                            id="btn-logout-cancel"
-                            class="flex-1 py-3 rounded-xl font-semibold text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-all active:scale-95"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            id="btn-logout-confirm"
-                            class="flex-1 py-3 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 shadow-lg shadow-red-900/20 transition-all active:scale-95"
-                        >
-                            Yes, Sign Out
-                        </button>
-                    </div>
-                </div>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="2.5"
+                        stroke="currentColor"
+                        class="w-5 h-5 text-zinc-600 group-hover:translate-x-1 group-hover:text-white transition-all"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M8.25 4.5l7.5 7.5-7.5 7.5"></path>
+                    </svg>
+                </button>
             </div>
 
-            <!-- Edit Profile Modal (Enhanced) -->
-            <div
-                id="modal-edit-profile"
-                class="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl hidden flex items-center justify-center p-4"
-            >
-                <div
-                    class="w-full max-w-sm bg-zinc-950 border border-white/10 rounded-3xl p-6 relative shadow-2xl animate-in fade-in zoom-in duration-300 ring-1 ring-white/5 max-h-[90vh] overflow-y-auto no-scrollbar"
+            <div class="px-4">
+                <button
+                    id="btn-logout"
+                    class="w-full p-4 mt-4 text-center text-white font-bold border border-red-900 rounded-2xl hover:bg-red-900 transition-all active:scale-95 text-sm uppercase tracking-widest bg-red-800 shadow-lg shadow-red-900/20"
                 >
+                    Sign Out
+                </button>
+                <p class="text-center text-[10px] text-zinc-700 mt-6 font-mono">
+                    v1.2.0-beta
+                </p>
+            </div>
+        </div>
+
+        <!-- Modals -->
+
+        <!-- App Settings Modal -->
+        <div
+            id="modal-app-settings"
+            class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex flex-col animate-in slide-in-from-bottom duration-300"
+        >
+            <div
+                class="flex items-center justify-between p-6 bg-zinc-900/80 border-b border-white/5"
+            >
+                <h2 class="text-xl font-black tracking-tight">App Settings</h2>
+                <button
+                    id="close-app-settings"
+                    class="p-2 -mr-2 text-zinc-400 hover:text-white bg-white/5 rounded-full hover:bg-white/10 transition-all"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="2"
+                        stroke="currentColor"
+                        class="w-5 h-5"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6 space-y-6 overflow-y-auto">
+                <!-- Autoplay -->
+                <div class="flex items-center justify-between group">
+                    <div>
+                        <h3
+                            class="font-bold text-white group-hover:text-red-500 transition-colors"
+                        >
+                            Autoplay Next Episode
+                        </h3>
+                        <p class="text-xs text-zinc-400">
+                            Automatically play the next episode when one ends
+                        </p>
+                    </div>
                     <button
-                        id="close-edit-profile"
-                        class="absolute top-4 right-4 z-10 text-zinc-400 hover:text-white bg-white/5 p-2 rounded-full hover:bg-white/10 transition"
+                        id="toggle-autoplay"
+                        class="w-12 h-6 bg-zinc-700 rounded-full relative transition-colors duration-200"
+                        data-active="false"
+                    >
+                        <div
+                            class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-transform duration-200 shadow-sm"
+                        >
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Video Quality -->
+                <div class="flex items-center justify-between group">
+                    <div>
+                        <h3
+                            class="font-bold text-white group-hover:text-red-500 transition-colors"
+                        >
+                            Video Quality
+                        </h3>
+                        <p class="text-xs text-zinc-400">
+                            Default playback resolution
+                        </p>
+                    </div>
+                    <select
+                        id="select-quality"
+                        class="bg-zinc-800 text-white text-xs font-bold rounded-lg border border-white/10 px-3 py-2 outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition-all cursor-pointer"
+                    >
+                        <option value="auto">Auto (Recommended)</option>
+                        <option value="1080p">High (1080p)</option>
+                        <option value="720p">Medium (720p)</option>
+                        <option value="480p">Data Saver (480p)</option>
+                    </select>
+                </div>
+
+                <!-- Data Saver -->
+                <div class="flex items-center justify-between group">
+                    <div>
+                        <h3
+                            class="font-bold text-white group-hover:text-red-500 transition-colors"
+                        >
+                            Data Saver
+                        </h3>
+                        <p class="text-xs text-zinc-400">
+                            Reduce quality on mobile data
+                        </p>
+                    </div>
+                    <button
+                        id="toggle-datasaver"
+                        class="w-12 h-6 bg-zinc-700 rounded-full relative transition-colors duration-200"
+                        data-active="false"
+                    >
+                        <div
+                            class="w-4 h-4 bg-white rounded-full absolute top-1 left-1 transition-transform duration-200 shadow-sm"
+                        >
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Clear Cache (Utility) -->
+                <div class="border-t border-white/5 pt-4">
+                    <button
+                        id="btn-clear-cache"
+                        class="w-full py-3 text-xs font-bold text-red-500 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-xl transition-all"
+                    >
+                        Clear App Cache
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help & Support Modal -->
+        <div
+            id="modal-help"
+            class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex flex-col animate-in slide-in-from-bottom duration-300"
+        >
+            <div
+                class="flex items-center justify-between p-6 bg-zinc-900/80 border-b border-white/5"
+            >
+                <h2 class="text-xl font-black tracking-tight">
+                    Help & Support
+                </h2>
+                <button
+                    id="close-help"
+                    class="p-2 -mr-2 text-zinc-400 hover:text-white bg-white/5 rounded-full hover:bg-white/10 transition-all"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="2"
+                        stroke="currentColor"
+                        class="w-5 h-5"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6 space-y-6 overflow-y-auto">
+                <!-- Contact Section -->
+                <div
+                    class="bg-zinc-800/50 p-6 rounded-3xl border border-white/5 text-center"
+                >
+                    <div
+                        class="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/5 shadow-lg"
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
                             viewBox="0 0 24 24"
-                            stroke-width="2.5"
+                            stroke-width="1.5"
                             stroke="currentColor"
-                            class="w-5 h-5"
+                            class="w-8 h-8 text-white"
                             ><path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
-                                d="M6 18L18 6M6 6l12 12"></path></svg
+                                d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+                            ></path></svg
                         >
-                    </button>
-                    <h2
-                        class="text-2xl font-black mb-6 text-center tracking-tight"
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-1">
+                        Need help?
+                    </h3>
+                    <p class="text-zinc-400 text-sm mb-6">
+                        Contact our support team for assistance.
+                    </p>
+                    <a
+                        href="https://t.me/Tanyaay0mi_bot"
+                        target="_blank"
+                        class="block w-full py-3 bg-[#229ED9] text-white font-bold rounded-xl hover:bg-[#1f8dbf] transition-colors shadow-lg active:scale-95 flex items-center justify-center gap-2"
                     >
-                        Edit Profile
-                    </h2>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="2"
+                            stroke="currentColor"
+                            class="w-5 h-5"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
+                            ></path>
+                        </svg>
+                        Chat on Telegram
+                    </a>
+                </div>
 
-                    <div class="flex flex-col gap-6">
-                        <!-- Name Input -->
-                        <div>
-                            <label
-                                class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-wide"
-                                >Display Name</label
+                <!-- FAQ -->
+                <div>
+                    <h3
+                        class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-4"
+                    >
+                        Common Questions
+                    </h3>
+                    <div class="space-y-5">
+                        <div class="group">
+                            <h4
+                                class="font-bold text-zinc-200 group-hover:text-white mb-1 text-sm transition-colors"
                             >
-                            <input
-                                type="text"
-                                id="input-edit-name"
-                                class="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-4 text-white focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all placeholder-zinc-700 font-bold"
-                                placeholder="Enter your name"
-                            />
+                                Video is buffering?
+                            </h4>
+                            <p class="text-xs text-zinc-400 leading-relaxed">
+                                Check your internet connection. Try switching
+                                Video Quality to "Data Saver" or "720p".
+                            </p>
                         </div>
-
-                        <!-- Advanced Upload Section -->
-                        <div>
-                            <label
-                                class="block text-xs font-bold text-zinc-500 mb-3 uppercase tracking-wide"
-                                >Profile Picture</label
+                        <div class="group">
+                            <h4
+                                class="font-bold text-zinc-200 group-hover:text-white mb-1 text-sm transition-colors"
                             >
-                            <div class="space-y-4 relative">
-                                <!-- Loading Overlay -->
-                                <div
-                                    id="upload-loading"
-                                    class="hidden absolute inset-0 z-20 bg-black/80 flex flex-col items-center justify-center rounded-xl backdrop-blur-sm transition-all duration-300"
+                                Can I download movies?
+                            </h4>
+                            <p class="text-xs text-zinc-400 leading-relaxed">
+                                Offline viewing is currently not supported in
+                                the web version.
+                            </p>
+                        </div>
+                        <div class="group">
+                            <h4
+                                class="font-bold text-zinc-200 group-hover:text-white mb-1 text-sm transition-colors"
+                            >
+                                My account
+                            </h4>
+                            <p class="text-xs text-zinc-400 leading-relaxed">
+                                You can change your password and manage profile
+                                in the "Account" section.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Donate Modal -->
+        <div
+            id="modal-donate"
+            class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex flex-col animate-in slide-in-from-bottom duration-300"
+        >
+            <div
+                class="flex items-center justify-between p-6 bg-zinc-900/80 border-b border-white/5"
+            >
+                <h2 class="text-xl font-black tracking-tight">Support Us</h2>
+                <button
+                    id="close-donate"
+                    class="p-2 -mr-2 text-zinc-400 hover:text-white bg-white/5 rounded-full hover:bg-white/10 transition-all"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="2"
+                        stroke="currentColor"
+                        class="w-5 h-5"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div
+                class="p-6 overflow-y-auto flex flex-col items-center justify-center flex-1"
+            >
+                <p class="text-zinc-400 text-center mb-6 text-sm max-w-xs">
+                    Scan QRIS below to support the developer. Thank you! ❤️
+                </p>
+                <div
+                    class="bg-white p-4 rounded-3xl shadow-2xl skew-y-1 transform transition-all hover:skew-y-0 hover:scale-105 duration-500 ring-4 ring-white/10"
+                >
+                    <img
+                        src="/qris.jpg"
+                        alt="QRIS Donate"
+                        class="w-64 h-auto rounded-xl"
+                    />
+                </div>
+            </div>
+        </div>
+        <div
+            id="modal-logout"
+            class="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm hidden flex items-center justify-center p-4 animate-in fade-in duration-200"
+        >
+            <div
+                class="w-full max-w-sm bg-zinc-900 border border-white/10 rounded-2xl p-6 shadow-2xl scale-100 animate-in zoom-in-95 duration-200"
+            >
+                <h3 class="text-xl font-bold text-white mb-2 text-center">
+                    Sign Out
+                </h3>
+                <p class="text-zinc-400 text-center mb-6 text-sm">
+                    Are you sure you want to sign out of active session?
+                </p>
+                <div class="flex gap-3">
+                    <button
+                        id="btn-logout-cancel"
+                        class="flex-1 py-3 rounded-xl font-semibold text-white bg-white/5 border border-white/10 hover:bg-white/10 transition-all active:scale-95"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        id="btn-logout-confirm"
+                        class="flex-1 py-3 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 shadow-lg shadow-red-900/20 transition-all active:scale-95"
+                    >
+                        Yes, Sign Out
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Profile Modal (Enhanced) -->
+        <div
+            id="modal-edit-profile"
+            class="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl hidden flex items-center justify-center p-4"
+        >
+            <div
+                class="w-full max-w-sm bg-zinc-950 border border-white/10 rounded-3xl p-6 relative shadow-2xl animate-in fade-in zoom-in duration-300 ring-1 ring-white/5 max-h-[90vh] overflow-y-auto no-scrollbar"
+            >
+                <button
+                    id="close-edit-profile"
+                    class="absolute top-4 right-4 z-10 text-zinc-400 hover:text-white bg-white/5 p-2 rounded-full hover:bg-white/10 transition"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="2.5"
+                        stroke="currentColor"
+                        class="w-5 h-5"
+                        ><path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M6 18L18 6M6 6l12 12"></path></svg
+                    >
+                </button>
+                <h2 class="text-2xl font-black mb-6 text-center tracking-tight">
+                    Edit Profile
+                </h2>
+
+                <div class="flex flex-col gap-6">
+                    <!-- Name Input -->
+                    <div>
+                        <label
+                            class="block text-xs font-bold text-zinc-500 mb-2 uppercase tracking-wide"
+                            >Display Name</label
+                        >
+                        <input
+                            type="text"
+                            id="input-edit-name"
+                            class="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-4 text-white focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all placeholder-zinc-700 font-bold"
+                            placeholder="Enter your name"
+                        />
+                    </div>
+
+                    <!-- Advanced Upload Section -->
+                    <div>
+                        <label
+                            class="block text-xs font-bold text-zinc-500 mb-3 uppercase tracking-wide"
+                            >Profile Picture</label
+                        >
+                        <div class="space-y-4 relative">
+                            <!-- Loading Overlay -->
+                            <div
+                                id="upload-loading"
+                                class="hidden absolute inset-0 z-20 bg-black/80 flex flex-col items-center justify-center rounded-xl backdrop-blur-sm transition-all duration-300"
+                            >
+                                <svg
+                                    class="animate-spin h-8 w-8 text-red-600 mb-2"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
                                 >
-                                    <svg
-                                        class="animate-spin h-8 w-8 text-red-600 mb-2"
+                                    <circle
+                                        class="opacity-25"
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        stroke-width="4"></circle>
+                                    <path
+                                        class="opacity-75"
+                                        fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                    ></path>
+                                </svg>
+                                <span
+                                    id="loading-text"
+                                    class="text-xs font-bold text-white tracking-widest"
+                                    >PROCESSING</span
+                                >
+                            </div>
+
+                            <!-- File Upload Trigger -->
+                            <button
+                                onclick="document.getElementById('file-upload').click()"
+                                class="w-full py-3 border-2 border-dashed border-zinc-700 rounded-xl flex items-center justify-center gap-2 text-zinc-400 hover:text-white hover:border-zinc-500 hover:bg-white/5 transition-all"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="w-5 h-5"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+                                    ></path>
+                                </svg>
+                                <span class="font-bold text-sm"
+                                    >Upload Photo (Auto-Compress)</span
+                                >
+                            </button>
+                            <input
+                                type="file"
+                                id="file-upload"
+                                accept="image/*"
+                                class="hidden"
+                            />
+                            <p
+                                id="upload-error"
+                                class="text-red-500 text-xs text-center hidden font-bold"
+                            >
+                            </p>
+
+                            <!-- Cropper Area (Hidden initially) -->
+                            <div
+                                id="cropper-container"
+                                class="hidden relative bg-black rounded-xl overflow-hidden aspect-square border border-white/10"
+                            >
+                                <img
+                                    id="cropper-image"
+                                    src=""
+                                    class="max-w-full block"
+                                />
+                            </div>
+
+                            <!-- Editor Controls (Hidden initially) -->
+                            <div
+                                id="editor-controls"
+                                class="hidden grid grid-cols-4 gap-2"
+                            >
+                                <button
+                                    type="button"
+                                    id="btn-zoom-in"
+                                    class="bg-zinc-800 p-2 rounded-lg hover:bg-zinc-700 text-white flex justify-center border border-white/5"
+                                    ><svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         fill="none"
                                         viewBox="0 0 24 24"
-                                    >
-                                        <circle
-                                            class="opacity-25"
-                                            cx="12"
-                                            cy="12"
-                                            r="10"
-                                            stroke="currentColor"
-                                            stroke-width="4"></circle>
-                                        <path
-                                            class="opacity-75"
-                                            fill="currentColor"
-                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                        ></path>
-                                    </svg>
-                                    <span
-                                        id="loading-text"
-                                        class="text-xs font-bold text-white tracking-widest"
-                                        >PROCESSING</span
-                                    >
-                                </div>
-
-                                <!-- File Upload Trigger -->
-                                <button
-                                    onclick="document.getElementById('file-upload').click()"
-                                    class="w-full py-3 border-2 border-dashed border-zinc-700 rounded-xl flex items-center justify-center gap-2 text-zinc-400 hover:text-white hover:border-zinc-500 hover:bg-white/5 transition-all"
+                                        stroke-width="1.5"
+                                        stroke="currentColor"
+                                        class="w-5 h-5"
+                                        ><path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6"
+                                        ></path></svg
+                                    ></button
                                 >
-                                    <svg
+                                <button
+                                    type="button"
+                                    id="btn-zoom-out"
+                                    class="bg-zinc-800 p-2 rounded-lg hover:bg-zinc-700 text-white flex justify-center border border-white/5"
+                                    ><svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke-width="1.5"
+                                        stroke="currentColor"
+                                        class="w-5 h-5"
+                                        ><path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM13.5 10.5h-6"
+                                        ></path></svg
+                                    ></button
+                                >
+                                <button
+                                    type="button"
+                                    id="btn-rotate-left"
+                                    class="bg-zinc-800 p-2 rounded-lg hover:bg-zinc-700 text-white flex justify-center border border-white/5"
+                                    ><svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         fill="none"
                                         viewBox="0 0 24 24"
@@ -663,1059 +832,949 @@ import Layout from "../layouts/Layout.astro";
                                         <path
                                             stroke-linecap="round"
                                             stroke-linejoin="round"
-                                            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+                                            d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
                                         ></path>
-                                    </svg>
-                                    <span class="font-bold text-sm"
-                                        >Upload Photo (Auto-Compress)</span
-                                    >
-                                </button>
-                                <input
-                                    type="file"
-                                    id="file-upload"
-                                    accept="image/*"
-                                    class="hidden"
-                                />
-                                <p
-                                    id="upload-error"
-                                    class="text-red-500 text-xs text-center hidden font-bold"
+                                    </svg></button
                                 >
-                                </p>
-
-                                <!-- Cropper Area (Hidden initially) -->
-                                <div
-                                    id="cropper-container"
-                                    class="hidden relative bg-black rounded-xl overflow-hidden aspect-square border border-white/10"
+                                <button
+                                    type="button"
+                                    id="btn-flip-h"
+                                    class="bg-zinc-800 p-2 rounded-lg hover:bg-zinc-700 text-white flex justify-center border border-white/5"
+                                    ><svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke-width="1.5"
+                                        stroke="currentColor"
+                                        class="w-5 h-5"
+                                        ><path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"
+                                        ></path></svg
+                                    ></button
                                 >
-                                    <img
-                                        id="cropper-image"
-                                        src=""
-                                        class="max-w-full block"
-                                    />
-                                </div>
-
-                                <!-- Editor Controls (Hidden initially) -->
-                                <div
-                                    id="editor-controls"
-                                    class="hidden grid grid-cols-4 gap-2"
-                                >
-                                    <button
-                                        type="button"
-                                        id="btn-zoom-in"
-                                        class="bg-zinc-800 p-2 rounded-lg hover:bg-zinc-700 text-white flex justify-center border border-white/5"
-                                        ><svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke-width="1.5"
-                                            stroke="currentColor"
-                                            class="w-5 h-5"
-                                            ><path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6"
-                                            ></path></svg
-                                        ></button
-                                    >
-                                    <button
-                                        type="button"
-                                        id="btn-zoom-out"
-                                        class="bg-zinc-800 p-2 rounded-lg hover:bg-zinc-700 text-white flex justify-center border border-white/5"
-                                        ><svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke-width="1.5"
-                                            stroke="currentColor"
-                                            class="w-5 h-5"
-                                            ><path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM13.5 10.5h-6"
-                                            ></path></svg
-                                        ></button
-                                    >
-                                    <button
-                                        type="button"
-                                        id="btn-rotate-left"
-                                        class="bg-zinc-800 p-2 rounded-lg hover:bg-zinc-700 text-white flex justify-center border border-white/5"
-                                        ><svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke-width="1.5"
-                                            stroke="currentColor"
-                                            class="w-5 h-5"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
-                                            ></path>
-                                        </svg></button
-                                    >
-                                    <button
-                                        type="button"
-                                        id="btn-flip-h"
-                                        class="bg-zinc-800 p-2 rounded-lg hover:bg-zinc-700 text-white flex justify-center border border-white/5"
-                                        ><svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke-width="1.5"
-                                            stroke="currentColor"
-                                            class="w-5 h-5"
-                                            ><path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"
-                                            ></path></svg
-                                        ></button
-                                    >
-                                </div>
                             </div>
-                        </div>
-
-                        <!-- Avatar Selection Fallback -->
-                        <div class="border-t border-white/5 pt-4">
-                            <label
-                                class="block text-[10px] font-bold text-zinc-600 mb-3 uppercase tracking-wide"
-                                >Or Choose Default</label
-                            >
-                            <div
-                                class="flex gap-3 overflow-x-auto pb-2 p-2 no-scrollbar"
-                            >
-                                {
-                                    [
-                                        "https://api.dicebear.com/9.x/avataaars/svg?seed=Felix",
-                                        "https://api.dicebear.com/9.x/avataaars/svg?seed=Aneka",
-                                        "https://api.dicebear.com/9.x/avataaars/svg?seed=Zoe",
-                                        "https://api.dicebear.com/9.x/avataaars/svg?seed=Luka",
-                                        "https://api.dicebear.com/9.x/avataaars/svg?seed=Jack",
-                                    ].map((src, i) => (
-                                        <div
-                                            class="w-12 h-12 rounded-full bg-zinc-800 flex-shrink-0 cursor-pointer hover:ring-2 ring-red-500 border border-white/5 transition-all flex items-center justify-center hover:scale-110 active:scale-95 overflow-hidden"
-                                            data-avatar-option={src}
-                                        >
-                                            <img
-                                                src={src}
-                                                class="w-full h-full object-cover"
-                                            />
-                                        </div>
-                                    ))
-                                }
-                            </div>
-                        </div>
-
-                        <div class="flex gap-3 mt-4">
-                            <button
-                                id="cancel-profile-btn"
-                                class="flex-1 py-4 font-bold text-zinc-400 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl transition-all"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                id="save-profile-btn"
-                                class="flex-1 bg-red-600 text-white font-bold py-4 rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-900/20 active:scale-[0.98] tracking-wide"
-                            >
-                                Save Changes
-                            </button>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Account Overlay (Simple) -->
-            <div
-                id="modal-account"
-                class="fixed inset-0 z-50 bg-black/90 hidden flex flex-col animate-in slide-in-from-bottom duration-300"
-            >
-                <div
-                    class="flex items-center justify-between p-6 bg-zinc-900/50 border-b border-white/5"
-                >
-                    <h2 class="text-xl font-bold">Account</h2>
-                    <button
-                        id="close-account"
-                        class="p-2 -mr-2 text-zinc-400 hover:text-white bg-white/5 rounded-full hover:bg-white/10 transition-all"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="2.5"
-                            stroke="currentColor"
-                            class="w-5 h-5"
-                            ><path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M6 18L18 6M6 6l12 12"></path></svg
+                    <!-- Avatar Selection Fallback -->
+                    <div class="border-t border-white/5 pt-4">
+                        <label
+                            class="block text-[10px] font-bold text-zinc-600 mb-3 uppercase tracking-wide"
+                            >Or Choose Default</label
                         >
-                    </button>
-                </div>
-                <div class="p-6 space-y-6">
-                    <div>
-                        <p
-                            class="text-zinc-500 text-xs font-bold uppercase mb-4 tracking-wider"
+                        <div
+                            class="flex gap-3 overflow-x-auto pb-2 p-2 no-scrollbar"
                         >
-                            Security & Login
-                        </p>
+                            {
+                                [
+                                    "https://api.dicebear.com/9.x/avataaars/svg?seed=Felix",
+                                    "https://api.dicebear.com/9.x/avataaars/svg?seed=Aneka",
+                                    "https://api.dicebear.com/9.x/avataaars/svg?seed=Zoe",
+                                    "https://api.dicebear.com/9.x/avataaars/svg?seed=Luka",
+                                    "https://api.dicebear.com/9.x/avataaars/svg?seed=Jack",
+                                ].map((src, i) => (
+                                    <div
+                                        class="w-12 h-12 rounded-full bg-zinc-800 flex-shrink-0 cursor-pointer hover:ring-2 ring-red-500 border border-white/5 transition-all flex items-center justify-center hover:scale-110 active:scale-95 overflow-hidden"
+                                        data-avatar-option={src}
+                                    >
+                                        <img
+                                            src={src}
+                                            class="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                ))
+                            }
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3 mt-4">
                         <button
-                            type="button"
-                            id="btn-change-password-trigger"
-                            class="w-full bg-white/5 text-white p-5 rounded-2xl flex justify-between items-center hover:bg-white/10 transition-all border border-white/5 group active:scale-[0.99] cursor-pointer"
+                            id="cancel-profile-btn"
+                            class="flex-1 py-4 font-bold text-zinc-400 hover:text-white bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-xl transition-all"
                         >
-                            <span class="font-bold">Change Password</span>
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke-width="2"
-                                stroke="currentColor"
-                                class="w-5 h-5 text-zinc-500 group-hover:translate-x-1 group-hover:text-white transition-all"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M8.25 4.5l7.5 7.5-7.5 7.5"></path>
-                            </svg>
+                            Cancel
+                        </button>
+                        <button
+                            id="save-profile-btn"
+                            class="flex-1 bg-red-600 text-white font-bold py-4 rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-900/20 active:scale-[0.98] tracking-wide"
+                        >
+                            Save Changes
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Change Password Modal -->
+        <!-- Account Overlay (Simple) -->
         <div
-            id="modal-change-password"
-            class="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 animate-in fade-in duration-300"
+            id="modal-account"
+            class="fixed inset-0 z-50 bg-black/90 hidden flex flex-col animate-in slide-in-from-bottom duration-300"
         >
             <div
-                class="w-full max-w-md bg-zinc-900 rounded-2xl border border-white/10 shadow-2xl overflow-hidden"
+                class="flex items-center justify-between p-6 bg-zinc-900/50 border-b border-white/5"
             >
-                <div
-                    class="flex items-center justify-between p-6 border-b border-white/5 bg-zinc-900/50"
+                <h2 class="text-xl font-bold">Account</h2>
+                <button
+                    id="close-account"
+                    class="p-2 -mr-2 text-zinc-400 hover:text-white bg-white/5 rounded-full hover:bg-white/10 transition-all"
                 >
-                    <h2 class="text-xl font-bold text-white">
-                        Change Password
-                    </h2>
-                    <button
-                        id="close-change-password"
-                        class="p-2 -mr-2 text-zinc-400 hover:text-white bg-white/5 rounded-full hover:bg-white/10 transition-all"
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="2.5"
+                        stroke="currentColor"
+                        class="w-5 h-5"
+                        ><path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M6 18L18 6M6 6l12 12"></path></svg
                     >
+                </button>
+            </div>
+            <div class="p-6 space-y-6">
+                <div>
+                    <p
+                        class="text-zinc-500 text-xs font-bold uppercase mb-4 tracking-wider"
+                    >
+                        Security & Login
+                    </p>
+                    <button
+                        type="button"
+                        id="btn-change-password-trigger"
+                        class="w-full bg-white/5 text-white p-5 rounded-2xl flex justify-between items-center hover:bg-white/10 transition-all border border-white/5 group active:scale-[0.99] cursor-pointer"
+                    >
+                        <span class="font-bold">Change Password</span>
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            class="w-5 h-5"
                             fill="none"
                             viewBox="0 0 24 24"
-                            stroke="currentColor"
                             stroke-width="2"
+                            stroke="currentColor"
+                            class="w-5 h-5 text-zinc-500 group-hover:translate-x-1 group-hover:text-white transition-all"
                         >
                             <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
-                                d="M6 18L18 6M6 6l12 12"></path>
+                                d="M8.25 4.5l7.5 7.5-7.5 7.5"></path>
                         </svg>
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
 
-                <div class="p-6 space-y-4">
-                    <div
-                        id="password-error"
-                        class="hidden w-full bg-red-500/10 border border-red-500/20 text-red-500 text-sm px-4 py-3 rounded-lg"
+    <!-- Change Password Modal -->
+    <div
+        id="modal-change-password"
+        class="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 animate-in fade-in duration-300"
+    >
+        <div
+            class="w-full max-w-md bg-zinc-900 rounded-2xl border border-white/10 shadow-2xl overflow-hidden"
+        >
+            <div
+                class="flex items-center justify-between p-6 border-b border-white/5 bg-zinc-900/50"
+            >
+                <h2 class="text-xl font-bold text-white">Change Password</h2>
+                <button
+                    id="close-change-password"
+                    class="p-2 -mr-2 text-zinc-400 hover:text-white bg-white/5 rounded-full hover:bg-white/10 transition-all"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="w-5 h-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
                     >
-                    </div>
-                    <div
-                        id="password-success"
-                        class="hidden w-full bg-green-500/10 border border-green-500/20 text-green-500 text-sm px-4 py-3 rounded-lg"
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <div
+                    id="password-error"
+                    class="hidden w-full bg-red-500/10 border border-red-500/20 text-red-500 text-sm px-4 py-3 rounded-lg"
+                >
+                </div>
+                <div
+                    id="password-success"
+                    class="hidden w-full bg-green-500/10 border border-green-500/20 text-green-500 text-sm px-4 py-3 rounded-lg"
+                >
+                </div>
+
+                <div>
+                    <label
+                        class="block text-xs font-bold text-zinc-500 uppercase mb-2"
+                        >Old Password</label
                     >
-                    </div>
-
-                    <div>
-                        <label
-                            class="block text-xs font-bold text-zinc-500 uppercase mb-2"
-                            >Old Password</label
-                        >
-                        <div class="relative">
-                            <input
-                                type="password"
-                                id="input-old-password"
-                                class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 pr-10 text-white focus:outline-none focus:border-red-600 transition-colors"
-                                placeholder="Enter current password"
-                            />
-                            <button
-                                type="button"
-                                id="toggle-old-password"
-                                class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white focus:outline-none cursor-pointer"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    class="w-5 h-5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                    ></path>
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                    ></path>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                    <div>
-                        <label
-                            class="block text-xs font-bold text-zinc-500 uppercase mb-2"
-                            >New Password</label
-                        >
-                        <div class="relative">
-                            <input
-                                type="password"
-                                id="input-new-password"
-                                class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 pr-10 text-white focus:outline-none focus:border-red-600 transition-colors"
-                                placeholder="Enter new password"
-                            />
-                            <button
-                                type="button"
-                                id="toggle-new-password"
-                                class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white focus:outline-none cursor-pointer"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    class="w-5 h-5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                    ></path>
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                    ></path>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                    <div>
-                        <label
-                            class="block text-xs font-bold text-zinc-500 uppercase mb-2"
-                            >Confirm New Password</label
-                        >
-                        <div class="relative">
-                            <input
-                                type="password"
-                                id="input-confirm-password"
-                                class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 pr-10 text-white focus:outline-none focus:border-red-600 transition-colors"
-                                placeholder="Confirm new password"
-                            />
-                            <button
-                                type="button"
-                                id="toggle-confirm-password"
-                                class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white focus:outline-none cursor-pointer"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    class="w-5 h-5"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                    ></path>
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                    ></path>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="pt-4 flex gap-3">
+                    <div class="relative">
+                        <input
+                            type="password"
+                            id="input-old-password"
+                            class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 pr-10 text-white focus:outline-none focus:border-red-600 transition-colors"
+                            placeholder="Enter current password"
+                        />
                         <button
-                            id="btn-cancel-password"
-                            class="flex-1 py-3 font-bold text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 rounded-xl transition-all"
-                            >Cancel</button
+                            type="button"
+                            id="toggle-old-password"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white focus:outline-none cursor-pointer"
                         >
-                        <button
-                            id="btn-save-password"
-                            class="flex-1 bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 shadow-lg shadow-red-900/20 transition-all"
-                            >Update Password</button
-                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="w-5 h-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                ></path>
+                            </svg>
+                        </button>
                     </div>
+                </div>
+                <div>
+                    <label
+                        class="block text-xs font-bold text-zinc-500 uppercase mb-2"
+                        >New Password</label
+                    >
+                    <div class="relative">
+                        <input
+                            type="password"
+                            id="input-new-password"
+                            class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 pr-10 text-white focus:outline-none focus:border-red-600 transition-colors"
+                            placeholder="Enter new password"
+                        />
+                        <button
+                            type="button"
+                            id="toggle-new-password"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white focus:outline-none cursor-pointer"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="w-5 h-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                ></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label
+                        class="block text-xs font-bold text-zinc-500 uppercase mb-2"
+                        >Confirm New Password</label
+                    >
+                    <div class="relative">
+                        <input
+                            type="password"
+                            id="input-confirm-password"
+                            class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 pr-10 text-white focus:outline-none focus:border-red-600 transition-colors"
+                            placeholder="Confirm new password"
+                        />
+                        <button
+                            type="button"
+                            id="toggle-confirm-password"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white focus:outline-none cursor-pointer"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="w-5 h-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                ></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="pt-4 flex gap-3">
+                    <button
+                        id="btn-cancel-password"
+                        class="flex-1 py-3 font-bold text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 rounded-xl transition-all"
+                        >Cancel</button
+                    >
+                    <button
+                        id="btn-save-password"
+                        class="flex-1 bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 shadow-lg shadow-red-900/20 transition-all"
+                        >Update Password</button
+                    >
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Cropper JS & Compressor JS CDN -->
-        <script
-            src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"
-            referrerpolicy="no-referrer"></script>
+    <!-- Cropper JS & Compressor JS CDN -->
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"
+        referrerpolicy="no-referrer"></script>
 
-        <script>
-            const API_BASE = "/api";
+    <script>
+        const API_BASE = "/api";
 
-            // 1. Auth Check
-            const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-            const userStr = localStorage.getItem("user");
-            const token = localStorage.getItem("token");
+        // 1. Auth Check
+        const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+        const userStr = localStorage.getItem("user");
+        const token = localStorage.getItem("token");
 
-            // Logs removed for production cleanliness
+        // Logs removed for production cleanliness
 
-            if (!isLoggedIn || !userStr || !token) {
-                console.error("Auth Failed! Missing:", {
-                    isLoggedIn: !isLoggedIn,
-                    noUser: !userStr,
-                    noToken: !token,
+        if (!isLoggedIn || !userStr || !token) {
+            console.error("Auth Failed! Missing:", {
+                isLoggedIn: !isLoggedIn,
+                noUser: !userStr,
+                noToken: !token,
+            });
+            // TEMPORARY DEBUG: Disable redirect to see logs
+            // localStorage.removeItem("isLoggedIn");
+            // localStorage.removeItem("user");
+            // localStorage.removeItem("token");
+            // window.location.href = "/";
+            // throw new Error("Redirecting to home");
+            alert("Debug Mode: Auth Missing. Check Console.");
+        }
+
+        let user; // Declare user outside try-catch for broader scope
+        try {
+            if (!userStr) throw new Error("User data not found");
+            user = JSON.parse(userStr);
+        } catch (error) {
+            console.error("Failed to parse user data:", error);
+            alert("Error loading user data. Please log in again.");
+            localStorage.removeItem("isLoggedIn");
+            localStorage.removeItem("user");
+            localStorage.removeItem("token");
+            window.location.href = "/";
+            throw new Error("User data parsing failed, redirecting.");
+        }
+
+        let selectedAvatar = user.avatar || ""; // For defaulting to current
+        let cropperInstance: any = null; // To hold Cropper instance
+
+        // 2. Render Profile
+        const nameData = document.getElementById("profile-name");
+        const emailData = document.getElementById("profile-email");
+        const avatarImg = document.getElementById(
+            "profile-avatar",
+        ) as HTMLImageElement;
+        const initialSpan = document.getElementById("profile-initial");
+
+        const updateProfileUI = (usr: any) => {
+            if (nameData) nameData.textContent = usr.name || "User";
+            if (emailData) emailData.textContent = usr.email || "";
+
+            if (usr.avatar) {
+                if (avatarImg) {
+                    avatarImg.src = usr.avatar;
+                    avatarImg.classList.remove("hidden");
+                }
+                if (initialSpan) initialSpan.classList.add("hidden");
+            } else {
+                if (avatarImg) avatarImg.classList.add("hidden");
+                if (initialSpan) {
+                    initialSpan.classList.remove("hidden");
+                    initialSpan.textContent = (usr.name || "U")
+                        .charAt(0)
+                        .toUpperCase();
+                }
+            }
+        };
+
+        updateProfileUI(user);
+
+        // 3. Logout Logic
+        const logoutModal = document.getElementById("modal-logout");
+        const closeLogoutBtn = document.getElementById("btn-logout-cancel");
+        const confirmLogoutBtn = document.getElementById("btn-logout-confirm");
+
+        // Show Modal
+        document.getElementById("btn-logout")?.addEventListener("click", () => {
+            if (logoutModal) logoutModal.classList.remove("hidden");
+        });
+
+        // Hide Modal (Cancel)
+        closeLogoutBtn?.addEventListener("click", () => {
+            if (logoutModal) logoutModal.classList.add("hidden");
+        });
+
+        // Confirm Logout
+        confirmLogoutBtn?.addEventListener("click", () => {
+            localStorage.removeItem("isLoggedIn");
+            localStorage.removeItem("user");
+            localStorage.removeItem("token");
+            window.location.href = "/";
+        });
+
+        // --- New Netflix-style Logic ---
+
+        // Modals
+        const appSettingsModal = document.getElementById("modal-app-settings");
+        const editProfileModal = document.getElementById("modal-edit-profile");
+        const accountModal = document.getElementById("modal-account");
+        const helpModal = document.getElementById("modal-help");
+
+        const toggleModal = (modal: HTMLElement | null, show: boolean) => {
+            if (!modal) return;
+            if (show) modal.classList.remove("hidden");
+            else modal.classList.add("hidden");
+        };
+
+        // Open/Close Handlers
+        document
+            .getElementById("btn-help-support")
+            ?.addEventListener("click", () => toggleModal(helpModal, true));
+        document
+            .getElementById("close-help")
+            ?.addEventListener("click", () => toggleModal(helpModal, false));
+
+        document
+            .getElementById("btn-app-settings")
+            ?.addEventListener("click", () =>
+                toggleModal(appSettingsModal, true),
+            );
+        document
+            .getElementById("close-app-settings")
+            ?.addEventListener("click", () =>
+                toggleModal(appSettingsModal, false),
+            );
+
+        document
+            .getElementById("btn-manage-profile")
+            ?.addEventListener("click", () => {
+                const nameInput = document.getElementById(
+                    "input-edit-name",
+                ) as HTMLInputElement;
+                if (nameInput) nameInput.value = user.name || "";
+
+                // Reset Upload UI
+                resetCropper();
+                document
+                    .getElementById("upload-error")
+                    ?.classList.add("hidden");
+                document
+                    .getElementById("cropper-container")
+                    ?.classList.add("hidden");
+                document
+                    .getElementById("editor-controls")
+                    ?.classList.add("hidden");
+                document
+                    .getElementById("editor-controls")
+                    ?.classList.remove("grid");
+
+                toggleModal(editProfileModal, true);
+            });
+
+        document
+            .getElementById("avatar-container")
+            ?.addEventListener("click", () =>
+                document.getElementById("btn-manage-profile")?.click(),
+            );
+        document
+            .getElementById("close-edit-profile")
+            ?.addEventListener("click", () =>
+                toggleModal(editProfileModal, false),
+            );
+
+        document
+            .getElementById("cancel-profile-btn")
+            ?.addEventListener("click", () =>
+                toggleModal(editProfileModal, false),
+            );
+
+        document
+            .getElementById("btn-account-settings")
+            ?.addEventListener("click", () => toggleModal(accountModal, true));
+        document
+            .getElementById("close-account")
+            ?.addEventListener("click", () => toggleModal(accountModal, false));
+
+        // --- Enhanced App Settings Logic ---
+        const setupToggle = (id: string, storageKey: string) => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+
+            // Load State
+            const isActive = localStorage.getItem(storageKey) === "true";
+            btn.dataset.active = isActive.toString();
+            updateToggleVisual(btn, isActive);
+
+            // Click Handler
+            btn.addEventListener("click", () => {
+                const newState = !(btn.dataset.active === "true");
+                btn.dataset.active = newState.toString();
+                localStorage.setItem(storageKey, newState.toString());
+                updateToggleVisual(btn, newState);
+            });
+        };
+
+        const updateToggleVisual = (btn: HTMLElement, isActive: boolean) => {
+            const knob = btn.firstElementChild as HTMLElement;
+            if (isActive) {
+                btn.classList.replace("bg-zinc-700", "bg-red-600");
+                knob.classList.add("translate-x-6");
+            } else {
+                btn.classList.replace("bg-red-600", "bg-zinc-700");
+                knob.classList.remove("translate-x-6");
+            }
+        };
+
+        setupToggle("toggle-autoplay", "pref_autoplay");
+        setupToggle("toggle-datasaver", "pref_datasaver");
+
+        // Quality Select
+        const selectQuality = document.getElementById(
+            "select-quality",
+        ) as HTMLSelectElement;
+        if (selectQuality) {
+            selectQuality.value =
+                localStorage.getItem("pref_quality") || "auto";
+            selectQuality.addEventListener("change", (e) => {
+                localStorage.setItem(
+                    "pref_quality",
+                    (e.target as HTMLSelectElement).value,
+                );
+            });
+        }
+
+        // Clear Cache
+        document
+            .getElementById("btn-clear-cache")
+            ?.addEventListener("click", () => {
+                if (confirm("Clear local cache and reload?")) {
+                    localStorage.removeItem("user"); // Keep login token maybe? Or clear all?
+                    // Let's just reload for now as 'cache clear' usually means assets.
+                    // But user might expect data clear.
+                    window.location.reload();
+                }
+            });
+
+        // --- Upload & Cropper Logic ---
+        const fileUpload = document.getElementById("file-upload");
+        const uploadError = document.getElementById("upload-error");
+        const uploadLoading = document.getElementById("upload-loading");
+        const loadingText = document.getElementById("loading-text");
+        const cropperImage = document.getElementById(
+            "cropper-image",
+        ) as HTMLImageElement;
+        const cropperContainer = document.getElementById("cropper-container");
+        const editorControls = document.getElementById("editor-controls");
+
+        const resetCropper = () => {
+            if (cropperInstance) {
+                cropperInstance.destroy();
+                cropperInstance = null;
+            }
+            if (cropperImage) cropperImage.src = "";
+            selectedAvatar = user.avatar; // Reset to current
+        };
+
+        // Helper to start cropper from a file (or compressed blob)
+        const startCropper = (imageFile: File | Blob) => {
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                resetCropper(); // Clean old
+                if (cropperImage)
+                    cropperImage.src = evt.target?.result as string;
+                if (cropperContainer)
+                    cropperContainer.classList.remove("hidden");
+                if (editorControls) {
+                    editorControls.classList.remove("hidden");
+                    editorControls.classList.add("grid");
+                }
+
+                // Init Cropper
+                // @ts-ignore
+                cropperInstance = new Cropper(cropperImage, {
+                    aspectRatio: 1, // Square
+                    viewMode: 1,
+                    dragMode: "move",
+                    autoCropArea: 0.8,
+                    background: false,
                 });
-                // TEMPORARY DEBUG: Disable redirect to see logs
-                // localStorage.removeItem("isLoggedIn");
-                // localStorage.removeItem("user");
-                // localStorage.removeItem("token");
-                // window.location.href = "/";
-                // throw new Error("Redirecting to home");
-                alert("Debug Mode: Auth Missing. Check Console.");
+
+                // Hide loading
+                if (uploadLoading) uploadLoading.classList.add("hidden");
+            };
+            reader.readAsDataURL(imageFile);
+        };
+
+        fileUpload?.addEventListener("change", (e: any) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Reset error
+            if (uploadError) uploadError.classList.add("hidden");
+
+            // Show Loading
+            if (uploadLoading) {
+                uploadLoading.classList.remove("hidden");
+                if (loadingText) loadingText.textContent = "PROCESSING...";
             }
 
-            let user; // Declare user outside try-catch for broader scope
-            try {
-                if (!userStr) throw new Error("User data not found");
-                user = JSON.parse(userStr);
-            } catch (error) {
-                console.error("Failed to parse user data:", error);
-                alert("Error loading user data. Please log in again.");
-                localStorage.removeItem("isLoggedIn");
-                localStorage.removeItem("user");
-                localStorage.removeItem("token");
-                window.location.href = "/";
-                throw new Error("User data parsing failed, redirecting.");
-            }
+            const MAX_SIZE = 150 * 1024; // 150KB
 
-            let selectedAvatar = user.avatar || ""; // For defaulting to current
-            let cropperInstance: any = null; // To hold Cropper instance
+            // 1. Check if Compression Needed
+            if (file.size > MAX_SIZE) {
+                if (loadingText) loadingText.textContent = "COMPRESSING...";
 
-            // 2. Render Profile
-            const nameData = document.getElementById("profile-name");
-            const emailData = document.getElementById("profile-email");
-            const avatarImg = document.getElementById(
-                "profile-avatar",
-            ) as HTMLImageElement;
-            const initialSpan = document.getElementById("profile-initial");
-
-            const updateProfileUI = (usr: any) => {
-                if (nameData) nameData.textContent = usr.name || "User";
-                if (emailData) emailData.textContent = usr.email || "";
-
-                if (usr.avatar) {
-                    if (avatarImg) {
-                        avatarImg.src = usr.avatar;
-                        avatarImg.classList.remove("hidden");
-                    }
-                    if (initialSpan) initialSpan.classList.add("hidden");
-                } else {
-                    if (avatarImg) avatarImg.classList.add("hidden");
-                    if (initialSpan) {
-                        initialSpan.classList.remove("hidden");
-                        initialSpan.textContent = (usr.name || "U")
-                            .charAt(0)
-                            .toUpperCase();
-                    }
-                }
-            };
-
-            updateProfileUI(user);
-
-            // 3. Logout Logic
-            const logoutModal = document.getElementById("modal-logout");
-            const closeLogoutBtn = document.getElementById("btn-logout-cancel");
-            const confirmLogoutBtn =
-                document.getElementById("btn-logout-confirm");
-
-            // Show Modal
-            document
-                .getElementById("btn-logout")
-                ?.addEventListener("click", () => {
-                    if (logoutModal) logoutModal.classList.remove("hidden");
-                });
-
-            // Hide Modal (Cancel)
-            closeLogoutBtn?.addEventListener("click", () => {
-                if (logoutModal) logoutModal.classList.add("hidden");
-            });
-
-            // Confirm Logout
-            confirmLogoutBtn?.addEventListener("click", () => {
-                localStorage.removeItem("isLoggedIn");
-                localStorage.removeItem("user");
-                localStorage.removeItem("token");
-                window.location.href = "/";
-            });
-
-            // --- New Netflix-style Logic ---
-
-            // Modals
-            const appSettingsModal =
-                document.getElementById("modal-app-settings");
-            const editProfileModal =
-                document.getElementById("modal-edit-profile");
-            const accountModal = document.getElementById("modal-account");
-            const helpModal = document.getElementById("modal-help");
-
-            const toggleModal = (modal: HTMLElement | null, show: boolean) => {
-                if (!modal) return;
-                if (show) modal.classList.remove("hidden");
-                else modal.classList.add("hidden");
-            };
-
-            // Open/Close Handlers
-            document
-                .getElementById("btn-help-support")
-                ?.addEventListener("click", () => toggleModal(helpModal, true));
-            document
-                .getElementById("close-help")
-                ?.addEventListener("click", () =>
-                    toggleModal(helpModal, false),
-                );
-
-            document
-                .getElementById("btn-app-settings")
-                ?.addEventListener("click", () =>
-                    toggleModal(appSettingsModal, true),
-                );
-            document
-                .getElementById("close-app-settings")
-                ?.addEventListener("click", () =>
-                    toggleModal(appSettingsModal, false),
-                );
-
-            document
-                .getElementById("btn-manage-profile")
-                ?.addEventListener("click", () => {
-                    const nameInput = document.getElementById(
-                        "input-edit-name",
-                    ) as HTMLInputElement;
-                    if (nameInput) nameInput.value = user.name || "";
-
-                    // Reset Upload UI
-                    resetCropper();
-                    document
-                        .getElementById("upload-error")
-                        ?.classList.add("hidden");
-                    document
-                        .getElementById("cropper-container")
-                        ?.classList.add("hidden");
-                    document
-                        .getElementById("editor-controls")
-                        ?.classList.add("hidden");
-                    document
-                        .getElementById("editor-controls")
-                        ?.classList.remove("grid");
-
-                    toggleModal(editProfileModal, true);
-                });
-
-            document
-                .getElementById("avatar-container")
-                ?.addEventListener("click", () =>
-                    document.getElementById("btn-manage-profile")?.click(),
-                );
-            document
-                .getElementById("close-edit-profile")
-                ?.addEventListener("click", () =>
-                    toggleModal(editProfileModal, false),
-                );
-
-            document
-                .getElementById("cancel-profile-btn")
-                ?.addEventListener("click", () =>
-                    toggleModal(editProfileModal, false),
-                );
-
-            document
-                .getElementById("btn-account-settings")
-                ?.addEventListener("click", () =>
-                    toggleModal(accountModal, true),
-                );
-            document
-                .getElementById("close-account")
-                ?.addEventListener("click", () =>
-                    toggleModal(accountModal, false),
-                );
-
-            // --- Enhanced App Settings Logic ---
-            const setupToggle = (id: string, storageKey: string) => {
-                const btn = document.getElementById(id);
-                if (!btn) return;
-
-                // Load State
-                const isActive = localStorage.getItem(storageKey) === "true";
-                btn.dataset.active = isActive.toString();
-                updateToggleVisual(btn, isActive);
-
-                // Click Handler
-                btn.addEventListener("click", () => {
-                    const newState = !(btn.dataset.active === "true");
-                    btn.dataset.active = newState.toString();
-                    localStorage.setItem(storageKey, newState.toString());
-                    updateToggleVisual(btn, newState);
-                });
-            };
-
-            const updateToggleVisual = (
-                btn: HTMLElement,
-                isActive: boolean,
-            ) => {
-                const knob = btn.firstElementChild as HTMLElement;
-                if (isActive) {
-                    btn.classList.replace("bg-zinc-700", "bg-red-600");
-                    knob.classList.add("translate-x-6");
-                } else {
-                    btn.classList.replace("bg-red-600", "bg-zinc-700");
-                    knob.classList.remove("translate-x-6");
-                }
-            };
-
-            setupToggle("toggle-autoplay", "pref_autoplay");
-            setupToggle("toggle-datasaver", "pref_datasaver");
-
-            // Quality Select
-            const selectQuality = document.getElementById(
-                "select-quality",
-            ) as HTMLSelectElement;
-            if (selectQuality) {
-                selectQuality.value =
-                    localStorage.getItem("pref_quality") || "auto";
-                selectQuality.addEventListener("change", (e) => {
-                    localStorage.setItem(
-                        "pref_quality",
-                        (e.target as HTMLSelectElement).value,
-                    );
-                });
-            }
-
-            // Clear Cache
-            document
-                .getElementById("btn-clear-cache")
-                ?.addEventListener("click", () => {
-                    if (confirm("Clear local cache and reload?")) {
-                        localStorage.removeItem("user"); // Keep login token maybe? Or clear all?
-                        // Let's just reload for now as 'cache clear' usually means assets.
-                        // But user might expect data clear.
-                        window.location.reload();
-                    }
-                });
-
-            // --- Upload & Cropper Logic ---
-            const fileUpload = document.getElementById("file-upload");
-            const uploadError = document.getElementById("upload-error");
-            const uploadLoading = document.getElementById("upload-loading");
-            const loadingText = document.getElementById("loading-text");
-            const cropperImage = document.getElementById(
-                "cropper-image",
-            ) as HTMLImageElement;
-            const cropperContainer =
-                document.getElementById("cropper-container");
-            const editorControls = document.getElementById("editor-controls");
-
-            const resetCropper = () => {
-                if (cropperInstance) {
-                    cropperInstance.destroy();
-                    cropperInstance = null;
-                }
-                if (cropperImage) cropperImage.src = "";
-                selectedAvatar = user.avatar; // Reset to current
-            };
-
-            // Helper to start cropper from a file (or compressed blob)
-            const startCropper = (imageFile: File | Blob) => {
-                const reader = new FileReader();
-                reader.onload = (evt) => {
-                    resetCropper(); // Clean old
-                    if (cropperImage)
-                        cropperImage.src = evt.target?.result as string;
-                    if (cropperContainer)
-                        cropperContainer.classList.remove("hidden");
-                    if (editorControls) {
-                        editorControls.classList.remove("hidden");
-                        editorControls.classList.add("grid");
-                    }
-
-                    // Init Cropper
-                    // @ts-ignore
-                    cropperInstance = new Cropper(cropperImage, {
-                        aspectRatio: 1, // Square
-                        viewMode: 1,
-                        dragMode: "move",
-                        autoCropArea: 0.8,
-                        background: false,
-                    });
-
-                    // Hide loading
-                    if (uploadLoading) uploadLoading.classList.add("hidden");
-                };
-                reader.readAsDataURL(imageFile);
-            };
-
-            fileUpload?.addEventListener("change", (e: any) => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                // Reset error
-                if (uploadError) uploadError.classList.add("hidden");
-
-                // Show Loading
-                if (uploadLoading) {
-                    uploadLoading.classList.remove("hidden");
-                    if (loadingText) loadingText.textContent = "PROCESSING...";
-                }
-
-                const MAX_SIZE = 150 * 1024; // 150KB
-
-                // 1. Check if Compression Needed
-                if (file.size > MAX_SIZE) {
-                    if (loadingText) loadingText.textContent = "COMPRESSING...";
-
-                    // Use Compressor.js
-                    // @ts-ignore
-                    new Compressor(file, {
-                        quality: 0.6,
-                        maxWidth: 600, // Reduced from 1024 for speed (Avatar is small)
-                        maxHeight: 600,
-                        mimeType: "image/jpeg",
-                        success(result: Blob) {
-                            startCropper(result);
-                        },
-                        error(err: any) {
-                            if (uploadLoading)
-                                uploadLoading.classList.add("hidden");
-                            if (uploadError) {
-                                uploadError.textContent =
-                                    "Compression failed: " + err.message;
-                                uploadError.classList.remove("hidden");
-                            }
-                        },
-                    });
-                } else {
-                    // No compression needed
-                    startCropper(file);
-                }
-            });
-
-            // Editor Controls
-            document
-                .getElementById("btn-zoom-in")
-                ?.addEventListener("click", () => cropperInstance?.zoom(0.1));
-            document
-                .getElementById("btn-zoom-out")
-                ?.addEventListener("click", () => cropperInstance?.zoom(-0.1));
-            document
-                .getElementById("btn-rotate-left")
-                ?.addEventListener("click", () => cropperInstance?.rotate(-90));
-
-            let scaleX = 1;
-            document
-                .getElementById("btn-flip-h")
-                ?.addEventListener("click", () => {
-                    scaleX = -scaleX;
-                    cropperInstance?.scaleX(scaleX);
-                });
-
-            // Default Avatar Selection
-            document.querySelectorAll("[data-avatar-option]").forEach((el) => {
-                el.addEventListener("click", () => {
-                    // Visual Update: Clear others, highlight active
-                    document
-                        .querySelectorAll("[data-avatar-option]")
-                        .forEach((item) => {
-                            item.classList.remove(
-                                "ring-2",
-                                "ring-red-500",
-                                "scale-110",
-                                "opacity-100",
-                            );
-                            item.classList.add("opacity-70");
-                        });
-                    el.classList.remove("opacity-70");
-                    el.classList.add(
-                        "ring-2",
-                        "ring-red-500",
-                        "scale-110",
-                        "opacity-100",
-                    );
-
-                    const src = el.getAttribute("data-avatar-option");
-                    resetCropper();
-                    // Hide editor
-                    if (cropperContainer)
-                        cropperContainer.classList.add("hidden");
-                    if (editorControls) {
-                        editorControls.classList.add("hidden");
-                        editorControls.classList.remove("grid");
-                    }
-
-                    selectedAvatar = src;
-                    // Removed alert as requested
-                });
-            });
-
-            // Save Profile
-            document
-                .getElementById("save-profile-btn")
-                ?.addEventListener("click", () => {
-                    // Show loading
-                    if (uploadLoading) {
-                        uploadLoading.classList.remove("hidden");
-                        if (loadingText) loadingText.textContent = "SAVING...";
-                    }
-
-                    const nameInput = document.getElementById(
-                        "input-edit-name",
-                    ) as HTMLInputElement;
-                    const newName = nameInput.value;
-
-                    // Small delay just to let UI update
-                    setTimeout(async () => {
-                        // 1. Determine Avatar
-                        let finalAvatar = selectedAvatar;
-
-                        // If Cropper is active, get the cropped result
-                        if (cropperInstance) {
-                            const canvas = cropperInstance.getCroppedCanvas({
-                                width: 300, // Reasonable size for avatar
-                                height: 300,
-                            });
-                            finalAvatar = canvas.toDataURL("image/jpeg", 0.8); // Compress slightly
-                        }
-
-                        // 2. Save to LocalStorage
-                        const updatedUser = {
-                            ...user,
-                            name: newName,
-                            avatar: finalAvatar,
-                        };
-                        localStorage.setItem(
-                            "user",
-                            JSON.stringify(updatedUser),
-                        ); // Update Local
-
-                        // 3. Sync with Backend
-                        try {
-                            await fetch(`${API_BASE}/user/profile`, {
-                                method: "PUT",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({
-                                    id: user.id || 0, // Ensure ID is sent
-                                    name: newName,
-                                    avatar: finalAvatar,
-                                }),
-                            });
-                        } catch (err) {
-                            console.error("Failed to sync profile", err);
-                            // Silently fail or show toast? For now silent, local storage is king for user.
-                        }
-
-                        // 4. Update UI
-                        updateProfileUI(updatedUser);
-
-                        // Hide loading & Close
+                // Use Compressor.js
+                // @ts-ignore
+                new Compressor(file, {
+                    quality: 0.6,
+                    maxWidth: 600, // Reduced from 1024 for speed (Avatar is small)
+                    maxHeight: 600,
+                    mimeType: "image/jpeg",
+                    success(result: Blob) {
+                        startCropper(result);
+                    },
+                    error(err: any) {
                         if (uploadLoading)
                             uploadLoading.classList.add("hidden");
-                        toggleModal(editProfileModal, false);
-                    }, 300); // Reduced delay
+                        if (uploadError) {
+                            uploadError.textContent =
+                                "Compression failed: " + err.message;
+                            uploadError.classList.remove("hidden");
+                        }
+                    },
                 });
+            } else {
+                // No compression needed
+                startCropper(file);
+            }
+        });
 
-            // --- Change Password Logic ---
-            const changePassModal = document.getElementById(
-                "modal-change-password",
-            );
-            const btnChangePassTrigger = document.getElementById(
-                "btn-change-password-trigger",
-            );
-            const btnCloseChangePass = document.getElementById(
-                "close-change-password",
-            );
-            const btnCancelChangePass = document.getElementById(
-                "btn-cancel-password",
-            );
-            const btnSavePassword =
-                document.getElementById("btn-save-password");
+        // Editor Controls
+        document
+            .getElementById("btn-zoom-in")
+            ?.addEventListener("click", () => cropperInstance?.zoom(0.1));
+        document
+            .getElementById("btn-zoom-out")
+            ?.addEventListener("click", () => cropperInstance?.zoom(-0.1));
+        document
+            .getElementById("btn-rotate-left")
+            ?.addEventListener("click", () => cropperInstance?.rotate(-90));
 
-            const inputOldPass = document.getElementById(
-                "input-old-password",
-            ) as HTMLInputElement;
-            const inputNewPass = document.getElementById(
-                "input-new-password",
-            ) as HTMLInputElement;
-            const inputConfirmPass = document.getElementById(
-                "input-confirm-password",
-            ) as HTMLInputElement;
-            const passError = document.getElementById("password-error");
-            const passSuccess = document.getElementById("password-success");
+        let scaleX = 1;
+        document.getElementById("btn-flip-h")?.addEventListener("click", () => {
+            scaleX = -scaleX;
+            cropperInstance?.scaleX(scaleX);
+        });
 
-            // Open Modal
-            btnChangePassTrigger?.addEventListener("click", () => {
-                console.log("Change Password Clicked");
-                // Clear fields
-                if (inputOldPass) inputOldPass.value = "";
-                if (inputNewPass) inputNewPass.value = "";
-                if (inputConfirmPass) inputConfirmPass.value = "";
-                if (passError) passError.classList.add("hidden");
-                if (passSuccess) passSuccess.classList.add("hidden");
+        // Default Avatar Selection
+        document.querySelectorAll("[data-avatar-option]").forEach((el) => {
+            el.addEventListener("click", () => {
+                // Visual Update: Clear others, highlight active
+                document
+                    .querySelectorAll("[data-avatar-option]")
+                    .forEach((item) => {
+                        item.classList.remove(
+                            "ring-2",
+                            "ring-red-500",
+                            "scale-110",
+                            "opacity-100",
+                        );
+                        item.classList.add("opacity-70");
+                    });
+                el.classList.remove("opacity-70");
+                el.classList.add(
+                    "ring-2",
+                    "ring-red-500",
+                    "scale-110",
+                    "opacity-100",
+                );
 
-                // Close Account Modal first for cleaner UI
-                if (accountModal) toggleModal(accountModal, false);
-                toggleModal(changePassModal, true);
+                const src = el.getAttribute("data-avatar-option");
+                resetCropper();
+                // Hide editor
+                if (cropperContainer) cropperContainer.classList.add("hidden");
+                if (editorControls) {
+                    editorControls.classList.add("hidden");
+                    editorControls.classList.remove("grid");
+                }
+
+                selectedAvatar = src;
+                // Removed alert as requested
+            });
+        });
+
+        // Save Profile
+        document
+            .getElementById("save-profile-btn")
+            ?.addEventListener("click", () => {
+                // Show loading
+                if (uploadLoading) {
+                    uploadLoading.classList.remove("hidden");
+                    if (loadingText) loadingText.textContent = "SAVING...";
+                }
+
+                const nameInput = document.getElementById(
+                    "input-edit-name",
+                ) as HTMLInputElement;
+                const newName = nameInput.value;
+
+                // Small delay just to let UI update
+                setTimeout(async () => {
+                    // 1. Determine Avatar
+                    let finalAvatar = selectedAvatar;
+
+                    // If Cropper is active, get the cropped result
+                    if (cropperInstance) {
+                        const canvas = cropperInstance.getCroppedCanvas({
+                            width: 300, // Reasonable size for avatar
+                            height: 300,
+                        });
+                        finalAvatar = canvas.toDataURL("image/jpeg", 0.8); // Compress slightly
+                    }
+
+                    // 2. Save to LocalStorage
+                    const updatedUser = {
+                        ...user,
+                        name: newName,
+                        avatar: finalAvatar,
+                    };
+                    localStorage.setItem("user", JSON.stringify(updatedUser)); // Update Local
+
+                    // 3. Sync with Backend
+                    try {
+                        await fetch(`${API_BASE}/user/profile`, {
+                            method: "PUT",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                                id: user.id || 0, // Ensure ID is sent
+                                name: newName,
+                                avatar: finalAvatar,
+                            }),
+                        });
+                    } catch (err) {
+                        console.error("Failed to sync profile", err);
+                        // Silently fail or show toast? For now silent, local storage is king for user.
+                    }
+
+                    // 4. Update UI
+                    updateProfileUI(updatedUser);
+
+                    // Hide loading & Close
+                    if (uploadLoading) uploadLoading.classList.add("hidden");
+                    toggleModal(editProfileModal, false);
+                }, 300); // Reduced delay
             });
 
-            // Toggle Password Visibility Logic
-            const setupPasswordToggle = (inputId: string, buttonId: string) => {
-                const input = document.getElementById(
-                    inputId,
-                ) as HTMLInputElement;
-                const button = document.getElementById(buttonId);
+        // --- Donate Logic ---
+        const donateModal = document.getElementById("modal-donate");
+        document
+            .getElementById("btn-donate")
+            ?.addEventListener("click", () => toggleModal(donateModal, true));
+        document
+            .getElementById("close-donate")
+            ?.addEventListener("click", () => toggleModal(donateModal, false));
 
-                button?.addEventListener("click", () => {
-                    if (input) {
-                        const type =
-                            input.getAttribute("type") === "password"
-                                ? "text"
-                                : "password";
-                        input.setAttribute("type", type);
+        // --- Change Password Logic ---
+        const changePassModal = document.getElementById(
+            "modal-change-password",
+        );
+        const btnChangePassTrigger = document.getElementById(
+            "btn-change-password-trigger",
+        );
+        const btnCloseChangePass = document.getElementById(
+            "close-change-password",
+        );
+        const btnCancelChangePass = document.getElementById(
+            "btn-cancel-password",
+        );
+        const btnSavePassword = document.getElementById("btn-save-password");
 
-                        // Optional: Toggle Icon Opacity or Change Icon to show state
-                        button.classList.toggle("text-white");
-                        button.classList.toggle("text-zinc-400");
-                    }
+        const inputOldPass = document.getElementById(
+            "input-old-password",
+        ) as HTMLInputElement;
+        const inputNewPass = document.getElementById(
+            "input-new-password",
+        ) as HTMLInputElement;
+        const inputConfirmPass = document.getElementById(
+            "input-confirm-password",
+        ) as HTMLInputElement;
+        const passError = document.getElementById("password-error");
+        const passSuccess = document.getElementById("password-success");
+
+        // Open Modal
+        btnChangePassTrigger?.addEventListener("click", () => {
+            console.log("Change Password Clicked");
+            // Clear fields
+            if (inputOldPass) inputOldPass.value = "";
+            if (inputNewPass) inputNewPass.value = "";
+            if (inputConfirmPass) inputConfirmPass.value = "";
+            if (passError) passError.classList.add("hidden");
+            if (passSuccess) passSuccess.classList.add("hidden");
+
+            // Close Account Modal first for cleaner UI
+            if (accountModal) toggleModal(accountModal, false);
+            toggleModal(changePassModal, true);
+        });
+
+        // Toggle Password Visibility Logic
+        const setupPasswordToggle = (inputId: string, buttonId: string) => {
+            const input = document.getElementById(inputId) as HTMLInputElement;
+            const button = document.getElementById(buttonId);
+
+            button?.addEventListener("click", () => {
+                if (input) {
+                    const type =
+                        input.getAttribute("type") === "password"
+                            ? "text"
+                            : "password";
+                    input.setAttribute("type", type);
+
+                    // Optional: Toggle Icon Opacity or Change Icon to show state
+                    button.classList.toggle("text-white");
+                    button.classList.toggle("text-zinc-400");
+                }
+            });
+        };
+
+        setupPasswordToggle("input-old-password", "toggle-old-password");
+        setupPasswordToggle("input-new-password", "toggle-new-password");
+        setupPasswordToggle(
+            "input-confirm-password",
+            "toggle-confirm-password",
+        );
+
+        // Close Modal
+        const closePassModal = () => toggleModal(changePassModal, false);
+        btnCloseChangePass?.addEventListener("click", closePassModal);
+        btnCancelChangePass?.addEventListener("click", closePassModal);
+
+        // Save Logic
+        btnSavePassword?.addEventListener("click", async () => {
+            const oldPass = inputOldPass.value;
+            const newPass = inputNewPass.value;
+            const confirmPass = inputConfirmPass.value;
+
+            if (passError) passError.classList.add("hidden");
+            if (passSuccess) passSuccess.classList.add("hidden");
+
+            if (!oldPass || !newPass || !confirmPass) {
+                if (passError) {
+                    passError.textContent = "All fields are required.";
+                    passError.classList.remove("hidden");
+                }
+                return;
+            }
+
+            if (newPass !== confirmPass) {
+                if (passError) {
+                    passError.textContent = "New passwords do not match.";
+                    passError.classList.remove("hidden");
+                }
+                return;
+            }
+
+            if (newPass.length < 6) {
+                if (passError) {
+                    passError.textContent =
+                        "Password must be at least 6 characters.";
+                    passError.classList.remove("hidden");
+                }
+                return;
+            }
+
+            // Call API
+            try {
+                btnSavePassword.textContent = "Updating...";
+                const res = await fetch(`${API_BASE}/user/password`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        id: user.id,
+                        old_password: oldPass,
+                        new_password: newPass,
+                    }),
                 });
-            };
+                const json = await res.json();
 
-            setupPasswordToggle("input-old-password", "toggle-old-password");
-            setupPasswordToggle("input-new-password", "toggle-new-password");
-            setupPasswordToggle(
-                "input-confirm-password",
-                "toggle-confirm-password",
-            );
-
-            // Close Modal
-            const closePassModal = () => toggleModal(changePassModal, false);
-            btnCloseChangePass?.addEventListener("click", closePassModal);
-            btnCancelChangePass?.addEventListener("click", closePassModal);
-
-            // Save Logic
-            btnSavePassword?.addEventListener("click", async () => {
-                const oldPass = inputOldPass.value;
-                const newPass = inputNewPass.value;
-                const confirmPass = inputConfirmPass.value;
-
-                if (passError) passError.classList.add("hidden");
-                if (passSuccess) passSuccess.classList.add("hidden");
-
-                if (!oldPass || !newPass || !confirmPass) {
-                    if (passError) {
-                        passError.textContent = "All fields are required.";
-                        passError.classList.remove("hidden");
+                if (json.status === "success") {
+                    if (passSuccess) {
+                        passSuccess.textContent =
+                            "Password updated! Redirecting...";
+                        passSuccess.classList.remove("hidden");
                     }
-                    return;
-                }
-
-                if (newPass !== confirmPass) {
-                    if (passError) {
-                        passError.textContent = "New passwords do not match.";
-                        passError.classList.remove("hidden");
-                    }
-                    return;
-                }
-
-                if (newPass.length < 6) {
-                    if (passError) {
-                        passError.textContent =
-                            "Password must be at least 6 characters.";
-                        passError.classList.remove("hidden");
-                    }
-                    return;
-                }
-
-                // Call API
-                try {
-                    btnSavePassword.textContent = "Updating...";
-                    const res = await fetch(`${API_BASE}/user/password`, {
-                        method: "PUT",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            id: user.id,
-                            old_password: oldPass,
-                            new_password: newPass,
-                        }),
-                    });
-                    const json = await res.json();
-
-                    if (json.status === "success") {
-                        if (passSuccess) {
-                            passSuccess.textContent =
-                                "Password updated! Redirecting...";
-                            passSuccess.classList.remove("hidden");
-                        }
-                        setTimeout(() => {
-                            // Logout to force re-login? Or just close?
-                            // Better UX: Just close, stay logged in with new pass.
-                            // But usually security requires re-login?
-                            // Let's just close modal for seamless experience.
-                            toggleModal(changePassModal, false);
-                            btnSavePassword.textContent = "Update Password";
-                        }, 1500);
-                    } else {
-                        if (passError) {
-                            passError.textContent =
-                                json.message || "Failed to update password.";
-                            passError.classList.remove("hidden");
-                        }
+                    setTimeout(() => {
+                        // Logout to force re-login? Or just close?
+                        // Better UX: Just close, stay logged in with new pass.
+                        // But usually security requires re-login?
+                        // Let's just close modal for seamless experience.
+                        toggleModal(changePassModal, false);
                         btnSavePassword.textContent = "Update Password";
-                    }
-                } catch (err) {
-                    console.error(err);
+                    }, 1500);
+                } else {
                     if (passError) {
                         passError.textContent =
-                            "Network error. Please try again.";
+                            json.message || "Failed to update password.";
                         passError.classList.remove("hidden");
                     }
                     btnSavePassword.textContent = "Update Password";
                 }
-            });
-        </script>
+            } catch (err) {
+                console.error(err);
+                if (passError) {
+                    passError.textContent = "Network error. Please try again.";
+                    passError.classList.remove("hidden");
+                }
+                btnSavePassword.textContent = "Update Password";
+            }
+        });
+    </script>
 
-        <style>
-            /* Toggle Switch CSS */
-            .toggle-checkbox:checked {
-                right: 0;
-                border-color: #ef4444; /* Red-600 */
-            }
-            .toggle-checkbox:checked + .toggle-label {
-                background-color: #ef4444;
-            }
-            .toggle-checkbox {
-                right: auto;
-                left: 0;
-                transition: all 0.3s;
-            }
-        </style>
-    </div></Layout
->
+    <style>
+        /* Toggle Switch CSS */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #ef4444; /* Red-600 */
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #ef4444;
+        }
+        .toggle-checkbox {
+            right: auto;
+            left: 0;
+            transition: all 0.3s;
+        }
+    </style>
+</Layout>
