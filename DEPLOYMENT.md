@@ -84,4 +84,35 @@ The safest way to expose your local server to the internet without opening ports
 
 -   **Backup Data**:
     -   Database: `./postgres-data` folder (PostgreSQL Data).
-    -   Uploads: `./uploads` folder.
+
+---
+
+## 🔄 Database Migration (SQLite -> PostgreSQL)
+
+If you have existing data in `dramabang.db` and want to move it to PostgreSQL:
+
+1.  **Stop the services**:
+    ```bash
+    docker compose down
+    ```
+
+2.  **Run the Migrator**:
+    Note: You need `go` installed locally or build the binary.
+
+    ```bash
+    cd backend
+    
+    # Run the migration tool (Adjust connection string if needed)
+    # Default assumes postgres is running on localhost:5432
+    # If running in docker, ensure ports are mapped.
+    
+    export SQLITE_PATH="../dramabang.db"
+    export POSTGRES_DSN="host=localhost user=dramabang password=dramabang dbname=dramabang port=5432 sslmode=disable"
+    
+    go run cmd/migrator/main.go
+    ```
+
+3.  **Start services again**:
+    ```bash
+    docker compose up -d
+    ```
