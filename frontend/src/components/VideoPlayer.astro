@@ -605,9 +605,16 @@ const {
         // Auto-Play Next Episode
         video.addEventListener("ended", () => {
             const nextUrl = video.dataset.nextUrl;
-            if (nextUrl && nextUrl !== window.location.pathname) {
-                console.log("Video Ended. Auto-playing next episode:", nextUrl);
-                // Optional: Show a "Next Episode starting..." toast here if desired
+            // Check Setting (Default: true if null/missing)
+            const autoplayPref =
+                localStorage.getItem("pref_autoplay") !== "false";
+
+            if (
+                autoplayPref &&
+                nextUrl &&
+                nextUrl !== window.location.pathname
+            ) {
+                // console.log("Video Ended. Auto-playing next:", nextUrl);
                 window.location.href = nextUrl;
             }
         });
