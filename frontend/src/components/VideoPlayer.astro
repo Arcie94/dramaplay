@@ -737,8 +737,9 @@ const {
                 if (userStr) {
                     try {
                         const u = JSON.parse(userStr);
-                        currentUserPhoto = u.photo_profile || "";
-                        currentUserName = u.username || "You";
+                        // Check valid keys: Profile page uses 'avatar', Login might use 'photo_profile'
+                        currentUserPhoto = u.avatar || u.photo_profile || "";
+                        currentUserName = u.name || u.username || "You";
                     } catch (e) {}
                 }
 
@@ -842,8 +843,9 @@ const {
                 if (userStr) {
                     try {
                         const user = JSON.parse(userStr);
-                        if (user.username) userName = user.username;
-                        if (user.photo_profile) userPhoto = user.photo_profile;
+                        // Check multiple keys for robustness
+                        userName = user.name || user.username || "You";
+                        userPhoto = user.avatar || user.photo_profile || "";
                     } catch (e) {}
                 }
 
