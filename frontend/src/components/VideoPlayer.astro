@@ -789,7 +789,7 @@ const {
                         <div class="flex-1 space-y-1 group">
                             <div class="flex items-baseline justify-between">
                                 <div class="flex items-center gap-2">
-                                    <span class="text-sm font-bold text-white">${c.name}</span>
+                                    <span class="text-sm font-bold text-white">${c.name} ${isOwner ? '<span class="text-green-500 text-[10px] ml-1">(YOU)</span>' : ""}</span>
                                     <span class="text-[10px] text-zinc-500">${c.time}</span>
                                 </div>
                                 ${actionsHtml}
