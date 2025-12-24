@@ -732,33 +732,6 @@ import Layout from "../layouts/Layout.astro";
                     </div>
 
                     <div>
-                        <label
-                            class="block text-xs font-bold text-zinc-500 uppercase mb-2"
-                            >Old Password</label
-                        >
-                        <input
-                            type="password"
-                            id="input-old-password"
-                            class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-600 transition-colors"
-                            placeholder="Enter current password"
-                        />
-                    </div>
-                    <div>
-                        <label
-                            class="block text-xs font-bold text-zinc-500 uppercase mb-2"
-                            >New Password</label
-                        >
-                        <input
-                            type="password"
-                            id="input-new-password"
-                            class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-600 transition-colors"
-                            placeholder="Enter new password"
-                        />
-                    </div>
-                    <div>
-                        <label
-                            class="block text-xs font-bold text-zinc-500 uppercase mb-2"
-                            >Confirm New Password</label
                         >
                         <input
                             type="password"
@@ -1266,6 +1239,35 @@ import Layout from "../layouts/Layout.astro";
                 if (accountModal) toggleModal(accountModal, false);
                 toggleModal(changePassModal, true);
             });
+
+            // Toggle Password Visibility Logic
+            const setupPasswordToggle = (inputId: string, buttonId: string) => {
+                const input = document.getElementById(
+                    inputId,
+                ) as HTMLInputElement;
+                const button = document.getElementById(buttonId);
+
+                button?.addEventListener("click", () => {
+                    if (input) {
+                        const type =
+                            input.getAttribute("type") === "password"
+                                ? "text"
+                                : "password";
+                        input.setAttribute("type", type);
+
+                        // Optional: Toggle Icon Opacity or Change Icon to show state
+                        button.classList.toggle("text-white");
+                        button.classList.toggle("text-zinc-400");
+                    }
+                });
+            };
+
+            setupPasswordToggle("input-old-password", "toggle-old-password");
+            setupPasswordToggle("input-new-password", "toggle-new-password");
+            setupPasswordToggle(
+                "input-confirm-password",
+                "toggle-confirm-password",
+            );
 
             // Close Modal
             const closePassModal = () => toggleModal(changePassModal, false);
