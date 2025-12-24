@@ -1,92 +1,109 @@
-# 🎬 DramaPlay - Vertical Drama Streaming Platform
+# 🎬 DramaBang - Vertical Drama Streaming Platform
 
-DramaPlay is a modern, responsive web application for streaming vertical dramas. It features a robust admin panel for content management, user authentication via Google OAuth, and a PWA-ready frontend.
+DramaBang is a comprehensive, full-stack video streaming platform designed for vertical drama consumption (Shorts/Reels style). Built for high performance and scalability, it features a robust Go backend, a modern Astro frontend, and a complete admin management suite.
 
-## ✨ Features
+## 🚀 Key Features
 
-### 👤 User Experience
--   **Seamless Streaming**: HLS video playback with adaptive quality.
--   **Google Login**: Secure and fast authentication using Google OAuth.
--   **Progress Tracking**: Automatically saves watch history and resumes playback.
--   **"My List"**: Bookmark favorite dramas for later watch.
--   **PWA Support**: Installable on mobile and desktop for a native app-like experience.
--   **Responsive Design**: Optimized for both mobile vertical viewing and desktop browsing.
+### 👤 User Experience (Frontend)
+-   **Cinematic Video Player**:
+    -   Custom-built HLS player with adaptive streaming.
+    -   Smart controls: Autoplay, Mute Toggle, Quality Selection.
+    -   Touch-optimized swipe navigation (Next/Prev Episode).
+-   **Interactive Community**:
+    -   **Comments**: Users can discuss episodes in real-time.
+    -   **User Avatars**: Comments display user profile photos.
+    -   **Edit/Delete Capabilities**: Full CRUD for own comments with inline editing.
+    -   **Premium UI**: Three-Dot context menus and custom dark-mode confirmation modals.
+-   **Personalization**:
+    -   **Resume Playback**: Automatically remembers timestamp and episode.
+    -   **My List**: Bookmark favorite dramas.
+    -   **Watch History**: Tracks viewing progress.
+-   **Authentication**:
+    -   Google OAuth Integration.
+    -   Standard Email/Password Login.
+    -   **Security**: "Change Password" feature with strict validation.
+-   **PWA Ready**: Installable as a native-like app on mobile and desktop.
 
 ### 🛠️ Admin Dashboard
--   **Drama Management**: content management (CRUD) for dramas and episodes.
--   **User Management**: Bulk delete, search, and view registered users.
--   **Site Settings**:
-    -   **Dynamic Branding**: Upload and crop Site Logo and Favicon directly from the admin panel.
-    -   **Configurable IDs**: Manage Google Client ID and GA4 Measurement ID without restarting.
--   **Security**: Admin-specific authentication and role management.
+-   **Dashboard Overview**: Real-time stats on Users, Dramas, and System Health.
+-   **Content Management**:
+    -   **Dramas**: Create, Edit, Bulk Delete, and Manage Episodes.
+    -   **Image Tools**: Integrated **CropperJS** for uploading optimized Posters/Covers.
+-   **User Management**:
+    -   **Search**: Real-time debounced user search.
+    -   **Bulk Actions**: Select and delete multiple users efficiently.
+-   **System Settings**:
+    -   **Dynamic Branding**: Upload **Site Logo** and **Favicon** directly from the Admin Panel (updates globally instantly).
+    -   **Configuration**: Manage Google Client ID and Analytics IDs via GUI.
 
-## 🏗️ Tech Stack
+## 🏗️ Technical Architecture
 
-### Backend
+### Backend (`/backend`)
 -   **Language**: Go (Golang)
--   **Framework**: [Fiber](https://gofiber.io/) (Fast HTTP web framework)
--   **Database**: SQLite (via GORM)
--   **Key Libraries**:
-    -   `gorm.io/gorm`: ORM for database interactions.
-    -   `github.com/golang-jwt/jwt`: JSON Web Tokens for auth.
+-   **Framework**: [Fiber](https://gofiber.io/) (High-performance HTTP framework)
+-   **Database**: PostgreSQL (Production-grade relational DB)
+-   **ORM**: GORM
+-   **Key Features**:
+    -   JWT Authentication.
+    -   Static File Serving (optimized for images/video).
+    -   **Migrator**: Custom utility to migrate data from SQLite to PostgreSQL.
 
-### Frontend
--   **Framework**: [Astro](https://astro.build/) (Server-Side Rendering mode)
+### Frontend (`/frontend`)
+-   **Framework**: [Astro](https://astro.build/) (Hybrid: Server-Side Rendering + Static)
 -   **Styling**: TailwindCSS
--   **State/Logic**: Vanilla JS & TypeScript
--   **Key Libraries**:
-    -   `cropperjs`: For image editing (Logo/Favicon upload).
-    -   `hls.js`: For video streaming.
+-   **Logic**: Vanilla JS + TypeScript for lightweight client interactivity.
+-   **Deployment**: Dockerized Node.js environment.
 
-## 🚀 Getting Started
+### Infrastructure
+-   **Docker Compose**: Orchestrates the entire stack (Backend, Frontend, Postgres, Nginx).
+-   **Nginx**: Reverse proxy for routing, load balancing, and SSL termination.
 
-### Prerequisites
--   [Go 1.21+](https://go.dev/dl/)
--   [Node.js 20+](https://nodejs.org/)
+## 📦 Installation & Deployment
 
-### 1. Backend Setup
+### Quick Start (Docker)
+The recommended way to run the project (matches Production environment).
 
+1.  **Clone the Repository**
+    ```bash
+    git clone https://github.com/Arcie94/dramaplay.git
+    cd dramabang
+    ```
+
+2.  **Run Services**
+    ```bash
+    # Build and start Backend, Frontend, Postgres, and Nginx
+    sudo docker compose up -d --build
+    ```
+    
+3.  **Access**
+    -   Frontend: `http://localhost` (or server IP)
+    -   Admin Panel: `http://localhost/admin`
+
+### Manual Development Setup
+
+**Backend**
 ```bash
 cd backend
-
-# Install dependencies
 go mod tidy
-
-# Run the server (default port: 3000)
 go run main.go
+# API runs on port 3000
 ```
 
-The backend API will be available at `http://localhost:3000`.
-
-### 2. Frontend Setup
-
-Open a new terminal:
-
+**Frontend**
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Run development server
 npm run dev
+# App runs on port 4321
 ```
 
-The application will be accessible at `http://localhost:4321`.
+## 📖 Additional Documentation
+-   [**DEPLOYMENT.md**](./DEPLOYMENT.md): Detailed guide for deploying to **Proxmox** or Linux servers using Cloudflare Tunnels.
+-   [**task.md**](./.agent/task.md): Development log and feature checklist.
 
 ## ⚙️ Configuration
-
-### Admin Account
-The first user or a manually seeded user can be set as Admin. 
-(Check `backend/seeds/data.go` or database for initial credentials if applicable).
-
-### Environment Variables
-Currently, critical settings like `GOOGLE_CLIENT_ID` and `GA_MEASUREMENT_ID` are managed dynamically via the **Admin > Settings** page, stored in the database.
-
-## 📱 PWA & Mobile
-This project is configured as a Progressive Web App.
--   **Manifest**: Located at `frontend/public/manifest.json`.
--   **Service Worker**: `frontend/public/sw.js` handles caching strategies (Network-First for HTML, Cache-First for assets).
+-   **Environment Variables**: Managed via `docker-compose.yml` (DB connection, API URL).
+-   **Runtime Settings**: Site name, Logo, and OAuth keys are managed via the **Admin Settings** page.
 
 ## 📄 License
 Private Project. All rights reserved.
