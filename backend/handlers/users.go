@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // GetAdminUsers returns a paginated list of users with their last watch history
@@ -135,4 +136,59 @@ func UpdateUserProfile(c *fiber.Ctx) error {
 		"message": "Profile updated",
 		"data":    user,
 	})
+}
+
+// UpdatePassword handles password changes
+func UpdatePassword(c *fiber.Ctx) error {
+	type PasswordRequest struct {
+		ID          uint   `json:"id"`
+		OldPassword string `json:"old_password"`
+		NewPassword string `json:"new_password"`
+	}
+
+	var req PasswordRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid input"})
+	}
+
+	if req.NewPassword == "" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "New password is required"})
+	}
+
+	var user models.User
+	if err := database.DB.First(&user, req.ID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "User not found"})
+	}
+
+	// 1. Check Provider
+	if user.Provider == "google" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "You cannot change password for Google accounts. Please login with Google."})
+	}
+
+	// 2. Verify Old Password
+	// (Unless user has no password - legacy? forcing them to set one? No, require old password for security)
+	if user.Password != "" {
+		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.OldPassword)); err != nil {
+			return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Incorrect old password"})
+		}
+	} else {
+		// If user has no password but provider is local? Edge case.
+		// Require them to contact support or use Forgot Password (not implemented yet).
+		// For MVP, if empty, we might allow setting it? Let's be strict.
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Account error. Please contact support."})
+	}
+
+	// 3. Hash New Password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to hash password"})
+	}
+
+	// 4. Save
+	user.Password = string(hashedPassword)
+	if err := database.DB.Save(&user).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to update password"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Password updated successfully"})
 }

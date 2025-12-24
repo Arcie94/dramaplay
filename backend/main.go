@@ -52,6 +52,7 @@ func main() {
 	api.Post("/auth/google", handlers.VerifyGoogleToken)
 	api.Post("/auth/login", handlers.LocalLogin)
 	api.Put("/user/profile", handlers.UpdateUserProfile) // New Profile Update
+	api.Put("/user/password", handlers.UpdatePassword)   // New Password Change
 
 	// History
 	api.Post("/history", handlers.SaveHistory)
