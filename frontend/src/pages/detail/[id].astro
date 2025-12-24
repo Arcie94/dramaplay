@@ -143,20 +143,42 @@ const schema = JSON.stringify({
                     <span>{drama.total_episode}</span>
                 </div>
 
-                <a
-                    href={`/watch/${id}/1`}
-                    class="w-full bg-red-600 text-white font-bold py-3 rounded-full flex items-center justify-center gap-2 shadow-lg shadow-red-900/40 active:scale-95 transition-transform"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                        class="w-5 h-5"
+                <div class="flex gap-2 w-full">
+                    <a
+                        href={`/watch/${id}/1`}
+                        class="flex-1 bg-red-600 text-white font-bold py-3 rounded-full flex items-center justify-center gap-2 shadow-lg shadow-red-900/40 active:scale-95 transition-transform"
                     >
-                        <path d="M8 5v14l11-7z"></path>
-                    </svg>
-                    Play Ep 1
-                </a>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                            class="w-5 h-5"
+                        >
+                            <path d="M8 5v14l11-7z"></path>
+                        </svg>
+                        Watch Now
+                    </a>
+                    <button
+                        id="mylist-btn"
+                        class="px-4 bg-zinc-800 text-white rounded-full flex items-center justify-center gap-2 hover:bg-zinc-700 active:scale-95 transition-all"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="2"
+                            stroke="currentColor"
+                            class="w-5 h-5"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"
+                            ></path>
+                        </svg>
+                        My List
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -249,11 +271,13 @@ const schema = JSON.stringify({
     <span>Link Copied!</span>
 </div>
 
-<script>
+<script define:vars={{ drama }}>
     document.addEventListener("DOMContentLoaded", () => {
         const shareBtn = document.getElementById("share-btn");
         const toast = document.getElementById("toast");
+        const myListBtn = document.getElementById("mylist-btn");
 
+        // Logic Share
         if (shareBtn) {
             shareBtn.addEventListener("click", async () => {
                 const shareData = {
@@ -261,16 +285,14 @@ const schema = JSON.stringify({
                     text: "Check out this drama on DramaPlay!",
                     url: window.location.href,
                 };
-
                 try {
                     if (navigator.share) {
                         await navigator.share(shareData);
                     } else {
-                        // Fallback
                         await navigator.clipboard.writeText(
                             window.location.href,
                         );
-                        showToast();
+                        showToast("Link Copied!");
                     }
                 } catch (err) {
                     console.error("Share failed:", err);
@@ -278,13 +300,69 @@ const schema = JSON.stringify({
             });
         }
 
-        function showToast() {
+        function showToast(msg) {
             if (toast) {
+                const span = toast.querySelector("span");
+                if (span) span.innerText = msg;
                 toast.classList.remove("opacity-0");
                 setTimeout(() => {
                     toast.classList.add("opacity-0");
                 }, 2000);
             }
+        }
+
+        // Logic My List
+        if (myListBtn) {
+            const STORAGE_KEY = "drama_mylist";
+
+            // Check if exists
+            const checkStatus = () => {
+                const list = JSON.parse(
+                    localStorage.getItem(STORAGE_KEY) || "[]",
+                );
+                const exists = list.some((d) => d.id === drama.bookId);
+                if (exists) {
+                    myListBtn.innerText = "Added";
+                    myListBtn.classList.remove("bg-zinc-800", "text-white");
+                    myListBtn.classList.add("bg-green-600", "text-white");
+                } else {
+                    myListBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                        </svg>
+                        My List
+                     `;
+                    myListBtn.classList.remove("bg-green-600");
+                    myListBtn.classList.add("bg-zinc-800", "text-white");
+                }
+            };
+
+            checkStatus();
+
+            myListBtn.addEventListener("click", () => {
+                let list = JSON.parse(
+                    localStorage.getItem(STORAGE_KEY) || "[]",
+                );
+                const index = list.findIndex((d) => d.id === drama.bookId);
+
+                if (index === -1) {
+                    // Add
+                    list.push({
+                        id: drama.bookId,
+                        title: drama.judul,
+                        cover: drama.cover,
+                        episodes: drama.total_episode,
+                    });
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+                    showToast("Added to My List");
+                } else {
+                    // Remove
+                    list.splice(index, 1);
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+                    showToast("Removed from List");
+                }
+                checkStatus();
+            });
         }
     });
 </script>

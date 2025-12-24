@@ -4,7 +4,7 @@ import DramaCard from "../components/DramaCard.astro";
 
 const q = Astro.url.searchParams.get("q") || "";
 const page = parseInt(Astro.url.searchParams.get("page") || "1");
-const API_URL = import.meta.env.INTERNAL_API_URL || "http://localhost:3000/api";
+const API_URL = process.env.INTERNAL_API_URL || "http://backend:3000/api";
 const genre = Astro.url.searchParams.get("genre") || "";
 
 let dramas = [];
