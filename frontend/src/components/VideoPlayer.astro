@@ -724,7 +724,7 @@ const {
         function loadComments() {
             if (!commentsList || !commentCount) return;
             try {
-                const storageKey = `comments_${bookId}`; // Safe usage
+                const storageKey = `comments_${bookId}`;
                 const userComments = JSON.parse(
                     localStorage.getItem(storageKey) || "[]",
                 );
@@ -737,7 +737,7 @@ const {
                 if (userStr) {
                     try {
                         const u = JSON.parse(userStr);
-                        // Check valid keys: Profile page uses 'avatar', Login might use 'photo_profile'
+                        // Check valid keys
                         currentUserPhoto = u.avatar || u.photo_profile || "";
                         currentUserName = u.name || u.username || "You";
                     } catch (e) {}
@@ -745,8 +745,9 @@ const {
 
                 commentCount.textContent = `(${allComments.length})`;
                 commentsList.innerHTML = allComments
-                    .map((c) => {
-                        // Logic: Use saved photo, OR if name matches current user/You, use current photo
+                    .map((c, i) => {
+                        const isOwner = i < userComments.length;
+                        // Photo logic
                         const photoToUse =
                             c.photo ||
                             (c.name === currentUserName || c.name === "You"
@@ -757,15 +758,45 @@ const {
                             ? `<img src="${photoToUse}" class="w-8 h-8 rounded-full object-cover shrink-0">`
                             : `<div class="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-white shrink-0">${c.name[0]}</div>`;
 
+                        // Actions
+                        const actionsHtml = isOwner
+                            ? `
+                           <div class="flex gap-3 ml-2">
+                               <button class="text-zinc-500 hover:text-white transition-colors edit-btn" data-index="${i}">
+                                   <!-- Pencil Icon -->
+                                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
+                               </button>
+                               <button class="text-zinc-500 hover:text-red-500 transition-colors delete-btn" data-index="${i}">
+                                   <!-- Trash Icon -->
+                                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                               </button>
+                           </div>
+                        `
+                            : "";
+
                         return `
-                    <div class="flex gap-3">
+                    <div class="flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
                         ${avatarHtml}
-                        <div class="flex-1 space-y-1">
+                        <div class="flex-1 space-y-1 group">
                             <div class="flex items-baseline justify-between">
-                                <span class="text-sm font-bold text-white">${c.name}</span>
-                                <span class="text-[10px] text-zinc-500">${c.time}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm font-bold text-white">${c.name}</span>
+                                    <span class="text-[10px] text-zinc-500">${c.time}</span>
+                                </div>
+                                ${actionsHtml}
                             </div>
-                            <p class="text-sm text-zinc-300 leading-snug">${c.text}</p>
+                            
+                            <!-- Display Mode -->
+                            <p class="text-sm text-zinc-300 leading-snug" id="comment-text-${i}">${c.text}</p>
+                            
+                            <!-- Edit Mode -->
+                            <form class="hidden flex-col gap-2 mt-2 edit-form" data-index="${i}" id="edit-form-${i}">
+                                <textarea class="w-full bg-zinc-800 text-white text-sm rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-red-600 resize-none" rows="2">${c.text}</textarea>
+                                <div class="flex justify-end gap-2">
+                                    <button type="button" class="text-xs text-zinc-400 font-bold hover:text-white cancel-btn" data-index="${i}">CANCEL</button>
+                                    <button type="submit" class="text-xs text-red-500 font-bold hover:text-red-400">SAVE</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 `;
@@ -825,6 +856,96 @@ const {
             // Check if clicked outside sheet (Backdrop)
             if (target.id === "comments-backdrop") {
                 closeComments();
+            }
+
+            // --- Comment Actions (Delete / Edit / Cancel) ---
+
+            // Delete
+            const deleteBtn = target.closest(".delete-btn") as HTMLElement;
+            if (deleteBtn) {
+                const idx = parseInt(deleteBtn.dataset.index || "-1");
+                if (idx > -1 && confirm("Delete this comment?")) {
+                    const storageKey = `comments_${bookId}`;
+                    const userComments = JSON.parse(
+                        localStorage.getItem(storageKey) || "[]",
+                    );
+                    if (userComments[idx]) {
+                        userComments.splice(idx, 1);
+                        localStorage.setItem(
+                            storageKey,
+                            JSON.stringify(userComments),
+                        );
+                        loadComments();
+                    }
+                }
+                return;
+            }
+
+            // Edit (Show Form)
+            const editBtn = target.closest(".edit-btn") as HTMLElement;
+            if (editBtn) {
+                const idx = parseInt(editBtn.dataset.index || "-1");
+                if (idx > -1) {
+                    const textEl = document.getElementById(
+                        `comment-text-${idx}`,
+                    );
+                    const formEl = document.getElementById(`edit-form-${idx}`);
+                    if (textEl && formEl) {
+                        textEl.classList.add("hidden");
+                        formEl.classList.remove("hidden");
+                        formEl.classList.add("flex");
+                        // Focus textarea
+                        const ta = formEl.querySelector("textarea");
+                        if (ta) ta.focus();
+                    }
+                }
+                return;
+            }
+
+            // Cancel Edit
+            const cancelBtn = target.closest(".cancel-btn") as HTMLElement;
+            if (cancelBtn) {
+                const idx = parseInt(cancelBtn.dataset.index || "-1");
+                if (idx > -1) {
+                    const textEl = document.getElementById(
+                        `comment-text-${idx}`,
+                    );
+                    const formEl = document.getElementById(`edit-form-${idx}`);
+                    if (textEl && formEl) {
+                        textEl.classList.remove("hidden");
+                        formEl.classList.add("hidden");
+                        formEl.classList.remove("flex");
+                    }
+                }
+                return;
+            }
+        });
+
+        // Event for Edit Form Submit (Dynamic)
+        document.addEventListener("submit", (e) => {
+            const target = e.target as HTMLElement;
+            const form = target.closest(".edit-form") as HTMLFormElement;
+            if (form) {
+                e.preventDefault();
+                const idx = parseInt(form.dataset.index || "-1");
+                const ta = form.querySelector("textarea");
+                const newText = ta ? ta.value.trim() : "";
+
+                if (idx > -1 && newText) {
+                    const storageKey = `comments_${bookId}`;
+                    const userComments = JSON.parse(
+                        localStorage.getItem(storageKey) || "[]",
+                    );
+                    if (userComments[idx]) {
+                        userComments[idx].text = newText;
+                        userComments[idx].time = "Edited just now"; // Optional: Update time
+                        localStorage.setItem(
+                            storageKey,
+                            JSON.stringify(userComments),
+                        );
+                        loadComments();
+                    }
+                }
             }
         });
 
