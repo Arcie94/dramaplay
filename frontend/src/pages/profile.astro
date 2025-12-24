@@ -685,6 +685,105 @@ import Layout from "../layouts/Layout.astro";
             </div>
         </div>
 
+        <!-- Change Password Modal -->
+        <div
+            id="modal-change-password"
+            class="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 animate-in fade-in duration-300"
+        >
+            <div
+                class="w-full max-w-md bg-zinc-900 rounded-2xl border border-white/10 shadow-2xl overflow-hidden"
+            >
+                <div
+                    class="flex items-center justify-between p-6 border-b border-white/5 bg-zinc-900/50"
+                >
+                    <h2 class="text-xl font-bold text-white">
+                        Change Password
+                    </h2>
+                    <button
+                        id="close-change-password"
+                        class="p-2 -mr-2 text-zinc-400 hover:text-white bg-white/5 rounded-full hover:bg-white/10 transition-all"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="w-5 h-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="p-6 space-y-4">
+                    <div
+                        id="password-error"
+                        class="hidden w-full bg-red-500/10 border border-red-500/20 text-red-500 text-sm px-4 py-3 rounded-lg"
+                    >
+                    </div>
+                    <div
+                        id="password-success"
+                        class="hidden w-full bg-green-500/10 border border-green-500/20 text-green-500 text-sm px-4 py-3 rounded-lg"
+                    >
+                    </div>
+
+                    <div>
+                        <label
+                            class="block text-xs font-bold text-zinc-500 uppercase mb-2"
+                            >Old Password</label
+                        >
+                        <input
+                            type="password"
+                            id="input-old-password"
+                            class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-600 transition-colors"
+                            placeholder="Enter current password"
+                        />
+                    </div>
+                    <div>
+                        <label
+                            class="block text-xs font-bold text-zinc-500 uppercase mb-2"
+                            >New Password</label
+                        >
+                        <input
+                            type="password"
+                            id="input-new-password"
+                            class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-600 transition-colors"
+                            placeholder="Enter new password"
+                        />
+                    </div>
+                    <div>
+                        <label
+                            class="block text-xs font-bold text-zinc-500 uppercase mb-2"
+                            >Confirm New Password</label
+                        >
+                        <input
+                            type="password"
+                            id="input-confirm-password"
+                            class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-600 transition-colors"
+                            placeholder="Confirm new password"
+                        />
+                    </div>
+
+                    <div class="pt-4 flex gap-3">
+                        <button
+                            id="btn-cancel-password"
+                            class="flex-1 py-3 font-bold text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 rounded-xl transition-all"
+                            >Cancel</button
+                        >
+                        <button
+                            id="btn-save-password"
+                            class="flex-1 bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 shadow-lg shadow-red-900/20 transition-all"
+                            >Update Password</button
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Cropper JS & Compressor JS CDN -->
         <script
             src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"
