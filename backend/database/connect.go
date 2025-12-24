@@ -2,6 +2,7 @@ package database
 
 import (
 	"log"
+	"os"
 
 	"dramabang/models"
 
@@ -14,7 +15,10 @@ var DB *gorm.DB
 
 func Connect() {
 	// SQLite file path
-	dsn := "dramabang.db"
+	dsn := os.Getenv("DB_PATH")
+	if dsn == "" {
+		dsn = "dramabang.db"
+	}
 
 	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),

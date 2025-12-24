@@ -1,26 +1,54 @@
 ---
-import Layout from '../../layouts/Layout.astro';
+import Layout from "../../layouts/Layout.astro";
 ---
 
 <Layout title="Admin Login - DramaPlay">
     <div class="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
-        <div class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl w-full max-w-md shadow-2xl">
-            <h1 class="text-2xl font-bold text-white mb-2 text-center">Admin Access</h1>
-            <p class="text-zinc-500 text-sm text-center mb-6">Please enter your credentials</p>
+        <div
+            class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl w-full max-w-md shadow-2xl"
+        >
+            <h1 class="text-2xl font-bold text-white mb-2 text-center">
+                Admin Access
+            </h1>
+            <p class="text-zinc-500 text-sm text-center mb-6">
+                Please enter your credentials
+            </p>
 
             <form id="login-form" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-zinc-400 mb-1">Username</label>
-                    <input type="text" id="username" class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none transition-colors" placeholder="admin">
+                    <label class="block text-xs font-medium text-zinc-400 mb-1"
+                        >Username</label
+                    >
+                    <input
+                        type="text"
+                        id="username"
+                        class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none transition-colors"
+                        placeholder="admin"
+                    />
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-zinc-400 mb-1">Password</label>
-                    <input type="password" id="password" class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none transition-colors" placeholder="••••••••">
+                    <label class="block text-xs font-medium text-zinc-400 mb-1"
+                        >Password</label
+                    >
+                    <input
+                        type="password"
+                        id="password"
+                        class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none transition-colors"
+                        placeholder="••••••••"
+                    />
                 </div>
-                
-                <div id="error-msg" class="text-red-500 text-xs text-center hidden">Invalid credentials</div>
 
-                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg transition-colors mt-2">
+                <div
+                    id="error-msg"
+                    class="text-red-500 text-xs text-center hidden"
+                >
+                    Invalid credentials
+                </div>
+
+                <button
+                    type="submit"
+                    class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg transition-colors mt-2"
+                >
                     Sign In
                 </button>
             </form>
@@ -29,46 +57,46 @@ import Layout from '../../layouts/Layout.astro';
 </Layout>
 
 <script>
-    const form = document.getElementById('login-form');
-    const userIn = document.getElementById('username') as HTMLInputElement;
-    const passIn = document.getElementById('password') as HTMLInputElement;
-    const errorMsg = document.getElementById('error-msg');
+    const form = document.getElementById("login-form");
+    const userIn = document.getElementById("username") as HTMLInputElement;
+    const passIn = document.getElementById("password") as HTMLInputElement;
+    const errorMsg = document.getElementById("error-msg");
 
     // Check if already logged in
-    if (localStorage.getItem('admin_token')) {
-        window.location.href = '/admin';
+    if (localStorage.getItem("admin_token")) {
+        window.location.href = "/admin";
     }
 
-    form?.addEventListener('submit', async (e) => {
+    form?.addEventListener("submit", async (e) => {
         e.preventDefault();
-        errorMsg?.classList.add('hidden');
+        errorMsg?.classList.add("hidden");
 
         try {
-            const res = await fetch('http://localhost:3000/api/admin/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            const res = await fetch("/api/admin/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     username: userIn.value,
-                    password: passIn.value
-                })
+                    password: passIn.value,
+                }),
             });
 
             const data = await res.json();
 
-            if (res.ok && data.status === 'success') {
-                localStorage.setItem('admin_token', data.token);
-                window.location.href = '/admin';
+            if (res.ok && data.status === "success") {
+                localStorage.setItem("admin_token", data.token);
+                window.location.href = "/admin";
             } else {
                 if (errorMsg) {
-                    errorMsg.textContent = data.message || 'Login failed';
-                    errorMsg.classList.remove('hidden');
+                    errorMsg.textContent = data.message || "Login failed";
+                    errorMsg.classList.remove("hidden");
                 }
             }
         } catch (err) {
             console.error(err);
             if (errorMsg) {
-                errorMsg.textContent = 'Connection error';
-                errorMsg.classList.remove('hidden');
+                errorMsg.textContent = "Connection error";
+                errorMsg.classList.remove("hidden");
             }
         }
     });

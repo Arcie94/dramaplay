@@ -4,7 +4,7 @@ import Layout from "../../layouts/Layout.astro";
 const { id } = Astro.params;
 
 // Fetch Detail
-const API_URL = "http://localhost:3000/api";
+const API_URL = import.meta.env.INTERNAL_API_URL || "http://localhost:3000/api";
 const res = await fetch(`${API_URL}/detail?bookId=${id}`);
 const json = await res.json();
 

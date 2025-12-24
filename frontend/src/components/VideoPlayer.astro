@@ -421,7 +421,7 @@ const {
 
                 if (!video.dataset.bookId || !user.id) return;
 
-                const apiUrl = "http://localhost:3000/api/history";
+                const apiUrl = "/api/history";
 
                 const res = await fetch(apiUrl, {
                     method: "POST",

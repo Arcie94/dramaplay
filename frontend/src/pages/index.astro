@@ -4,7 +4,7 @@ import Layout from "../layouts/Layout.astro";
 import DramaCard from "../components/DramaCard.astro";
 
 // Fetch Data from Backend
-const API_URL = "http://localhost:3000/api";
+const API_URL = import.meta.env.INTERNAL_API_URL || "http://localhost:3000/api";
 
 // Fetch Trending
 const trendingRes = await fetch(`${API_URL}/trending`);
@@ -327,9 +327,7 @@ try {
                         const user = JSON.parse(userStr);
                         if (!user.id) return;
 
-                        fetch(
-                            `http://localhost:3000/api/history?userId=${user.id}`,
-                        )
+                        fetch(`/api/history?userId=${user.id}`)
                             .then((res) => res.json())
                             .then((json) => {
                                 if (
