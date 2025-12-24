@@ -131,7 +131,7 @@ func TriggerIngest(c *fiber.Ctx) error {
 	models.LogInfo(database.DB, "Ingest Process Triggered")
 	// Run in background
 	go func() {
-		cmd := exec.Command("go", "run", "cmd/ingest/main.go")
+		cmd := exec.Command("./ingest")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			fmt.Println("Ingest Error:", err)
@@ -156,7 +156,7 @@ func TriggerDedup(c *fiber.Ctx) error {
 	models.LogInfo(database.DB, "Deduplication Process Triggered")
 	// Run in background
 	go func() {
-		cmd := exec.Command("go", "run", "cmd/dedup/main.go")
+		cmd := exec.Command("./dedup")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			fmt.Println("Dedup Error:", err)

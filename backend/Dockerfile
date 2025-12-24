@@ -13,8 +13,10 @@ RUN go mod download
 # Copy source code
 COPY . .
 
-# Build binary
+# Build binaries
 RUN CGO_ENABLED=1 GOOS=linux go build -o server main.go
+RUN CGO_ENABLED=1 GOOS=linux go build -o ingest cmd/ingest/main.go
+RUN CGO_ENABLED=1 GOOS=linux go build -o dedup cmd/dedup/main.go
 
 # Runtime Stage
 FROM alpine:latest
@@ -28,8 +30,10 @@ RUN apk add --no-cache ca-certificates tzdata
 # Create directories for data and uploads
 RUN mkdir -p /app/data /app/public/uploads
 
-# Copy binary from builder
+# Copy binaries from builder
 COPY --from=builder /app/server .
+COPY --from=builder /app/ingest .
+COPY --from=builder /app/dedup .
 # Copy optional .env if needed, but we prefer docker env vars in compose
 
 # Expose port
