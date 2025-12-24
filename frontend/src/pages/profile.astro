@@ -1123,19 +1123,33 @@ import Layout from "../layouts/Layout.astro";
                             uploadLoading.classList.add("hidden");
                         toggleModal(editProfileModal, false);
                     }, 300); // Reduced delay
-                    }, 300); // Reduced delay
                 });
 
             // --- Change Password Logic ---
-            const changePassModal = document.getElementById("modal-change-password");
-            const btnChangePassTrigger = document.getElementById("btn-change-password-trigger");
-            const btnCloseChangePass = document.getElementById("close-change-password");
-            const btnCancelChangePass = document.getElementById("btn-cancel-password");
-            const btnSavePassword = document.getElementById("btn-save-password");
-            
-            const inputOldPass = document.getElementById("input-old-password") as HTMLInputElement;
-            const inputNewPass = document.getElementById("input-new-password") as HTMLInputElement;
-            const inputConfirmPass = document.getElementById("input-confirm-password") as HTMLInputElement;
+            const changePassModal = document.getElementById(
+                "modal-change-password",
+            );
+            const btnChangePassTrigger = document.getElementById(
+                "btn-change-password-trigger",
+            );
+            const btnCloseChangePass = document.getElementById(
+                "close-change-password",
+            );
+            const btnCancelChangePass = document.getElementById(
+                "btn-cancel-password",
+            );
+            const btnSavePassword =
+                document.getElementById("btn-save-password");
+
+            const inputOldPass = document.getElementById(
+                "input-old-password",
+            ) as HTMLInputElement;
+            const inputNewPass = document.getElementById(
+                "input-new-password",
+            ) as HTMLInputElement;
+            const inputConfirmPass = document.getElementById(
+                "input-confirm-password",
+            ) as HTMLInputElement;
             const passError = document.getElementById("password-error");
             const passSuccess = document.getElementById("password-success");
 
@@ -1143,14 +1157,14 @@ import Layout from "../layouts/Layout.astro";
             btnChangePassTrigger?.addEventListener("click", () => {
                 console.log("Change Password Clicked");
                 // Clear fields
-                if(inputOldPass) inputOldPass.value = "";
-                if(inputNewPass) inputNewPass.value = "";
-                if(inputConfirmPass) inputConfirmPass.value = "";
-                if(passError) passError.classList.add("hidden");
-                if(passSuccess) passSuccess.classList.add("hidden");
-                
+                if (inputOldPass) inputOldPass.value = "";
+                if (inputNewPass) inputNewPass.value = "";
+                if (inputConfirmPass) inputConfirmPass.value = "";
+                if (passError) passError.classList.add("hidden");
+                if (passSuccess) passSuccess.classList.add("hidden");
+
                 // Close Account Modal first for cleaner UI
-                if(accountModal) toggleModal(accountModal, false);
+                if (accountModal) toggleModal(accountModal, false);
                 toggleModal(changePassModal, true);
             });
 
@@ -1165,28 +1179,29 @@ import Layout from "../layouts/Layout.astro";
                 const newPass = inputNewPass.value;
                 const confirmPass = inputConfirmPass.value;
 
-                if(passError) passError.classList.add("hidden");
-                if(passSuccess) passSuccess.classList.add("hidden");
+                if (passError) passError.classList.add("hidden");
+                if (passSuccess) passSuccess.classList.add("hidden");
 
-                if(!oldPass || !newPass || !confirmPass) {
-                    if(passError) {
+                if (!oldPass || !newPass || !confirmPass) {
+                    if (passError) {
                         passError.textContent = "All fields are required.";
                         passError.classList.remove("hidden");
                     }
                     return;
                 }
 
-                if(newPass !== confirmPass) {
-                    if(passError) {
+                if (newPass !== confirmPass) {
+                    if (passError) {
                         passError.textContent = "New passwords do not match.";
                         passError.classList.remove("hidden");
                     }
                     return;
                 }
 
-                if(newPass.length < 6) {
-                     if(passError) {
-                        passError.textContent = "Password must be at least 6 characters.";
+                if (newPass.length < 6) {
+                    if (passError) {
+                        passError.textContent =
+                            "Password must be at least 6 characters.";
                         passError.classList.remove("hidden");
                     }
                     return;
@@ -1201,35 +1216,38 @@ import Layout from "../layouts/Layout.astro";
                         body: JSON.stringify({
                             id: user.id,
                             old_password: oldPass,
-                            new_password: newPass
-                        })
+                            new_password: newPass,
+                        }),
                     });
                     const json = await res.json();
 
-                    if(json.status === "success") {
-                        if(passSuccess) {
-                            passSuccess.textContent = "Password updated! Redirecting...";
+                    if (json.status === "success") {
+                        if (passSuccess) {
+                            passSuccess.textContent =
+                                "Password updated! Redirecting...";
                             passSuccess.classList.remove("hidden");
                         }
                         setTimeout(() => {
                             // Logout to force re-login? Or just close?
                             // Better UX: Just close, stay logged in with new pass.
-                            // But usually security requires re-login? 
+                            // But usually security requires re-login?
                             // Let's just close modal for seamless experience.
-                             toggleModal(changePassModal, false);
-                             btnSavePassword.textContent = "Update Password";
+                            toggleModal(changePassModal, false);
+                            btnSavePassword.textContent = "Update Password";
                         }, 1500);
                     } else {
-                         if(passError) {
-                            passError.textContent = json.message || "Failed to update password.";
+                        if (passError) {
+                            passError.textContent =
+                                json.message || "Failed to update password.";
                             passError.classList.remove("hidden");
                         }
                         btnSavePassword.textContent = "Update Password";
                     }
-                } catch(err) {
+                } catch (err) {
                     console.error(err);
-                    if(passError) {
-                        passError.textContent = "Network error. Please try again.";
+                    if (passError) {
+                        passError.textContent =
+                            "Network error. Please try again.";
                         passError.classList.remove("hidden");
                     }
                     btnSavePassword.textContent = "Update Password";
