@@ -160,7 +160,7 @@ func LocalLogin(c *fiber.Ctx) error {
 			if err := database.DB.Create(&user).Error; err != nil {
 				// Log the actual error for debugging
 				fmt.Println("Signup Create Error:", err)
-				return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to create user"})
+				return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to create user: " + err.Error()})
 			}
 		}
 
