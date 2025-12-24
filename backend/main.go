@@ -25,8 +25,9 @@ func main() {
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 	}))
 
-	// Serve Uploads via Backend (to bypass Astro static caching issues)
-	app.Static("/uploads", "./../frontend/public/uploads")
+	// Serve Uploads via Backend
+	// In Docker, files are in public/uploads (mounted volume)
+	app.Static("/uploads", "public/uploads")
 
 	// Database
 	database.Connect()
