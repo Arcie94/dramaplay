@@ -171,9 +171,17 @@ const {
             <!-- Text Info -->
             <h1 class="text-xl font-bold text-white drop-shadow-md">{title}</h1>
 
-            <!-- Progress Bar -->
-            <div class="w-full h-1 bg-white/30 rounded-full overflow-hidden">
-                <div id="progress-bar" class="h-full bg-red-600 w-0"></div>
+            <!-- Progress Bar (Interactive) -->
+            <div
+                id="progress-container"
+                class="w-full py-3 cursor-pointer group flex items-center touch-none"
+            >
+                <!-- Track -->
+                <div
+                    class="w-full h-1 bg-white/30 rounded-full overflow-hidden group-hover:h-1.5 transition-all duration-200 pointer-events-none"
+                >
+                    <div id="progress-bar" class="h-full bg-red-600 w-0"></div>
+                </div>
             </div>
 
             <!-- Action Buttons -->
@@ -401,6 +409,8 @@ const {
     const container = document.getElementById("video-container");
     const playOverlay = document.getElementById("play-overlay");
     const playIcon = document.getElementById("play-icon");
+    const playIcon = document.getElementById("play-icon");
+    const progressContainer = document.getElementById("progress-container");
     const progressBar = document.getElementById("progress-bar");
     const muteBtn = document.getElementById("mute-btn");
     const volumeSlider = document.getElementById(
@@ -607,6 +617,40 @@ const {
         // Actually playOverlay covers everything, so its click handler handles Play/Pause.
         // We might want a separate "Show Controls" tap if we don't want to pause?
         // For now, let's stick to current behavior: Click = Toggle Play = Show Controls (if paused).
+
+        // Video Ended Logic
+        // ... (existing ended listener)
+
+        // --- Seeking Logic ---
+        if (progressContainer) {
+            const handleSeek = (e: MouseEvent | TouchEvent) => {
+                const rect = progressContainer.getBoundingClientRect();
+                const clientX =
+                    "touches" in e
+                        ? e.touches[0].clientX
+                        : (e as MouseEvent).clientX;
+                const width = rect.width;
+                // Clamp between 0 and 1
+                const percent = Math.min(
+                    Math.max((clientX - rect.left) / width, 0),
+                    1,
+                );
+
+                if (isFinite(video.duration)) {
+                    video.currentTime = percent * video.duration;
+                    // Optional: Update visual bar immediately for smoother feel
+                    if (progressBar)
+                        progressBar.style.width = `${percent * 100}%`;
+                }
+            };
+
+            progressContainer.addEventListener("click", handleSeek);
+            progressContainer.addEventListener("touchmove", (e) => {
+                e.preventDefault(); // Prevent scrolling while scrubbing
+                handleSeek(e);
+            });
+            progressContainer.addEventListener("touchstart", handleSeek); // Jump on touch
+        }
 
         // --- My List Logic ---
         const myListBtn = document.getElementById("mylist-btn");
