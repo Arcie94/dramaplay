@@ -83,5 +83,5 @@ The safest way to expose your local server to the internet without opening ports
     ```
 
 -   **Backup Data**:
-    -   Database: `./data/dramabang.db`
+    -   Database: `./postgres-data` folder (PostgreSQL Data).
     -   Uploads: `./uploads` folder.
