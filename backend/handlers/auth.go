@@ -48,7 +48,8 @@ func VerifyGoogleToken(c *fiber.Ctx) error {
 
 	// 2. Find or Create User
 	var user models.User
-	result := database.DB.Where("email = ?", claims.Email).First(&user)
+	// Use Unscoped to find soft-deleted users too
+	result := database.DB.Unscoped().Where("email = ?", claims.Email).First(&user)
 
 	if result.Error != nil {
 		// Create new user
@@ -60,12 +61,19 @@ func VerifyGoogleToken(c *fiber.Ctx) error {
 			Role:     "user",
 		}
 		if err := database.DB.Create(&user).Error; err != nil {
-			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to create user"})
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to create user: " + err.Error()})
 		}
 	} else {
 		// Update existing user info
 		user.Name = claims.Name
 		user.Avatar = claims.Picture
+		
+		// Restore user if soft-deleted
+		if user.DeletedAt.Valid {
+			database.DB.Model(&user).Update("deleted_at", nil)
+			user.DeletedAt = gorm.DeletedAt{}
+		}
+
 		database.DB.Save(&user)
 	}
 
