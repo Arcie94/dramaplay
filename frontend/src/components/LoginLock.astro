@@ -300,11 +300,17 @@
           document.head.appendChild(script);
 
           script.onload = () => {
-            if (debug) debug.innerText = "Script Loaded. Waiting for Ready...";
-            (window as any).turnstile.ready(() => {
-              if (debug) debug.innerText = "Ready Fired. Calling Render...";
+            if (debug) debug.innerText = "Script Loaded. Checking Object...";
+
+            // Bypass ready() - it seems to be hanging
+            if ((window as any).turnstile) {
+              if (debug)
+                debug.innerText = "Turnstile Global Found. Rendering...";
               renderTurnstile(data.turnstile_site_key);
-            });
+            } else {
+              if (debug)
+                debug.innerText = "Error: window.turnstile missing after load!";
+            }
           };
           script.onerror = () => {
             if (debug) debug.innerText = "Script Failed to Load!";
