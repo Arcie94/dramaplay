@@ -85,7 +85,8 @@ import Layout from "../../layouts/Layout.astro";
         document.head.appendChild(script);
 
         script.onload = () => {
-          (window as any).turnstile.ready(() => {
+          // Bypass ready() - checks if global exists directly
+          if ((window as any).turnstile) {
             turnstileWidgetId = (window as any).turnstile.render(
               "#cf-turnstile",
               {
@@ -96,7 +97,21 @@ import Layout from "../../layouts/Layout.astro";
                 },
               }
             );
-          });
+          } else {
+            // Fallback to ready() if somehow not immediately available
+            (window as any).turnstile.ready(() => {
+              turnstileWidgetId = (window as any).turnstile.render(
+                "#cf-turnstile",
+                {
+                  sitekey: data.turnstile_site_key,
+                  theme: theme,
+                  callback: function (token: string) {
+                    turnstileToken = token;
+                  },
+                }
+              );
+            });
+          }
         };
       }
     } catch (e) {
