@@ -86,14 +86,25 @@ func VerifyGoogleToken(c *fiber.Ctx) error {
 // LocalLogin handles email/password login and signup
 func LocalLogin(c *fiber.Ctx) error {
 	var input struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-		Name     string `json:"name"` // Optional, for signup
-		Mode     string `json:"mode"` // "login" or "signup"
+		Email               string `json:"email"`
+		Password            string `json:"password"`
+		Name                string `json:"name"` // Optional, for signup
+		Mode                string `json:"mode"` // "login" or "signup"
+		CFTurnstileResponse string `json:"cf_turnstile_response"`
 	}
 
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid input"})
+	}
+
+	// 1. Verify Turnstile (if configured)
+	var secretKey models.Setting
+	database.DB.Where("key = ?", "turnstile_secret_key").First(&secretKey)
+
+	if secretKey.Value != "" {
+		if !verifyTurnstile(input.CFTurnstileResponse, secretKey.Value) {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Captcha validation failed"})
+		}
 	}
 
 	// Find User
