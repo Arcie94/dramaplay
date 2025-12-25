@@ -98,14 +98,14 @@ func LocalLogin(c *fiber.Ctx) error {
 	}
 
 	// 1. Verify Turnstile (if configured)
-	var secretKey models.Setting
-	database.DB.Where("key = ?", "turnstile_secret_key").First(&secretKey)
+	// var secretKey models.Setting
+	// database.DB.Where("key = ?", "turnstile_secret_key").First(&secretKey)
 
-	if secretKey.Value != "" {
-		if !verifyTurnstile(input.CFTurnstileResponse, secretKey.Value) {
-			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Captcha validation failed"})
-		}
-	}
+	// if secretKey.Value != "" {
+	// 	if !verifyTurnstile(input.CFTurnstileResponse, secretKey.Value) {
+	// 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Captcha validation failed"})
+	// 	}
+	// }
 
 	// Find User
 	var user models.User

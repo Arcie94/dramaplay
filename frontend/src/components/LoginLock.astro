@@ -274,7 +274,7 @@
   async function initTurnstile() {
     try {
       // Re-use public settings endpoint which now includes site key
-      const res = await fetch(`${API_BASE}/settings/public`);
+      const res = await fetch(`${API_BASE}/settings`);
       const data = await res.json();
 
       if (data.status === "success" && data.turnstile_site_key) {
