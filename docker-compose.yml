@@ -5,7 +5,7 @@ services:
     build:
       context: ./backend
     container_name: dramabang-backend
-    restart: unless-stopped
+    restart: always
     environment:
       - DB_DRIVER=postgres
       - DB_DSN=host=postgres user=dramabang password=dramabang dbname=dramabang port=5432 sslmode=disable TimeZone=Asia/Jakarta
@@ -20,7 +20,7 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: dramabang-postgres
-    restart: unless-stopped
+    restart: always
     environment:
       POSTGRES_USER: dramabang
       POSTGRES_PASSWORD: dramabang
@@ -34,7 +34,7 @@ services:
     build:
       context: ./frontend
     container_name: dramabang-frontend
-    restart: unless-stopped
+    restart: always
     environment:
       - INTERNAL_API_URL=http://backend:3000/api
     depends_on:
@@ -45,7 +45,7 @@ services:
   nginx:
     image: nginx:alpine
     container_name: dramabang-nginx
-    restart: unless-stopped
+    restart: always
     ports:
       - "80:80"
     volumes:
@@ -59,7 +59,7 @@ services:
   tunnel:
     image: cloudflare/cloudflared:latest
     container_name: dramabang-tunnel
-    restart: unless-stopped
+    restart: always
     volumes:
       - ./data:/data
     command: tunnel run --token-file /data/tunnel_token
