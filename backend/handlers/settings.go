@@ -4,6 +4,7 @@ import (
 	"dramabang/database"
 	"dramabang/models"
 	"fmt"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -46,6 +47,13 @@ func UpdateSettings(c *fiber.Ctx) error {
 		setting.Value = input.Value
 		if err := database.DB.Save(&setting).Error; err != nil {
 			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to update setting"})
+		}
+	}
+
+	// SPECIAL: If tunnel token, write to file sharing
+	if input.Key == "cloudflare_tunnel_token" {
+		if err := os.MkdirAll("data", 0755); err == nil {
+			os.WriteFile("data/tunnel_token", []byte(input.Value), 0644)
 		}
 	}
 

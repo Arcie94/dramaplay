@@ -56,6 +56,16 @@ services:
     networks:
       - dramabang-net
 
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: dramabang-tunnel
+    restart: unless-stopped
+    volumes:
+      - ./data:/data
+    command: tunnel run --token-file /data/tunnel_token
+    networks:
+      - dramabang-net
+
 networks:
   dramabang-net:
     driver: bridge
