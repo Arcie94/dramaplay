@@ -300,8 +300,9 @@
           document.head.appendChild(script);
 
           script.onload = () => {
-            if (debug) debug.innerText = "Script Loaded. Rendering...";
+            if (debug) debug.innerText = "Script Loaded. Waiting for Ready...";
             (window as any).turnstile.ready(() => {
+              if (debug) debug.innerText = "Ready Fired. Calling Render...";
               renderTurnstile(data.turnstile_site_key);
             });
           };
@@ -332,30 +333,41 @@
   function renderTurnstile(siteKey: string) {
     const debug = document.getElementById("debug-status");
     const container = document.getElementById("cf-turnstile-public");
-    if (container && !container.hasChildNodes()) {
-      try {
-        turnstileWidgetId = (window as any).turnstile.render(
-          "#cf-turnstile-public",
-          {
-            sitekey: siteKey,
-            theme: "dark",
-            callback: function (token: string) {
-              turnstileToken = token;
-              if (debug) debug.innerText = "Success: Token Received";
-            },
-            "expired-callback": function () {
-              turnstileToken = "";
-              if (debug) debug.innerText = "Token Expired";
-            },
-            "error-callback": function () {
-              if (debug) debug.innerText = "Widget Error (Check Console)";
-            },
-          }
-        );
-        if (debug) debug.innerText = "Widget Rendered";
-      } catch (e: any) {
-        if (debug) debug.innerText = "Render Crash: " + e.message;
-      }
+
+    if (!container) {
+      if (debug) debug.innerText = "Error: Container Div Missing!";
+      return;
+    }
+
+    if (container.hasChildNodes()) {
+      if (debug) debug.innerText = "Warning: Widget already exists.";
+      return;
+    }
+
+    // if (container && !container.hasChildNodes()) { // Redundant check removed
+    try {
+      if (debug) debug.innerText = "Attempting turnstile.render()...";
+      turnstileWidgetId = (window as any).turnstile.render(
+        "#cf-turnstile-public",
+        {
+          sitekey: siteKey,
+          theme: "dark",
+          callback: function (token: string) {
+            turnstileToken = token;
+            if (debug) debug.innerText = "Success: Token Received";
+          },
+          "expired-callback": function () {
+            turnstileToken = "";
+            if (debug) debug.innerText = "Token Expired";
+          },
+          "error-callback": function () {
+            if (debug) debug.innerText = "Widget Error (Check Console)";
+          },
+        }
+      );
+      if (debug) debug.innerText = "Widget Rendered";
+    } catch (e: any) {
+      if (debug) debug.innerText = "Render Crash: " + e.message;
     }
   }
 
