@@ -62,32 +62,21 @@ func UpdateSettings(c *fiber.Ctx) error {
 
 // GetPublicSettings returns public settings (like Google Client ID) for the frontend
 func GetPublicSettings(c *fiber.Ctx) error {
-	var clientID models.Setting
-	var gaID models.Setting
-	// Only expose what's necessary
-	database.DB.Where("key = ?", "google_client_id").First(&clientID)
-	database.DB.Where("key = ?", "ga_measurement_id").First(&gaID)
+	var settings []models.Setting
+	database.DB.Find(&settings)
 
-	var siteLogo models.Setting
-	// Explicitly find site_logo
-	database.DB.Where("key = ?", "site_logo").First(&siteLogo)
-
-	var siteFavicon models.Setting
-	// Explicitly find site_favicon
-	database.DB.Where("key = ?", "site_favicon").First(&siteFavicon)
-
-	var turnstileSiteKey models.Setting
-	database.DB.Where("key = ?", "turnstile_site_key").First(&turnstileSiteKey)
-
-	// Debug log
-	fmt.Printf("DEBUG: GetPublicSettings - SiteLogo: %v\n", siteLogo)
+	// Convert to map
+	sMap := make(map[string]string)
+	for _, s := range settings {
+		sMap[s.Key] = s.Value
+	}
 
 	return c.JSON(fiber.Map{
 		"status":             "success",
-		"google_client_id":   clientID.Value,
-		"ga_measurement_id":  gaID.Value,
-		"site_logo":          siteLogo.Value,
-		"site_favicon":       siteFavicon.Value,
-		"turnstile_site_key": turnstileSiteKey.Value,
+		"google_client_id":   sMap["google_client_id"],
+		"ga_measurement_id":  sMap["ga_measurement_id"],
+		"site_logo":          sMap["site_logo"],
+		"site_favicon":       sMap["site_favicon"],
+		"turnstile_site_key": sMap["turnstile_site_key"],
 	})
 }
