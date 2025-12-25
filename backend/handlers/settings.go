@@ -3,7 +3,6 @@ package handlers
 import (
 	"dramabang/database"
 	"dramabang/models"
-	"fmt"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
