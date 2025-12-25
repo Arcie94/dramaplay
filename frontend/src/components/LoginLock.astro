@@ -160,6 +160,12 @@
 
         <!-- Turnstile Widget -->
         <div id="cf-turnstile-public" class="flex justify-center my-2"></div>
+        <div
+          id="debug-status"
+          class="text-[10px] text-center text-zinc-600 mt-1 font-mono"
+        >
+          Initializing...
+        </div>
 
         <button
           type="submit"
@@ -272,12 +278,16 @@
   let turnstileWidgetId: any = null;
 
   async function initTurnstile() {
+    const debug = document.getElementById("debug-status");
+    if (debug) debug.innerText = "Fetching Settings...";
+
     try {
       // Re-use public settings endpoint which now includes site key
       const res = await fetch(`${API_BASE}/settings`);
       const data = await res.json();
 
       if (data.status === "success" && data.turnstile_site_key) {
+        if (debug) debug.innerText = "Key Found. Checking Script...";
         const theme = "dark";
 
         // Check if script already exists
@@ -290,40 +300,62 @@
           document.head.appendChild(script);
 
           script.onload = () => {
+            if (debug) debug.innerText = "Script Loaded. Rendering...";
             (window as any).turnstile.ready(() => {
               renderTurnstile(data.turnstile_site_key);
             });
           };
+          script.onerror = () => {
+            if (debug) debug.innerText = "Script Failed to Load!";
+          };
         } else {
           // If script already loaded, just render
           if ((window as any).turnstile) {
+            if (debug) debug.innerText = "Script Cached. Rendering...";
             (window as any).turnstile.ready(() => {
               renderTurnstile(data.turnstile_site_key);
             });
+          } else {
+            if (debug)
+              debug.innerText = "Script tag exists but object missing.";
           }
         }
+      } else {
+        if (debug) debug.innerText = "No Site Key in Settings!";
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error("Failed to init turnstile", e);
+      if (debug) debug.innerText = "Init Error: " + e.message;
     }
   }
 
   function renderTurnstile(siteKey: string) {
+    const debug = document.getElementById("debug-status");
     const container = document.getElementById("cf-turnstile-public");
     if (container && !container.hasChildNodes()) {
-      turnstileWidgetId = (window as any).turnstile.render(
-        "#cf-turnstile-public",
-        {
-          sitekey: siteKey,
-          theme: "dark",
-          callback: function (token: string) {
-            turnstileToken = token;
-          },
-          "expired-callback": function () {
-            turnstileToken = "";
-          },
-        }
-      );
+      try {
+        turnstileWidgetId = (window as any).turnstile.render(
+          "#cf-turnstile-public",
+          {
+            sitekey: siteKey,
+            theme: "dark",
+            callback: function (token: string) {
+              turnstileToken = token;
+              if (debug) debug.innerText = "Success: Token Received";
+            },
+            "expired-callback": function () {
+              turnstileToken = "";
+              if (debug) debug.innerText = "Token Expired";
+            },
+            "error-callback": function () {
+              if (debug) debug.innerText = "Widget Error (Check Console)";
+            },
+          }
+        );
+        if (debug) debug.innerText = "Widget Rendered";
+      } catch (e: any) {
+        if (debug) debug.innerText = "Render Crash: " + e.message;
+      }
     }
   }
 
