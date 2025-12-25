@@ -226,11 +226,16 @@
               "google-btn-container"
             );
             if (googleContainer) {
+              // Google Button expects pixels for width, not percentage
+              // We grab the container width, or default to a standard size
+              const width = googleContainer.offsetWidth || 380;
+
               window.google.accounts.id.renderButton(googleContainer, {
                 theme: "filled_black",
                 size: "large",
-                width: "100%",
+                width: width,
                 text: "continue_with",
+                logo_alignment: "left",
               });
             }
           }
