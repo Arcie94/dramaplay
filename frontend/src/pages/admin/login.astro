@@ -3,101 +3,146 @@ import Layout from "../../layouts/Layout.astro";
 ---
 
 <Layout title="Admin Login - DramaPlay">
-    <div class="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
-        <div
-            class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl w-full max-w-md shadow-2xl"
-        >
-            <h1 class="text-2xl font-bold text-white mb-2 text-center">
-                Admin Access
-            </h1>
-            <p class="text-zinc-500 text-sm text-center mb-6">
-                Please enter your credentials
-            </p>
+  <div class="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
+    <div
+      class="bg-zinc-900 border border-zinc-800 p-8 rounded-xl w-full max-w-md shadow-2xl"
+    >
+      <h1 class="text-2xl font-bold text-white mb-2 text-center">
+        Admin Access
+      </h1>
+      <p class="text-zinc-500 text-sm text-center mb-6">
+        Please enter your credentials
+      </p>
 
-            <form id="login-form" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-medium text-zinc-400 mb-1"
-                        >Username</label
-                    >
-                    <input
-                        type="text"
-                        id="username"
-                        class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none transition-colors"
-                        placeholder="admin"
-                    />
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-zinc-400 mb-1"
-                        >Password</label
-                    >
-                    <input
-                        type="password"
-                        id="password"
-                        class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none transition-colors"
-                        placeholder="••••••••"
-                    />
-                </div>
-
-                <div
-                    id="error-msg"
-                    class="text-red-500 text-xs text-center hidden"
-                >
-                    Invalid credentials
-                </div>
-
-                <button
-                    type="submit"
-                    class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg transition-colors mt-2"
-                >
-                    Sign In
-                </button>
-            </form>
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-zinc-400 mb-1"
+            >Username</label
+          >
+          <input
+            type="text"
+            id="username"
+            class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none transition-colors"
+            placeholder="admin"
+          />
         </div>
+        <div>
+          <label class="block text-xs font-medium text-zinc-400 mb-1"
+            >Password</label
+          >
+          <input
+            type="password"
+            id="password"
+            class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none transition-colors"
+            placeholder="••••••••"
+          />
+        </div>
+
+        <div id="error-msg" class="text-red-500 text-xs text-center hidden">
+          Invalid credentials
+        </div>
+
+        <!-- Turnstile Widget -->
+        <div id="cf-turnstile" class="flex justify-center my-4"></div>
+
+        <button
+          type="submit"
+          class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg transition-colors mt-2"
+        >
+          Sign In
+        </button>
+      </form>
     </div>
+  </div>
 </Layout>
 
 <script>
-    const form = document.getElementById("login-form");
-    const userIn = document.getElementById("username") as HTMLInputElement;
-    const passIn = document.getElementById("password") as HTMLInputElement;
-    const errorMsg = document.getElementById("error-msg");
+  const form = document.getElementById("login-form");
+  const userIn = document.getElementById("username") as HTMLInputElement;
+  const passIn = document.getElementById("password") as HTMLInputElement;
+  const errorMsg = document.getElementById("error-msg");
 
-    // Check if already logged in
-    if (localStorage.getItem("admin_token")) {
-        window.location.href = "/admin";
+  // Turnstile
+  let turnstileToken = "";
+  let turnstileWidgetId: any = null;
+
+  // Load Turnstile Script dynamically if needed, or if site key is present
+  async function initTurnstile() {
+    try {
+      const res = await fetch("/api/settings/public");
+      const data = await res.json();
+
+      if (data.status === "success" && data.turnstile_site_key) {
+        // Determine theme based on logic or default to auto
+        const theme = "dark";
+
+        // Inject script
+        const script = document.createElement("script");
+        script.src =
+          "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+
+        script.onload = () => {
+          (window as any).turnstile.ready(() => {
+            turnstileWidgetId = (window as any).turnstile.render(
+              "#cf-turnstile",
+              {
+                sitekey: data.turnstile_site_key,
+                theme: theme,
+                callback: function (token: string) {
+                  turnstileToken = token;
+                },
+              }
+            );
+          });
+        };
+      }
+    } catch (e) {
+      console.error("Failed to init turnstile", e);
     }
+  }
 
-    form?.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        errorMsg?.classList.add("hidden");
+  initTurnstile();
 
-        try {
-            const res = await fetch("/api/admin/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    username: userIn.value,
-                    password: passIn.value,
-                }),
-            });
+  // Check if already logged in
+  if (localStorage.getItem("admin_token")) {
+    window.location.href = "/admin";
+  }
 
-            const data = await res.json();
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errorMsg?.classList.add("hidden");
 
-            if (res.ok && data.status === "success") {
-                localStorage.setItem("admin_token", data.token);
-                window.location.href = "/admin";
-            } else {
-                if (errorMsg) {
-                    errorMsg.textContent = data.message || "Login failed";
-                    errorMsg.classList.remove("hidden");
-                }
-            }
-        } catch (err) {
-            console.error(err);
-            if (errorMsg) {
-                errorMsg.textContent = "Connection error";
-                errorMsg.classList.remove("hidden");
-            }
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: userIn.value,
+          password: passIn.value,
+          cf_turnstile_response: turnstileToken, // Send token
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.status === "success") {
+        localStorage.setItem("admin_token", data.token);
+        window.location.href = "/admin";
+      } else {
+        if (errorMsg) {
+          errorMsg.textContent = data.message || "Login failed";
+          errorMsg.classList.remove("hidden");
         }
-    });
+      }
+    } catch (err) {
+      console.error(err);
+      if (errorMsg) {
+        errorMsg.textContent = "Connection error";
+        errorMsg.classList.remove("hidden");
+      }
+    }
+  });
 </script>

@@ -76,14 +76,18 @@ func GetPublicSettings(c *fiber.Ctx) error {
 	// Explicitly find site_favicon
 	database.DB.Where("key = ?", "site_favicon").First(&siteFavicon)
 
+	var turnstileSiteKey models.Setting
+	database.DB.Where("key = ?", "turnstile_site_key").First(&turnstileSiteKey)
+
 	// Debug log
 	fmt.Printf("DEBUG: GetPublicSettings - SiteLogo: %v\n", siteLogo)
 
 	return c.JSON(fiber.Map{
-		"status":            "success",
-		"google_client_id":  clientID.Value,
-		"ga_measurement_id": gaID.Value,
-		"site_logo":         siteLogo.Value,
-		"site_favicon":      siteFavicon.Value,
+		"status":             "success",
+		"google_client_id":   clientID.Value,
+		"ga_measurement_id":  gaID.Value,
+		"site_logo":          siteLogo.Value,
+		"site_favicon":       siteFavicon.Value,
+		"turnstile_site_key": turnstileSiteKey.Value,
 	})
 }

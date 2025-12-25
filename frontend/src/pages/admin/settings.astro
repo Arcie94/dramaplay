@@ -3,843 +3,888 @@ import Layout from "../../layouts/Layout.astro";
 ---
 
 <Layout title="Admin Settings - DramaPlay">
-    <div class="min-h-screen bg-black text-white p-6 pt-24">
-        <div class="max-w-4xl mx-auto">
-            <!-- Header -->
-            <div class="flex items-center justify-between mb-8">
-                <div>
-                    <h1 class="text-3xl font-bold">Settings</h1>
-                    <p class="text-zinc-400 mt-2">
-                        Manage application configuration and credentials
-                    </p>
-                </div>
-                <a
-                    href="/admin"
-                    class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm text-white transition-colors"
-                >
-                    Back to Dashboard
-                </a>
-            </div>
-
-            <!-- Settings Form -->
-            <div
-                class="bg-zinc-900 border border-zinc-800 rounded-xl p-6 md:p-8"
-            >
-                <form id="settings-form" class="space-y-6">
-                    <div>
-                        <h2
-                            class="text-xl font-semibold mb-4 border-b border-zinc-800 pb-2"
-                        >
-                            Authentication
-                        </h2>
-                        <div class="space-y-4">
-                            <div>
-                                <label
-                                    for="google_client_id"
-                                    class="block text-sm font-medium text-zinc-400 mb-1"
-                                    >Google OAuth Client ID</label
-                                >
-                                <input
-                                    type="text"
-                                    id="google_client_id"
-                                    name="google_client_id"
-                                    class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition-colors"
-                                    placeholder="e.g. 123456789-abc.apps.googleusercontent.com"
-                                />
-                                <p class="text-xs text-zinc-500 mt-1">
-                                    Required for "Continue with Google" button.
-                                    Get this from Google Cloud Console.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h2
-                            class="text-xl font-semibold mb-4 border-b border-zinc-800 pb-2"
-                        >
-                            Cloudflare Tunnel
-                        </h2>
-                        <div class="space-y-4">
-                            <div>
-                                <label
-                                    for="cloudflare_tunnel_token"
-                                    class="block text-sm font-medium text-zinc-400 mb-1"
-                                    >Tunnel Token</label
-                                >
-                                <input
-                                    type="password"
-                                    id="cloudflare_tunnel_token"
-                                    name="cloudflare_tunnel_token"
-                                    class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition-colors"
-                                    placeholder="eyJ..."
-                                />
-                                <p class="text-xs text-zinc-500 mt-1">
-                                    Required for cloudflared container.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h2
-                            class="text-xl font-semibold mb-4 border-b border-zinc-800 pb-2"
-                        >
-                            General Settings
-                        </h2>
-                        <div class="space-y-4">
-                            <div>
-                                <label
-                                    class="block text-sm font-medium text-zinc-400 mb-1"
-                                    >Site Logo</label
-                                >
-
-                                <div class="flex flex-col gap-4">
-                                    <!-- Preview & Input -->
-                                    <div
-                                        class="flex items-center gap-4 bg-black/30 p-4 rounded-lg border border-zinc-800"
-                                    >
-                                        <div
-                                            class="w-16 h-16 bg-zinc-900 rounded-lg flex items-center justify-center overflow-hidden border border-zinc-700"
-                                        >
-                                            <img
-                                                id="logo-preview"
-                                                src="/favicon.png"
-                                                class="w-full h-full object-contain"
-                                            />
-                                        </div>
-                                        <div class="flex-1">
-                                            <input
-                                                type="file"
-                                                id="logo-upload"
-                                                accept="image/*"
-                                                class="hidden"
-                                            />
-                                            <div class="flex gap-2">
-                                                <button
-                                                    type="button"
-                                                    onclick="document.getElementById('logo-upload').click()"
-                                                    class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm text-white font-medium transition-colors border border-zinc-600"
-                                                >
-                                                    Choose Image
-                                                </button>
-                                                <input
-                                                    type="text"
-                                                    id="site_logo"
-                                                    name="site_logo"
-                                                    class="flex-1 bg-transparent border-none text-zinc-500 text-sm focus:ring-0"
-                                                    placeholder="URL will appear here..."
-                                                    readonly
-                                                />
-                                            </div>
-                                            <p
-                                                class="text-xs text-zinc-500 mt-2"
-                                            >
-                                                Recommended: 200x200px (PNG/JPG)
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Site Favicon -->
-                            <div>
-                                <label
-                                    class="block text-sm font-medium text-zinc-400 mb-1"
-                                    >Site Favicon</label
-                                >
-
-                                <div class="flex flex-col gap-4">
-                                    <!-- Preview & Input -->
-                                    <div
-                                        class="flex items-center gap-4 bg-black/30 p-4 rounded-lg border border-zinc-800"
-                                    >
-                                        <div
-                                            class="w-16 h-16 bg-zinc-900 rounded-lg flex items-center justify-center overflow-hidden border border-zinc-700"
-                                        >
-                                            <img
-                                                id="favicon-preview"
-                                                src="/favicon.png"
-                                                class="w-full h-full object-contain"
-                                            />
-                                        </div>
-                                        <div class="flex-1">
-                                            <input
-                                                type="file"
-                                                id="favicon-upload"
-                                                accept="image/*"
-                                                class="hidden"
-                                            />
-                                            <div class="flex gap-2">
-                                                <button
-                                                    type="button"
-                                                    onclick="document.getElementById('favicon-upload').click()"
-                                                    class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm text-white font-medium transition-colors border border-zinc-600"
-                                                >
-                                                    Choose Image
-                                                </button>
-                                                <input
-                                                    type="text"
-                                                    id="site_favicon"
-                                                    name="site_favicon"
-                                                    class="flex-1 bg-transparent border-none text-zinc-500 text-sm focus:ring-0"
-                                                    placeholder="URL will appear here..."
-                                                    readonly
-                                                />
-                                            </div>
-                                            <p
-                                                class="text-xs text-zinc-500 mt-2"
-                                            >
-                                                Recommended: 32x32px or 64x64px
-                                                (PNG/ICO)
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h2
-                            class="text-xl font-semibold mb-4 border-b border-zinc-800 pb-2"
-                        >
-                            Analytics
-                        </h2>
-                        <div class="space-y-4">
-                            <div>
-                                <label
-                                    for="ga_measurement_id"
-                                    class="block text-sm font-medium text-zinc-400 mb-1"
-                                    >Google Analytics Measurement ID</label
-                                >
-                                <input
-                                    type="text"
-                                    id="ga_measurement_id"
-                                    name="ga_measurement_id"
-                                    class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition-colors"
-                                    placeholder="e.g. G-XXXXXXXXXX"
-                                />
-                                <p class="text-xs text-zinc-500 mt-1">
-                                    Found in GA4 Admin > Data Streams.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-end pt-4">
-                        <button
-                            type="submit"
-                            id="btn-save"
-                            class="px-6 py-2.5 bg-red-600 hover:bg-red-700 rounded-lg text-white font-bold shadow-lg shadow-red-900/20 transition-all active:scale-95"
-                        >
-                            Save Changes
-                        </button>
-                    </div>
-                </form>
-            </div>
+  <div class="min-h-screen bg-black text-white p-6 pt-24">
+    <div class="max-w-4xl mx-auto">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h1 class="text-3xl font-bold">Settings</h1>
+          <p class="text-zinc-400 mt-2">
+            Manage application configuration and credentials
+          </p>
         </div>
+        <a
+          href="/admin"
+          class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm text-white transition-colors"
+        >
+          Back to Dashboard
+        </a>
+      </div>
+
+      <!-- Settings Form -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6 md:p-8">
+        <form id="settings-form" class="space-y-6">
+          <div>
+            <h2
+              class="text-xl font-semibold mb-4 border-b border-zinc-800 pb-2"
+            >
+              Authentication
+            </h2>
+            <div class="space-y-4">
+              <div>
+                <label
+                  for="google_client_id"
+                  class="block text-sm font-medium text-zinc-400 mb-1"
+                  >Google OAuth Client ID</label
+                >
+                <input
+                  type="text"
+                  id="google_client_id"
+                  name="google_client_id"
+                  class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition-colors"
+                  placeholder="e.g. 123456789-abc.apps.googleusercontent.com"
+                />
+                <p class="text-xs text-zinc-500 mt-1">
+                  Required for "Continue with Google" button. Get this from
+                  Google Cloud Console.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h2
+              class="text-xl font-semibold mb-4 border-b border-zinc-800 pb-2"
+            >
+              Cloudflare Tunnel
+            </h2>
+            <div class="space-y-4">
+              <div>
+                <label
+                  for="cloudflare_tunnel_token"
+                  class="block text-sm font-medium text-zinc-400 mb-1"
+                  >Tunnel Token</label
+                >
+                <input
+                  type="password"
+                  id="cloudflare_tunnel_token"
+                  name="cloudflare_tunnel_token"
+                  class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition-colors"
+                  placeholder="eyJ..."
+                />
+                <p class="text-xs text-zinc-500 mt-1">
+                  Required for cloudflared container.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h2
+              class="text-xl font-semibold mb-4 border-b border-zinc-800 pb-2"
+            >
+              Security (Captcha)
+            </h2>
+            <div class="space-y-4">
+              <div>
+                <label
+                  for="turnstile_site_key"
+                  class="block text-sm font-medium text-zinc-400 mb-1"
+                  >Turnstile Site Key</label
+                >
+                <input
+                  type="text"
+                  id="turnstile_site_key"
+                  name="turnstile_site_key"
+                  class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition-colors"
+                  placeholder="0x4AAAAAA..."
+                />
+              </div>
+              <div>
+                <label
+                  for="turnstile_secret_key"
+                  class="block text-sm font-medium text-zinc-400 mb-1"
+                  >Turnstile Secret Key</label
+                >
+                <input
+                  type="text"
+                  id="turnstile_secret_key"
+                  name="turnstile_secret_key"
+                  class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition-colors"
+                  placeholder="0x4AAAAAA..."
+                />
+                <p class="text-xs text-zinc-500 mt-1">
+                  Get these from Cloudflare Dashboard > Turnstile.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h2
+              class="text-xl font-semibold mb-4 border-b border-zinc-800 pb-2"
+            >
+              General Settings
+            </h2>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-zinc-400 mb-1"
+                  >Site Logo</label
+                >
+
+                <div class="flex flex-col gap-4">
+                  <!-- Preview & Input -->
+                  <div
+                    class="flex items-center gap-4 bg-black/30 p-4 rounded-lg border border-zinc-800"
+                  >
+                    <div
+                      class="w-16 h-16 bg-zinc-900 rounded-lg flex items-center justify-center overflow-hidden border border-zinc-700"
+                    >
+                      <img
+                        id="logo-preview"
+                        src="/favicon.png"
+                        class="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div class="flex-1">
+                      <input
+                        type="file"
+                        id="logo-upload"
+                        accept="image/*"
+                        class="hidden"
+                      />
+                      <div class="flex gap-2">
+                        <button
+                          type="button"
+                          onclick="document.getElementById('logo-upload').click()"
+                          class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm text-white font-medium transition-colors border border-zinc-600"
+                        >
+                          Choose Image
+                        </button>
+                        <input
+                          type="text"
+                          id="site_logo"
+                          name="site_logo"
+                          class="flex-1 bg-transparent border-none text-zinc-500 text-sm focus:ring-0"
+                          placeholder="URL will appear here..."
+                          readonly
+                        />
+                      </div>
+                      <p class="text-xs text-zinc-500 mt-2">
+                        Recommended: 200x200px (PNG/JPG)
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Site Favicon -->
+              <div>
+                <label class="block text-sm font-medium text-zinc-400 mb-1"
+                  >Site Favicon</label
+                >
+
+                <div class="flex flex-col gap-4">
+                  <!-- Preview & Input -->
+                  <div
+                    class="flex items-center gap-4 bg-black/30 p-4 rounded-lg border border-zinc-800"
+                  >
+                    <div
+                      class="w-16 h-16 bg-zinc-900 rounded-lg flex items-center justify-center overflow-hidden border border-zinc-700"
+                    >
+                      <img
+                        id="favicon-preview"
+                        src="/favicon.png"
+                        class="w-full h-full object-contain"
+                      />
+                    </div>
+                    <div class="flex-1">
+                      <input
+                        type="file"
+                        id="favicon-upload"
+                        accept="image/*"
+                        class="hidden"
+                      />
+                      <div class="flex gap-2">
+                        <button
+                          type="button"
+                          onclick="document.getElementById('favicon-upload').click()"
+                          class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm text-white font-medium transition-colors border border-zinc-600"
+                        >
+                          Choose Image
+                        </button>
+                        <input
+                          type="text"
+                          id="site_favicon"
+                          name="site_favicon"
+                          class="flex-1 bg-transparent border-none text-zinc-500 text-sm focus:ring-0"
+                          placeholder="URL will appear here..."
+                          readonly
+                        />
+                      </div>
+                      <p class="text-xs text-zinc-500 mt-2">
+                        Recommended: 32x32px or 64x64px (PNG/ICO)
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h2
+              class="text-xl font-semibold mb-4 border-b border-zinc-800 pb-2"
+            >
+              Analytics
+            </h2>
+            <div class="space-y-4">
+              <div>
+                <label
+                  for="ga_measurement_id"
+                  class="block text-sm font-medium text-zinc-400 mb-1"
+                  >Google Analytics Measurement ID</label
+                >
+                <input
+                  type="text"
+                  id="ga_measurement_id"
+                  name="ga_measurement_id"
+                  class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition-colors"
+                  placeholder="e.g. G-XXXXXXXXXX"
+                />
+                <p class="text-xs text-zinc-500 mt-1">
+                  Found in GA4 Admin > Data Streams.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-4">
+            <button
+              type="submit"
+              id="btn-save"
+              class="px-6 py-2.5 bg-red-600 hover:bg-red-700 rounded-lg text-white font-bold shadow-lg shadow-red-900/20 transition-all active:scale-95"
+            >
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
-    <!-- Toast Container -->
-    <div
-        id="toast-container"
-        class="fixed bottom-6 right-6 z-[60] flex flex-col gap-2 pointer-events-none"
-    >
-    </div>
+  </div>
+  <!-- Toast Container -->
+  <div
+    id="toast-container"
+    class="fixed bottom-6 right-6 z-[60] flex flex-col gap-2 pointer-events-none"
+  >
+  </div>
 </Layout>
 
 <!-- CropperJS -->
 <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css"
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css"
 />
 <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"
-    is:inline></script>
+  src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"
+  is:inline></script>
 
 <!-- Editor Modal -->
 <div
-    id="editor-modal"
-    class="fixed inset-0 z-[60] bg-black/90 hidden flex-col items-center justify-center p-4 backdrop-blur-md"
+  id="editor-modal"
+  class="fixed inset-0 z-[60] bg-black/90 hidden flex-col items-center justify-center p-4 backdrop-blur-md"
 >
+  <div
+    class="bg-zinc-900 w-full max-w-4xl h-[80vh] rounded-xl border border-zinc-700 flex flex-col shadow-2xl overflow-hidden"
+  >
+    <!-- Toolbar Top -->
     <div
-        class="bg-zinc-900 w-full max-w-4xl h-[80vh] rounded-xl border border-zinc-700 flex flex-col shadow-2xl overflow-hidden"
+      class="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-950"
     >
-        <!-- Toolbar Top -->
-        <div
-            class="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-950"
+      <h3 class="font-bold text-white">Edit Logo</h3>
+      <button id="btn-close-editor" class="text-zinc-400 hover:text-white">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-6 h-6"
         >
-            <h3 class="font-bold text-white">Edit Logo</h3>
-            <button
-                id="btn-close-editor"
-                class="text-zinc-400 hover:text-white"
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="w-6 h-6"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
-        </div>
-
-        <!-- Canvas -->
-        <div
-            class="flex-1 bg-[#18181b] relative overflow-hidden flex items-center justify-center p-4"
-        >
-            <img
-                id="image-to-edit"
-                src=""
-                class="max-w-full max-h-full block"
-            />
-        </div>
-
-        <!-- Toolbar Bottom -->
-        <div
-            class="p-4 border-t border-zinc-800 bg-zinc-950 flex flex-wrap gap-4 justify-between items-center"
-        >
-            <div class="flex flex-wrap gap-2">
-                <!-- Zoom -->
-                <div
-                    class="flex rounded-md bg-zinc-800 overflow-hidden border border-zinc-700"
-                >
-                    <button
-                        type="button"
-                        class="p-2 hover:bg-zinc-700 text-white"
-                        data-action="zoom-in"
-                        title="Zoom In"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            ><circle cx="11" cy="11" r="8"></circle><line
-                                x1="21"
-                                y1="21"
-                                x2="16.65"
-                                y2="16.65"></line><line
-                                x1="11"
-                                y1="8"
-                                x2="11"
-                                y2="14"></line><line
-                                x1="8"
-                                y1="11"
-                                x2="14"
-                                y2="11"></line></svg
-                        >
-                    </button>
-                    <button
-                        type="button"
-                        class="p-2 hover:bg-zinc-700 text-white border-l border-zinc-700"
-                        data-action="zoom-out"
-                        title="Zoom Out"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            ><circle cx="11" cy="11" r="8"></circle><line
-                                x1="21"
-                                y1="21"
-                                x2="16.65"
-                                y2="16.65"></line><line
-                                x1="8"
-                                y1="11"
-                                x2="14"
-                                y2="11"></line></svg
-                        >
-                    </button>
-                </div>
-
-                <!-- Rotate -->
-                <div
-                    class="flex rounded-md bg-zinc-800 overflow-hidden border border-zinc-700"
-                >
-                    <button
-                        type="button"
-                        class="p-2 hover:bg-zinc-700 text-white"
-                        data-action="rotate-left"
-                        title="Rotate Left"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            ><path
-                                d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
-                            ></path><path d="M3 3v5h5"></path></svg
-                        >
-                    </button>
-                    <button
-                        type="button"
-                        class="p-2 hover:bg-zinc-700 text-white border-l border-zinc-700"
-                        data-action="rotate-right"
-                        title="Rotate Right"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            ><path
-                                d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"
-                            ></path><path d="M21 3v5h-5"></path></svg
-                        >
-                    </button>
-                </div>
-
-                <!-- Flip -->
-                <div
-                    class="flex rounded-md bg-zinc-800 overflow-hidden border border-zinc-700"
-                >
-                    <button
-                        type="button"
-                        class="p-2 hover:bg-zinc-700 text-white"
-                        data-action="flip-h"
-                        title="Flip Horizontal"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            ><polyline points="16 3 21 3 21 8"></polyline><line
-                                x1="4"
-                                y1="20"
-                                x2="21"
-                                y2="3"></line><polyline
-                                points="21 16 21 21 16 21"></polyline><line
-                                x1="15"
-                                y1="15"
-                                x2="21"
-                                y2="21"></line><line x1="4" y1="4" x2="9" y2="9"
-                            ></line></svg
-                        >
-                    </button>
-                    <button
-                        type="button"
-                        class="p-2 hover:bg-zinc-700 text-white border-l border-zinc-700"
-                        data-action="flip-v"
-                        title="Flip Vertical"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            ><polyline points="16 21 21 21 21 16"
-                            ></polyline><line x1="12" y1="21" x2="12" y2="3"
-                            ></line><polyline points="3 10 3 15 8 15"
-                            ></polyline></svg
-                        >
-                    </button>
-                </div>
-            </div>
-
-            <div class="flex gap-3">
-                <button
-                    type="button"
-                    id="btn-crop-save"
-                    class="px-6 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white font-bold shadow-lg shadow-red-900/20"
-                >
-                    Crop & Upload
-                </button>
-            </div>
-        </div>
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
     </div>
+
+    <!-- Canvas -->
+    <div
+      class="flex-1 bg-[#18181b] relative overflow-hidden flex items-center justify-center p-4"
+    >
+      <img id="image-to-edit" src="" class="max-w-full max-h-full block" />
+    </div>
+
+    <!-- Toolbar Bottom -->
+    <div
+      class="p-4 border-t border-zinc-800 bg-zinc-950 flex flex-wrap gap-4 justify-between items-center"
+    >
+      <div class="flex flex-wrap gap-2">
+        <!-- Zoom -->
+        <div
+          class="flex rounded-md bg-zinc-800 overflow-hidden border border-zinc-700"
+        >
+          <button
+            type="button"
+            class="p-2 hover:bg-zinc-700 text-white"
+            data-action="zoom-in"
+            title="Zoom In"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              ><circle cx="11" cy="11" r="8"></circle><line
+                x1="21"
+                y1="21"
+                x2="16.65"
+                y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"
+              ></line><line x1="8" y1="11" x2="14" y2="11"></line></svg
+            >
+          </button>
+          <button
+            type="button"
+            class="p-2 hover:bg-zinc-700 text-white border-l border-zinc-700"
+            data-action="zoom-out"
+            title="Zoom Out"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              ><circle cx="11" cy="11" r="8"></circle><line
+                x1="21"
+                y1="21"
+                x2="16.65"
+                y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"
+              ></line></svg
+            >
+          </button>
+        </div>
+
+        <!-- Rotate -->
+        <div
+          class="flex rounded-md bg-zinc-800 overflow-hidden border border-zinc-700"
+        >
+          <button
+            type="button"
+            class="p-2 hover:bg-zinc-700 text-white"
+            data-action="rotate-left"
+            title="Rotate Left"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              ><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+              ></path><path d="M3 3v5h5"></path></svg
+            >
+          </button>
+          <button
+            type="button"
+            class="p-2 hover:bg-zinc-700 text-white border-l border-zinc-700"
+            data-action="rotate-right"
+            title="Rotate Right"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              ><path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"
+              ></path><path d="M21 3v5h-5"></path></svg
+            >
+          </button>
+        </div>
+
+        <!-- Flip -->
+        <div
+          class="flex rounded-md bg-zinc-800 overflow-hidden border border-zinc-700"
+        >
+          <button
+            type="button"
+            class="p-2 hover:bg-zinc-700 text-white"
+            data-action="flip-h"
+            title="Flip Horizontal"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              ><polyline points="16 3 21 3 21 8"></polyline><line
+                x1="4"
+                y1="20"
+                x2="21"
+                y2="3"></line><polyline points="21 16 21 21 16 21"
+              ></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line
+                x1="4"
+                y1="4"
+                x2="9"
+                y2="9"></line></svg
+            >
+          </button>
+          <button
+            type="button"
+            class="p-2 hover:bg-zinc-700 text-white border-l border-zinc-700"
+            data-action="flip-v"
+            title="Flip Vertical"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              ><polyline points="16 21 21 21 21 16"></polyline><line
+                x1="12"
+                y1="21"
+                x2="12"
+                y2="3"></line><polyline points="3 10 3 15 8 15"></polyline></svg
+            >
+          </button>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button
+          type="button"
+          id="btn-crop-save"
+          class="px-6 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white font-bold shadow-lg shadow-red-900/20"
+        >
+          Crop & Upload
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-    const API_BASE = "/api";
-    const token = localStorage.getItem("admin_token");
+  const API_BASE = "/api";
+  const token = localStorage.getItem("admin_token");
 
-    // --- Toast Logic ---
-    function showToast(msg: string, type: "success" | "error" = "success") {
-        const container = document.getElementById("toast-container");
-        if (!container) return;
+  // --- Toast Logic ---
+  function showToast(msg: string, type: "success" | "error" = "success") {
+    const container = document.getElementById("toast-container");
+    if (!container) return;
 
-        const toast = document.createElement("div");
-        toast.className = `pointer-events-auto px-4 py-3 rounded-lg text-white text-sm font-medium shadow-xl flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-300 ${
-            type === "success" ? "bg-green-600" : "bg-red-600"
-        }`;
-        toast.innerHTML = `
+    const toast = document.createElement("div");
+    toast.className = `pointer-events-auto px-4 py-3 rounded-lg text-white text-sm font-medium shadow-xl flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-300 ${
+      type === "success" ? "bg-green-600" : "bg-red-600"
+    }`;
+    toast.innerHTML = `
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                 ${
-                    type === "success"
-                        ? '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />'
-                        : '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />'
+                  type === "success"
+                    ? '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />'
+                    : '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />'
                 }
             </svg>
             ${msg}
         `;
 
-        container.appendChild(toast);
+    container.appendChild(toast);
 
-        // Remove after 3s
-        setTimeout(() => {
-            toast.classList.add("opacity-0", "translate-y-2", "transition-all");
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
+    // Remove after 3s
+    setTimeout(() => {
+      toast.classList.add("opacity-0", "translate-y-2", "transition-all");
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
 
-    if (!token) {
-        window.location.href = "/admin/login";
-    }
+  if (!token) {
+    window.location.href = "/admin/login";
+  }
 
-    const form = document.getElementById("settings-form");
-    const clientIDInput = document.getElementById(
-        "google_client_id",
-    ) as HTMLInputElement;
-    const gaIDInput = document.getElementById(
-        "ga_measurement_id",
-    ) as HTMLInputElement;
-    const cfTokenInput = document.getElementById(
-        "cloudflare_tunnel_token",
-    ) as HTMLInputElement;
-    const logoInput = document.getElementById("site_logo") as HTMLInputElement;
-    const logoPreview = document.getElementById(
-        "logo-preview",
-    ) as HTMLImageElement;
-    const fileInput = document.getElementById(
-        "logo-upload",
-    ) as HTMLInputElement;
+  const form = document.getElementById("settings-form");
+  const clientIDInput = document.getElementById(
+    "google_client_id"
+  ) as HTMLInputElement;
+  const gaIDInput = document.getElementById(
+    "ga_measurement_id"
+  ) as HTMLInputElement;
+  const cfTokenInput = document.getElementById(
+    "cloudflare_tunnel_token"
+  ) as HTMLInputElement;
+  const turnstileSiteInput = document.getElementById(
+    "turnstile_site_key"
+  ) as HTMLInputElement;
+  const turnstileSecretInput = document.getElementById(
+    "turnstile_secret_key"
+  ) as HTMLInputElement;
+  const logoInput = document.getElementById("site_logo") as HTMLInputElement;
+  const logoPreview = document.getElementById(
+    "logo-preview"
+  ) as HTMLImageElement;
+  const fileInput = document.getElementById("logo-upload") as HTMLInputElement;
 
-    // Favicon Elements
-    const faviconInput = document.getElementById(
-        "site_favicon",
-    ) as HTMLInputElement;
-    const faviconPreview = document.getElementById(
-        "favicon-preview",
-    ) as HTMLImageElement;
-    const faviconFileInput = document.getElementById(
-        "favicon-upload",
-    ) as HTMLInputElement;
+  // Favicon Elements
+  const faviconInput = document.getElementById(
+    "site_favicon"
+  ) as HTMLInputElement;
+  const faviconPreview = document.getElementById(
+    "favicon-preview"
+  ) as HTMLImageElement;
+  const faviconFileInput = document.getElementById(
+    "favicon-upload"
+  ) as HTMLInputElement;
 
-    const saveBtn = document.getElementById("btn-save");
+  const saveBtn = document.getElementById("btn-save");
 
-    // Editor Elements
-    const editorModal = document.getElementById("editor-modal");
-    const imageToEdit = document.getElementById(
-        "image-to-edit",
-    ) as HTMLImageElement;
-    const btnCloseEditor = document.getElementById("btn-close-editor");
-    const btnCropSave = document.getElementById("btn-crop-save");
-    let cropper: any = null;
-    let currentUploadTarget = "logo"; // 'logo' or 'favicon'
+  // Editor Elements
+  const editorModal = document.getElementById("editor-modal");
+  const imageToEdit = document.getElementById(
+    "image-to-edit"
+  ) as HTMLImageElement;
+  const btnCloseEditor = document.getElementById("btn-close-editor");
+  const btnCropSave = document.getElementById("btn-crop-save");
+  let cropper: any = null;
+  let currentUploadTarget = "logo"; // 'logo' or 'favicon'
 
-    // --- Upload & Editor Logic ---
+  // --- Upload & Editor Logic ---
 
-    // 1. File Selection
-    function handleFileSelect(e: any, target: string) {
-        const file = e.target.files[0];
-        if (!file) return;
+  // 1. File Selection
+  function handleFileSelect(e: any, target: string) {
+    const file = e.target.files[0];
+    if (!file) return;
 
-        currentUploadTarget = target; // Set target
+    currentUploadTarget = target; // Set target
 
-        const reader = new FileReader();
-        reader.onload = (ev: any) => {
-            imageToEdit.src = ev.target.result;
-            openEditor();
-        };
-        reader.readAsDataURL(file);
+    const reader = new FileReader();
+    reader.onload = (ev: any) => {
+      imageToEdit.src = ev.target.result;
+      openEditor();
+    };
+    reader.readAsDataURL(file);
 
-        // Reset input
-        e.target.value = "";
-    }
+    // Reset input
+    e.target.value = "";
+  }
 
-    fileInput?.addEventListener("change", (e) => handleFileSelect(e, "logo"));
-    faviconFileInput?.addEventListener("change", (e) =>
-        handleFileSelect(e, "favicon"),
-    );
+  fileInput?.addEventListener("change", (e) => handleFileSelect(e, "logo"));
+  faviconFileInput?.addEventListener("change", (e) =>
+    handleFileSelect(e, "favicon")
+  );
 
-    function openEditor() {
-        editorModal?.classList.remove("hidden");
-        editorModal?.classList.add("flex");
+  function openEditor() {
+    editorModal?.classList.remove("hidden");
+    editorModal?.classList.add("flex");
 
-        // Init Cropper
-        if (cropper) cropper.destroy();
-        cropper = new (window as any).Cropper(imageToEdit, {
-            viewMode: 1,
-            dragMode: "move",
-            autoCropArea: 0.8,
-            restore: false,
-            guides: true,
-            center: true,
-            highlight: false,
-            cropBoxMovable: true,
-            cropBoxResizable: true,
-            toggleDragModeOnDblclick: false,
-        });
-    }
-
-    function closeEditor() {
-        editorModal?.classList.add("hidden");
-        editorModal?.classList.remove("flex");
-        if (cropper) {
-            cropper.destroy();
-            cropper = null;
-        }
-    }
-
-    btnCloseEditor?.addEventListener("click", closeEditor);
-
-    // Toolbar Actions
-    document.querySelectorAll("[data-action]").forEach((btn) => {
-        btn.addEventListener("click", (e) => {
-            if (!cropper) return;
-            const action = (e.currentTarget as HTMLElement).getAttribute(
-                "data-action",
-            );
-
-            switch (action) {
-                case "zoom-in":
-                    cropper.zoom(0.1);
-                    break;
-                case "zoom-out":
-                    cropper.zoom(-0.1);
-                    break;
-                case "rotate-left":
-                    cropper.rotate(-90);
-                    break;
-                case "rotate-right":
-                    cropper.rotate(90);
-                    break;
-                case "flip-h":
-                    cropper.scaleX(cropper.getData().scaleX * -1);
-                    break;
-                case "flip-v":
-                    cropper.scaleY(cropper.getData().scaleY * -1);
-                    break;
-            }
-        });
+    // Init Cropper
+    if (cropper) cropper.destroy();
+    cropper = new (window as any).Cropper(imageToEdit, {
+      viewMode: 1,
+      dragMode: "move",
+      autoCropArea: 0.8,
+      restore: false,
+      guides: true,
+      center: true,
+      highlight: false,
+      cropBoxMovable: true,
+      cropBoxResizable: true,
+      toggleDragModeOnDblclick: false,
     });
+  }
 
-    // Save & Upload
-    btnCropSave?.addEventListener("click", () => {
-        if (!cropper) return;
-
-        // Determine dimensions based on target
-        const width = currentUploadTarget === "favicon" ? 64 : 400;
-        const height = currentUploadTarget === "favicon" ? 64 : 400;
-
-        // Get canvas
-        cropper
-            .getCroppedCanvas({
-                width: width,
-                height: height,
-            })
-            .toBlob(async (blob: any) => {
-                // Create FormData
-                const formData = new FormData();
-                const filename =
-                    currentUploadTarget === "favicon"
-                        ? "favicon.png"
-                        : "logo.png";
-                formData.append("file", blob, filename);
-
-                // Show loading state
-                const originalText = btnCropSave.innerText;
-                btnCropSave.innerText = "Uploading...";
-                (btnCropSave as HTMLButtonElement).disabled = true;
-
-                try {
-                    const res = await fetch(`${API_BASE}/admin/upload`, {
-                        method: "POST",
-                        headers: { Authorization: token || "" },
-                        body: formData,
-                    });
-
-                    const json = await res.json();
-
-                    if (json.status === "success") {
-                        // Update UI with absolute URL (relative to domain)
-                        const fullUrl = json.url;
-
-                        if (currentUploadTarget === "logo") {
-                            logoInput.value = fullUrl;
-                            logoPreview.src = fullUrl;
-                        } else {
-                            faviconInput.value = fullUrl;
-                            faviconPreview.src = fullUrl;
-                        }
-
-                        closeEditor();
-                        showToast("Image uploaded successfully", "success");
-                    } else {
-                        showToast("Upload failed: " + json.message, "error");
-                    }
-                } catch (e) {
-                    console.error(e);
-                    showToast("Error uploading file", "error");
-                } finally {
-                    btnCropSave.innerText = originalText;
-                    (btnCropSave as HTMLButtonElement).disabled = false;
-                }
-            }, "image/png");
-    });
-
-    // Fetch current settings
-    async function fetchSettings() {
-        try {
-            const res = await fetch(`${API_BASE}/admin/settings`, {
-                headers: { Authorization: token || "" },
-            });
-            const json = await res.json();
-            if (json.status === "success" && json.data) {
-                if (json.data.google_client_id) {
-                    clientIDInput.value = json.data.google_client_id;
-                }
-                if (json.data.ga_measurement_id) {
-                    gaIDInput.value = json.data.ga_measurement_id;
-                }
-                if (json.data.cloudflare_tunnel_token) {
-                    cfTokenInput.value = json.data.cloudflare_tunnel_token;
-                }
-                if (json.data.site_logo) {
-                    logoInput.value = json.data.site_logo;
-                    logoPreview.src = json.data.site_logo; // Update preview
-                }
-                if (json.data.site_favicon) {
-                    faviconInput.value = json.data.site_favicon;
-                    faviconPreview.src = json.data.site_favicon;
-                }
-            } else if (res.status === 401) {
-                window.location.href = "/admin/login";
-            }
-        } catch (err) {
-            console.error("Failed to load settings:", err);
-        }
+  function closeEditor() {
+    editorModal?.classList.add("hidden");
+    editorModal?.classList.remove("flex");
+    if (cropper) {
+      cropper.destroy();
+      cropper = null;
     }
+  }
 
-    // Save settings
-    form?.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        if (!clientIDInput || !saveBtn) return;
+  btnCloseEditor?.addEventListener("click", closeEditor);
 
-        const originalText = saveBtn.innerText;
-        saveBtn.innerText = "Saving...";
-        (saveBtn as HTMLButtonElement).disabled = true;
+  // Toolbar Actions
+  document.querySelectorAll("[data-action]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      if (!cropper) return;
+      const action = (e.currentTarget as HTMLElement).getAttribute(
+        "data-action"
+      );
+
+      switch (action) {
+        case "zoom-in":
+          cropper.zoom(0.1);
+          break;
+        case "zoom-out":
+          cropper.zoom(-0.1);
+          break;
+        case "rotate-left":
+          cropper.rotate(-90);
+          break;
+        case "rotate-right":
+          cropper.rotate(90);
+          break;
+        case "flip-h":
+          cropper.scaleX(cropper.getData().scaleX * -1);
+          break;
+        case "flip-v":
+          cropper.scaleY(cropper.getData().scaleY * -1);
+          break;
+      }
+    });
+  });
+
+  // Save & Upload
+  btnCropSave?.addEventListener("click", () => {
+    if (!cropper) return;
+
+    // Determine dimensions based on target
+    const width = currentUploadTarget === "favicon" ? 64 : 400;
+    const height = currentUploadTarget === "favicon" ? 64 : 400;
+
+    // Get canvas
+    cropper
+      .getCroppedCanvas({
+        width: width,
+        height: height,
+      })
+      .toBlob(async (blob: any) => {
+        // Create FormData
+        const formData = new FormData();
+        const filename =
+          currentUploadTarget === "favicon" ? "favicon.png" : "logo.png";
+        formData.append("file", blob, filename);
+
+        // Show loading state
+        const originalText = btnCropSave.innerText;
+        btnCropSave.innerText = "Uploading...";
+        (btnCropSave as HTMLButtonElement).disabled = true;
 
         try {
-            // Save Client ID
-            const res = await fetch(`${API_BASE}/admin/settings`, {
-                method: "POST",
-                headers: {
-                    Authorization: token || "",
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    key: "google_client_id",
-                    value: clientIDInput.value.trim(),
-                }),
-            });
+          const res = await fetch(`${API_BASE}/admin/upload`, {
+            method: "POST",
+            headers: { Authorization: token || "" },
+            body: formData,
+          });
 
-            // Save GA ID
-            await fetch(`${API_BASE}/admin/settings`, {
-                method: "POST",
-                headers: {
-                    Authorization: token || "",
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    key: "ga_measurement_id",
-                    value: gaIDInput.value.trim(),
-                }),
-            });
+          const json = await res.json();
 
-            // Save CF Token
-            await fetch(`${API_BASE}/admin/settings`, {
-                method: "POST",
-                headers: {
-                    Authorization: token || "",
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    key: "cloudflare_tunnel_token",
-                    value: cfTokenInput.value.trim(),
-                }),
-            });
+          if (json.status === "success") {
+            // Update UI with absolute URL (relative to domain)
+            const fullUrl = json.url;
 
-            // Save Site Logo
-            await fetch(`${API_BASE}/admin/settings`, {
-                method: "POST",
-                headers: {
-                    Authorization: token || "",
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    key: "site_logo",
-                    value: logoInput.value.trim(),
-                }),
-            });
-
-            // Save Site Favicon
-            await fetch(`${API_BASE}/admin/settings`, {
-                method: "POST",
-                headers: {
-                    Authorization: token || "",
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    key: "site_favicon",
-                    value: faviconInput.value.trim(),
-                }),
-            });
-
-            if (res.ok) {
-                showToast("Settings saved successfully!", "success");
+            if (currentUploadTarget === "logo") {
+              logoInput.value = fullUrl;
+              logoPreview.src = fullUrl;
             } else {
-                showToast("Failed to save settings", "error");
+              faviconInput.value = fullUrl;
+              faviconPreview.src = fullUrl;
             }
-        } catch (err) {
-            console.error(err);
-            showToast("Error saving settings", "error");
-        } finally {
-            saveBtn.innerText = originalText;
-            (saveBtn as HTMLButtonElement).disabled = false;
-        }
-    });
 
-    // Init
-    fetchSettings();
+            closeEditor();
+            showToast("Image uploaded successfully", "success");
+          } else {
+            showToast("Upload failed: " + json.message, "error");
+          }
+        } catch (e) {
+          console.error(e);
+          showToast("Error uploading file", "error");
+        } finally {
+          btnCropSave.innerText = originalText;
+          (btnCropSave as HTMLButtonElement).disabled = false;
+        }
+      }, "image/png");
+  });
+
+  // Fetch current settings
+  async function fetchSettings() {
+    try {
+      const res = await fetch(`${API_BASE}/admin/settings`, {
+        headers: { Authorization: token || "" },
+      });
+      const json = await res.json();
+      if (json.status === "success" && json.data) {
+        if (json.data.google_client_id) {
+          clientIDInput.value = json.data.google_client_id;
+        }
+        if (json.data.ga_measurement_id) {
+          gaIDInput.value = json.data.ga_measurement_id;
+        }
+        if (json.data.cloudflare_tunnel_token) {
+          cfTokenInput.value = json.data.cloudflare_tunnel_token;
+        }
+        if (json.data.turnstile_site_key) {
+          turnstileSiteInput.value = json.data.turnstile_site_key;
+        }
+        if (json.data.turnstile_secret_key) {
+          turnstileSecretInput.value = json.data.turnstile_secret_key;
+        }
+        if (json.data.site_logo) {
+          logoInput.value = json.data.site_logo;
+          logoPreview.src = json.data.site_logo; // Update preview
+        }
+        if (json.data.site_favicon) {
+          faviconInput.value = json.data.site_favicon;
+          faviconPreview.src = json.data.site_favicon;
+        }
+      } else if (res.status === 401) {
+        window.location.href = "/admin/login";
+      }
+    } catch (err) {
+      console.error("Failed to load settings:", err);
+    }
+  }
+
+  // Save settings
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!clientIDInput || !saveBtn) return;
+
+    const originalText = saveBtn.innerText;
+    saveBtn.innerText = "Saving...";
+    (saveBtn as HTMLButtonElement).disabled = true;
+
+    try {
+      // Save Client ID
+      const res = await fetch(`${API_BASE}/admin/settings`, {
+        method: "POST",
+        headers: {
+          Authorization: token || "",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          key: "google_client_id",
+          value: clientIDInput.value.trim(),
+        }),
+      });
+
+      // Save GA ID
+      await fetch(`${API_BASE}/admin/settings`, {
+        method: "POST",
+        headers: {
+          Authorization: token || "",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          key: "ga_measurement_id",
+          value: gaIDInput.value.trim(),
+        }),
+      });
+
+      // Save CF Token
+      await fetch(`${API_BASE}/admin/settings`, {
+        method: "POST",
+        headers: {
+          Authorization: token || "",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          key: "cloudflare_tunnel_token",
+          value: cfTokenInput.value.trim(),
+        }),
+      });
+
+      // Save Turnstile Keys
+      await fetch(`${API_BASE}/admin/settings`, {
+        method: "POST",
+        headers: {
+          Authorization: token || "",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          key: "turnstile_site_key",
+          value: turnstileSiteInput.value.trim(),
+        }),
+      });
+      await fetch(`${API_BASE}/admin/settings`, {
+        method: "POST",
+        headers: {
+          Authorization: token || "",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          key: "turnstile_secret_key",
+          value: turnstileSecretInput.value.trim(),
+        }),
+      });
+
+      // Save Site Logo
+      await fetch(`${API_BASE}/admin/settings`, {
+        method: "POST",
+        headers: {
+          Authorization: token || "",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          key: "site_logo",
+          value: logoInput.value.trim(),
+        }),
+      });
+
+      // Save Site Favicon
+      await fetch(`${API_BASE}/admin/settings`, {
+        method: "POST",
+        headers: {
+          Authorization: token || "",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          key: "site_favicon",
+          value: faviconInput.value.trim(),
+        }),
+      });
+
+      if (res.ok) {
+        showToast("Settings saved successfully!", "success");
+      } else {
+        showToast("Failed to save settings", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Error saving settings", "error");
+    } finally {
+      saveBtn.innerText = originalText;
+      (saveBtn as HTMLButtonElement).disabled = false;
+    }
+  });
+
+  // Init
+  fetchSettings();
 </script>

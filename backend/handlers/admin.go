@@ -3,6 +3,7 @@ package handlers
 import (
 	"dramabang/database"
 	"dramabang/models"
+	"encoding/json"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -10,15 +11,75 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// verifyTurnstile checks the token against Cloudflare's API
+func verifyTurnstile(token, secret string) bool {
+	if secret == "" {
+		return true // Skip if no secret configured
+	}
+	if token == "" {
+		return false // Fail if secret exists but no token provided
+	}
+
+	payload := map[string]string{
+		"secret":   secret,
+		"response": token,
+	}
+
+	// Simple HTTP POST (without importing heavy net/http logic if possible, but here we need it)
+	// We can use fiber's AcquireAgent or standard http
+	agent := fiber.AcquireAgent()
+	req := agent.Request()
+	req.Header.SetMethod("POST")
+	req.SetRequestURI("https://challenges.cloudflare.com/turnstile/v0/siteverify")
+
+	// Form Data
+	args := fiber.AcquireArgs()
+	args.Set("secret", secret)
+	args.Set("response", token)
+	agent.Form(args)
+
+	if err := agent.Parse(); err != nil {
+		fmt.Println("Turnstile Agent Parse Error:", err)
+		return false
+	}
+
+	code, body, errs := agent.Bytes()
+	if len(errs) > 0 || code != 200 {
+		fmt.Println("Turnstile Request Error:", errs)
+		return false
+	}
+
+	var result struct {
+		Success bool `json:"success"`
+	}
+	if err := json.Unmarshal(body, &result); err != nil {
+		fmt.Println("Turnstile JSON Error:", err)
+		return false
+	}
+
+	return result.Success
+}
+
 // AdminLogin handles authentication
 func AdminLogin(c *fiber.Ctx) error {
 	var input struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
+		Username            string `json:"username"`
+		Password            string `json:"password"`
+		CFTurnstileResponse string `json:"cf_turnstile_response"`
 	}
 
 	if err := c.BodyParser(&input); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid input"})
+	}
+
+	// 1. Verify Turnstile (if configured)
+	var secretKey models.Setting
+	database.DB.Where("key = ?", "turnstile_secret_key").First(&secretKey)
+
+	if secretKey.Value != "" {
+		if !verifyTurnstile(input.CFTurnstileResponse, secretKey.Value) {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Captcha validation failed"})
+		}
 	}
 
 	if input.Username == "teddyayomi" && input.Password == "Arcie1994" {
