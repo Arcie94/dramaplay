@@ -67,15 +67,16 @@ func AdminLogin(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid input"})
 	}
 
-	// 1. Verify Turnstile (if configured)
-	// var secretKey models.Setting
-	// database.DB.Where("key = ?", "turnstile_secret_key").First(&secretKey)
 
-	// if secretKey.Value != "" {
-	// 	if !verifyTurnstile(input.CFTurnstileResponse, secretKey.Value) {
-	// 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Captcha validation failed"})
-	// 	}
-	// }
+	// 1. Verify Turnstile (if configured)
+	var secretKey models.Setting
+	database.DB.Where("key = ?", "turnstile_secret_key").First(&secretKey)
+
+	if secretKey.Value != "" {
+		if !verifyTurnstile(input.CFTurnstileResponse, secretKey.Value) {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Captcha validation failed"})
+		}
+	}
 
 	if input.Username == "teddyayomi" && input.Password == "Arcie1994" {
 		return c.JSON(fiber.Map{
