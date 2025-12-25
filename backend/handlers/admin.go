@@ -20,11 +20,6 @@ func verifyTurnstile(token, secret string) bool {
 		return false // Fail if secret exists but no token provided
 	}
 
-	payload := map[string]string{
-		"secret":   secret,
-		"response": token,
-	}
-
 	// Simple HTTP POST (without importing heavy net/http logic if possible, but here we need it)
 	// We can use fiber's AcquireAgent or standard http
 	agent := fiber.AcquireAgent()
