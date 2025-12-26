@@ -206,7 +206,7 @@ const {
     </div>
 
     <!-- Play/Pause Overlay Hitbox (Transparent) -->
-    <div id="play-overlay" class="absolute inset-0 z-0"></div>
+    <div id="play-overlay" class="absolute inset-0 z-40 cursor-pointer"></div>
     <div
       id="play-icon"
       class="absolute inset-0 z-30 flex items-center justify-center pointer-events-none opacity-0 transition-opacity"
@@ -665,9 +665,6 @@ const {
 
     // --- Play/Pause Toggle ---
     if (playOverlay) {
-      // Ensure overlay is clickable
-      playOverlay.style.zIndex = "10";
-
       playOverlay.addEventListener("click", () => {
         if (video.paused) {
           video.play();
