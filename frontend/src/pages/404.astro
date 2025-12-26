@@ -1,0 +1,54 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="404: Not Found">
+  <main
+    class="flex flex-col items-center justify-center min-h-screen bg-zinc-950 text-center px-4 relative overflow-hidden"
+  >
+    <!-- Background Glow -->
+    <div class="absolute inset-0 z-0">
+      <div
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-red-600/20 rounded-full blur-[128px]"
+      >
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div
+      class="relative z-10 flex flex-col items-center animate-in fade-in zoom-in duration-500"
+    >
+      <!-- Logo -->
+      <img
+        src="/logo-404.png"
+        alt="DramaPlay 404"
+        class="w-32 h-32 mb-8 drop-shadow-2xl hover:scale-105 transition-transform duration-300"
+      />
+
+      <h1
+        class="text-6xl font-bold bg-gradient-to-r from-white to-zinc-500 bg-clip-text text-transparent mb-2"
+      >
+        404
+      </h1>
+      <h2 class="text-2xl font-semibold text-white mb-4">Page Not Found</h2>
+      <p class="text-zinc-400 max-w-md mb-8">
+        Maaf, halaman yang kamu cari tidak ditemukan atau telah dipindahkan.
+      </p>
+
+      <!-- Action Button -->
+      <a
+        href="/"
+        class="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-full transition-all duration-300 shadow-lg shadow-red-900/30 hover:shadow-red-900/50 active:scale-95"
+      >
+        Kembali ke Beranda
+      </a>
+    </div>
+
+    <!-- Footer decoration (optional) -->
+    <div
+      class="absolute bottom-8 text-zinc-600 text-xs text-center z-10 w-full"
+    >
+      DramaPlay &copy; {new Date().getFullYear()}
+    </div>
+  </main>
+</Layout>
