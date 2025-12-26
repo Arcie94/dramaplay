@@ -60,6 +60,8 @@ func main() {
 	// Comments
 	api.Get("/comments/:bookId", handlers.GetComments)
 	api.Post("/comments", handlers.PostComment)
+	api.Put("/comments/:id", handlers.UpdateComment)
+	api.Delete("/comments/:id", handlers.DeleteComment)
 
 	// History
 	api.Post("/history", handlers.SaveHistory)

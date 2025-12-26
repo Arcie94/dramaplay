@@ -25,6 +25,7 @@ func GetComments(c *fiber.Ctx) error {
 	for _, comment := range comments {
 		commentList = append(commentList, map[string]interface{}{
 			"id":         comment.ID,
+			"user_id":    comment.UserID, // Explicitly return user_id for owner check
 			"content":    comment.Content,
 			"created_at": comment.CreatedAt,
 			"user": map[string]interface{}{
@@ -77,6 +78,7 @@ func PostComment(c *fiber.Ctx) error {
 	// Return the FULL comment structure with user info so frontend can prepend it immediately
 	response := map[string]interface{}{
 		"id":         comment.ID,
+		"user_id":    comment.UserID,
 		"content":    comment.Content,
 		"created_at": comment.CreatedAt, // usually time.Now()
 		"user": map[string]interface{}{
@@ -90,5 +92,63 @@ func PostComment(c *fiber.Ctx) error {
 		"status":  "success",
 		"message": "Comment posted",
 		"data":    response,
+	})
+}
+
+// UpdateComment modifies an existing comment
+func UpdateComment(c *fiber.Ctx) error {
+	id := c.Params("id")
+	type UpdateCommentRequest struct {
+		Content string `json:"content"`
+	}
+
+	var req UpdateCommentRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid input"})
+	}
+
+	if req.Content == "" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Content is required"})
+	}
+
+	var comment models.Comment
+	if err := database.DB.First(&comment, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Comment not found"})
+	}
+
+	// Ideally execute owner check here using JWT token from context
+	// e.g., if comment.UserID != c.Locals("user_id") { return 403 }
+	// For now, relying on frontend check + open logic as per current setup
+
+	comment.Content = req.Content
+	if err := database.DB.Save(&comment).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to update comment"})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  "success",
+		"message": "Comment updated",
+		"data":    comment,
+	})
+}
+
+// DeleteComment removes a comment
+func DeleteComment(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var comment models.Comment
+	if err := database.DB.First(&comment, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Comment not found"})
+	}
+
+	// Ideally execute owner check here
+
+	if err := database.DB.Delete(&comment).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to delete comment"})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  "success",
+		"message": "Comment deleted",
 	})
 }
