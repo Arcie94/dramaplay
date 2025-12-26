@@ -425,9 +425,11 @@ const schema = JSON.stringify({
     }
 
     function timeAgo(dateString) {
+      if (!dateString) return "";
       const date = new Date(dateString);
       const now = new Date();
-      const seconds = Math.floor((now - date) / 1000);
+      const diff = now - date;
+      const seconds = Math.floor(diff / 1000);
 
       if (seconds < 60) return "Just now";
       const minutes = Math.floor(seconds / 60);
@@ -450,14 +452,14 @@ const schema = JSON.stringify({
       commentsList.innerHTML = comments
         .map(
           (c) => `
-            <div class="flex gap-4 group">
+            <div class="flex gap-4 group comment-item" data-time="${c.created_at}">
                 <div class="w-10 h-10 rounded-full bg-zinc-800 flex-shrink-0 overflow-hidden">
                     <img src="${c.user.avatar || "https://ui-avatars.com/api/?background=random&name=" + c.user.name}" class="w-full h-full object-cover">
                 </div>
                 <div class="flex-1">
                     <div class="flex items-baseline justify-between mb-1">
                         <h4 class="font-bold text-zinc-300 text-sm">${c.user.name}</h4>
-                        <span class="text-xs text-gray-300">${timeAgo(c.created_at)}</span>
+                        <span class="text-xs text-gray-300 time-display">${timeAgo(c.created_at)}</span>
                     </div>
                     <p class="text-zinc-400 text-sm leading-relaxed whitespace-pre-line">${c.content}</p>
                 </div>
@@ -466,6 +468,17 @@ const schema = JSON.stringify({
         )
         .join("");
     }
+
+    // Update timestamps every minute
+    setInterval(() => {
+      document.querySelectorAll(".comment-item").forEach((item) => {
+        const timeStr = item.getAttribute("data-time");
+        const display = item.querySelector(".time-display");
+        if (timeStr && display) {
+          display.innerText = timeAgo(timeStr);
+        }
+      });
+    }, 60000);
 
     fetchComments();
 
