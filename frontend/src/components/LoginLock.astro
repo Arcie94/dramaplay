@@ -196,6 +196,7 @@
 <script>
   console.log("LoginLock Script Running");
   const loginForm = document.getElementById("login-form");
+  const overlay = document.getElementById("login-overlay");
   // Dynamic API Base: Localhost/Emulator -> Local API, Production -> Prod API
   const isDev =
     window.location.hostname === "localhost" ||
