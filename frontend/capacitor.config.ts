@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: "DramaPlay",
   webDir: "dist",
   server: {
-    url: "http://10.0.2.2:4321",
+    url: "http://192.168.1.21:80",
     cleartext: true,
   },
   android: {
