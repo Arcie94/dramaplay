@@ -797,7 +797,11 @@ const {
 
     if (fullscreenBtn && container) {
       fullscreenBtn.addEventListener("click", () => {
-        if (!document.fullscreenElement) {
+        const isFullscreen =
+          document.fullscreenElement ||
+          (document as any).webkitFullscreenElement;
+
+        if (!isFullscreen) {
           if (container.requestFullscreen) {
             container.requestFullscreen();
           } else if ((container as any).webkitRequestFullscreen) {
@@ -819,7 +823,11 @@ const {
       document.addEventListener("webkitfullscreenchange", updateFullscreenUI);
 
       function updateFullscreenUI() {
-        if (document.fullscreenElement) {
+        const isFullscreen =
+          document.fullscreenElement ||
+          (document as any).webkitFullscreenElement;
+
+        if (isFullscreen) {
           iconMaximize?.classList.add("hidden");
           iconMinimize?.classList.remove("hidden");
           container?.classList.remove("aspect-[9/16]", "max-w-full");
