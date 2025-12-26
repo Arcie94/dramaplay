@@ -1,42 +1,42 @@
 ---
 interface Props {
-    videoUrl: string;
-    coverUrl: string;
-    title: string;
-    nextUrl?: string;
-    prevUrl?: string;
-    id?: string; // Book ID for My List
-    dramaTitle?: string; // Clean Title for My List
-    totalEpisodes?: any; // Total Episodes for My List
+  videoUrl: string;
+  coverUrl: string;
+  title: string;
+  nextUrl?: string;
+  prevUrl?: string;
+  id?: string; // Book ID for My List
+  dramaTitle?: string; // Clean Title for My List
+  totalEpisodes?: any; // Total Episodes for My List
 }
 
 const {
-    videoUrl,
-    coverUrl,
-    title,
-    nextUrl,
-    prevUrl,
-    id,
-    dramaTitle,
-    totalEpisodes,
+  videoUrl,
+  coverUrl,
+  title,
+  nextUrl,
+  prevUrl,
+  id,
+  dramaTitle,
+  totalEpisodes,
 } = Astro.props;
 ---
 
 <div
-    class="relative w-full h-[100dvh] bg-black overflow-hidden flex justify-center"
+  class="relative w-full h-[100dvh] bg-black overflow-hidden flex justify-center"
 >
-    <!-- Desktop Backdrop (Universal for pillarbox/letterbox areas) -->
-    <div class="absolute inset-0 z-0">
-        <img
-            src={coverUrl}
-            alt="Background"
-            class="w-full h-full object-cover blur-3xl opacity-50 scale-110"
-        />
-        <div class="absolute inset-0 bg-black/60"></div>
-    </div>
+  <!-- Desktop Backdrop (Universal for pillarbox/letterbox areas) -->
+  <div class="absolute inset-0 z-0">
+    <img
+      src={coverUrl}
+      alt="Background"
+      class="w-full h-full object-cover blur-3xl opacity-50 scale-110"
+    />
+    <div class="absolute inset-0 bg-black/60"></div>
+  </div>
 
-    <!-- Main Player Container -->
-    <!-- 
+  <!-- Main Player Container -->
+  <!-- 
         Universal Locked Ratio: 
         - Aspect Ratio: 9/16
         - Max Height: 100vh (Height driven)
@@ -44,771 +44,742 @@ const {
         - Object Fit: Contain (Ensures header/footer doesn't cut if screen is weird)
         - Shadow/Ring for aesthetics on large screens
     -->
+  <div
+    id="video-container"
+    class="relative z-10 w-auto h-full max-w-full aspect-[9/16] max-h-[100dvh] bg-black overflow-hidden flex items-center justify-center shadow-2xl"
+  >
+    <!-- Video Element -->
+    <video
+      id="main-video"
+      src={videoUrl}
+      poster={coverUrl}
+      class="absolute top-0 left-0 w-full h-full object-cover"
+      playsinline
+      loop={false}
+      autoplay
+      webkit-playsinline
+      data-next-url={nextUrl}
+      data-prev-url={prevUrl}
+      data-book-id={id}
+      data-drama-title={dramaTitle}
+      data-total-episodes={totalEpisodes}
+      data-cover-url={coverUrl}></video>
+
+    <!-- Overlay Gradient (Top) -->
     <div
-        id="video-container"
-        class="relative z-10 w-auto h-full max-w-full aspect-[9/16] max-h-[100dvh] bg-black overflow-hidden flex items-center justify-center shadow-2xl"
+      class="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black/80 to-transparent pointer-events-none z-10"
     >
-        <!-- Video Element -->
-        <video
-            id="main-video"
-            src={videoUrl}
-            poster={coverUrl}
-            class="absolute top-0 left-0 w-full h-full object-cover"
-            playsinline
-            loop={false}
-            autoplay
-            webkit-playsinline
-            data-next-url={nextUrl}
-            data-prev-url={prevUrl}
-            data-book-id={id}
-            data-drama-title={dramaTitle}
-            data-total-episodes={totalEpisodes}
-            data-cover-url={coverUrl}></video>
+    </div>
 
-        <!-- Overlay Gradient (Top) -->
-        <div
-            class="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black/80 to-transparent pointer-events-none z-10"
+    <!-- Top Controls -->
+    <div
+      id="top-left-controls"
+      class="absolute top-4 left-4 z-20 transition-opacity duration-500"
+    >
+      <a
+        href={`/detail/${id}`}
+        class="p-3 bg-white/10 backdrop-blur-md rounded-full text-white active:scale-90 transition-transform block"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2"
+          stroke="currentColor"
+          class="w-6 h-6"
         >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M15.75 19.5L8.25 12l7.5-7.5"></path>
+        </svg>
+      </a>
+    </div>
+
+    <!-- Volume Control Group (Top Right) -->
+    <!-- Redesigned: Single Pill expanding upwards -->
+    <div
+      id="volume-control"
+      class="absolute top-4 right-4 z-20 flex flex-col items-center bg-black/50 hover:bg-black/70 backdrop-blur-md rounded-full p-2 transition-all duration-300 group"
+    >
+      <!-- Vertical Slider Container (Collapses to 0 height) -->
+      <div
+        class="h-0 w-8 overflow-hidden group-hover:h-24 transition-all duration-300 ease-out flex items-center justify-center"
+      >
+        <input
+          type="range"
+          id="volume-slider"
+          min="0"
+          max="1"
+          step="0.1"
+          value="1"
+          class="w-20 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer -rotate-90 origin-center accent-red-600 hover:accent-red-500"
+        />
+      </div>
+
+      <!-- Mute Button (Icon only, transparency handled by parent) -->
+      <button
+        id="mute-btn"
+        class="p-1 text-white active:scale-90 transition-transform"
+      >
+        <!-- Muted Icon -->
+        <svg
+          id="icon-muted"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-6 h-6 hidden"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"
+          ></path>
+        </svg>
+        <!-- Unmuted Icon -->
+        <svg
+          id="icon-unmuted"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-6 h-6"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"
+          ></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Overlay Gradient (Bottom) -->
+    <div
+      class="absolute bottom-0 left-0 w-full h-64 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none z-10"
+    >
+    </div>
+
+    <!-- Bottom Info & Controls -->
+    <div
+      id="bottom-controls"
+      class="absolute bottom-0 left-0 w-full p-6 z-20 flex flex-col gap-4 transition-opacity duration-500"
+    >
+      <!-- Text Info -->
+      <h1 class="text-xl font-bold text-white drop-shadow-md">{title}</h1>
+
+      <!-- Progress Bar (Interactive) -->
+      <div
+        id="progress-container"
+        class="w-full py-3 cursor-pointer group flex items-center touch-none"
+      >
+        <!-- Track -->
+        <div
+          class="w-full h-1 bg-white/30 rounded-full overflow-hidden group-hover:h-1.5 transition-all duration-200 pointer-events-none"
+        >
+          <div id="progress-bar" class="h-full bg-red-600 w-0"></div>
         </div>
+      </div>
 
-        <!-- Top Controls -->
-        <div
-            id="top-left-controls"
-            class="absolute top-4 left-4 z-20 transition-opacity duration-500"
-        >
-            <a
-                href={`/detail/${id}`}
-                class="p-3 bg-white/10 backdrop-blur-md rounded-full text-white active:scale-90 transition-transform block"
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="2"
-                    stroke="currentColor"
-                    class="w-6 h-6"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M15.75 19.5L8.25 12l7.5-7.5"></path>
-                </svg>
-            </a>
-        </div>
-
-        <!-- Volume Control Group (Top Right) -->
-        <!-- Redesigned: Single Pill expanding upwards -->
-        <div
-            id="volume-control"
-            class="absolute top-4 right-4 z-20 flex flex-col items-center bg-black/50 hover:bg-black/70 backdrop-blur-md rounded-full p-2 transition-all duration-300 group"
-        >
-            <!-- Vertical Slider Container (Collapses to 0 height) -->
-            <div
-                class="h-0 w-8 overflow-hidden group-hover:h-24 transition-all duration-300 ease-out flex items-center justify-center"
-            >
-                <input
-                    type="range"
-                    id="volume-slider"
-                    min="0"
-                    max="1"
-                    step="0.1"
-                    value="1"
-                    class="w-20 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer -rotate-90 origin-center accent-red-600 hover:accent-red-500"
-                />
-            </div>
-
-            <!-- Mute Button (Icon only, transparency handled by parent) -->
-            <button
-                id="mute-btn"
-                class="p-1 text-white active:scale-90 transition-transform"
-            >
-                <!-- Muted Icon -->
-                <svg
-                    id="icon-muted"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="w-6 h-6 hidden"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"
-                    ></path>
-                </svg>
-                <!-- Unmuted Icon -->
-                <svg
-                    id="icon-unmuted"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="w-6 h-6"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"
-                    ></path>
-                </svg>
-            </button>
-        </div>
-
-        <!-- Overlay Gradient (Bottom) -->
-        <div
-            class="absolute bottom-0 left-0 w-full h-64 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none z-10"
-        >
-        </div>
-
-        <!-- Bottom Info & Controls -->
-        <div
-            id="bottom-controls"
-            class="absolute bottom-0 left-0 w-full p-6 z-20 flex flex-col gap-4 transition-opacity duration-500"
-        >
-            <!-- Text Info -->
-            <h1 class="text-xl font-bold text-white drop-shadow-md">{title}</h1>
-
-            <!-- Progress Bar (Interactive) -->
-            <div
-                id="progress-container"
-                class="w-full py-3 cursor-pointer group flex items-center touch-none"
-            >
-                <!-- Track -->
-                <div
-                    class="w-full h-1 bg-white/30 rounded-full overflow-hidden group-hover:h-1.5 transition-all duration-200 pointer-events-none"
-                >
-                    <div id="progress-bar" class="h-full bg-red-600 w-0"></div>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex items-center justify-between text-white">
-                <div class="flex gap-4">
-                    <!-- My List Toggle -->
-                    <button
-                        id="mylist-btn"
-                        class="flex flex-col items-center gap-1 group"
-                    >
-                        <svg
-                            id="icon-add"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="1.5"
-                            stroke="currentColor"
-                            class="w-8 h-8 group-active:scale-90 transition-transform"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"
-                            ></path>
-                        </svg>
-                        <svg
-                            id="icon-check"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                            class="w-8 h-8 text-red-500 hidden group-active:scale-90 transition-transform"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M6.32 2.577a49.255 49.255 0 0111.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 01-1.085.67L12 18.089l-7.165 3.583A.75.75 0 013.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93z"
-                                clip-rule="evenodd"></path>
-                        </svg>
-                        <span id="mylist-text" class="text-xs">My List</span>
-                    </button>
-                    <button
-                        id="comment-btn"
-                        class="flex flex-col items-center gap-1 active:scale-95 transition-transform"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                            class="w-8 h-8"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M4.804 21.644A6.707 6.707 0 006 21.75a6.721 6.721 0 003.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.608 2.75 6.257a1.606 1.606 0 01.32.964v2.423z"
-                                clip-rule="evenodd"></path>
-                        </svg>
-                        <span class="text-xs">Comment</span>
-                    </button>
-                </div>
-
-                <!-- Navigation -->
-                <div class="flex gap-2">
-                    {
-                        prevUrl && (
-                            <a
-                                href={prevUrl}
-                                class="px-4 py-2 bg-white/20 rounded-full backdrop-blur-sm text-sm font-semibold"
-                            >
-                                Prev
-                            </a>
-                        )
-                    }
-                    {
-                        nextUrl && (
-                            <a
-                                id="next-btn"
-                                href={nextUrl}
-                                class="px-4 py-2 bg-red-600 rounded-full text-white text-sm font-semibold shadow-red-900/50 shadow-lg"
-                            >
-                                Next Ep
-                            </a>
-                        )
-                    }
-                </div>
-            </div>
-        </div>
-
-        <!-- Play/Pause Overlay Hitbox -->
-        <div id="play-overlay" class="absolute inset-0 z-0"></div>
-        <div
-            id="play-icon"
-            class="absolute inset-0 z-30 flex items-center justify-center pointer-events-none opacity-0 transition-opacity"
-        >
+      <!-- Action Buttons -->
+      <div class="flex items-center justify-between text-white">
+        <div class="flex gap-4">
+          <!-- My List Toggle -->
+          <button
+            id="mylist-btn"
+            class="flex flex-col items-center gap-1 group"
+          >
             <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="white"
-                viewBox="0 0 24 24"
-                class="w-20 h-20 drop-shadow-lg"
+              id="icon-add"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="w-8 h-8 group-active:scale-90 transition-transform"
             >
-                <path d="M8 5v14l11-7z"></path>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"
+              ></path>
             </svg>
+            <svg
+              id="icon-check"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              class="w-8 h-8 text-red-500 hidden group-active:scale-90 transition-transform"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M6.32 2.577a49.255 49.255 0 0111.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 01-1.085.67L12 18.089l-7.165 3.583A.75.75 0 013.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93z"
+                clip-rule="evenodd"></path>
+            </svg>
+            <span id="mylist-text" class="text-xs">My List</span>
+          </button>
+          <button
+            id="comment-btn"
+            class="flex flex-col items-center gap-1 active:scale-95 transition-transform"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              class="w-8 h-8"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M4.804 21.644A6.707 6.707 0 006 21.75a6.721 6.721 0 003.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.608 2.75 6.257a1.606 1.606 0 01.32.964v2.423z"
+                clip-rule="evenodd"></path>
+            </svg>
+            <span class="text-xs">Comment</span>
+          </button>
         </div>
 
-        <!-- Comments Bottom Sheet -->
-        <div
-            id="comments-sheet"
-            class="absolute inset-x-0 bottom-0 z-50 bg-[#1a1a1a] rounded-t-2xl transform translate-y-full transition-transform duration-300 ease-out h-[70vh] flex flex-col shadow-2xl border-t border-white/10"
-        >
-            <!-- Handle Bar -->
-            <div
-                class="w-full flex justify-center pt-3 pb-1"
-                id="comments-handle"
-            >
-                <div class="w-12 h-1.5 bg-zinc-700 rounded-full"></div>
-            </div>
-
-            <!-- Header -->
-            <div
-                class="px-4 py-2 flex items-center justify-between border-b border-white/5"
-            >
-                <h3 class="text-white font-bold text-lg">
-                    Comments <span
-                        id="comment-count"
-                        class="text-zinc-500 text-sm font-normal">(0)</span
-                    >
-                </h3>
-                <button
-                    id="close-comments"
-                    class="p-2 text-zinc-400 hover:text-white"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="2"
-                        stroke="currentColor"
-                        class="w-6 h-6"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Comments List -->
-            <div
-                id="comments-list"
-                class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar"
-            >
-                <!-- Dynamic Content -->
-            </div>
-
-            <!-- Input Area -->
-            <div class="p-4 border-t border-white/10 bg-[#1a1a1a] pb-safe">
-                <form id="comment-form" class="flex gap-3">
-                    <input
-                        type="text"
-                        id="comment-input"
-                        placeholder="Add a comment..."
-                        class="flex-1 bg-zinc-800 text-white rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-red-600 border border-transparent placeholder-zinc-500"
-                    />
-                    <button
-                        type="submit"
-                        class="bg-red-600 text-white p-2.5 rounded-full hover:bg-red-700 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                            class="w-5 h-5"
-                        >
-                            <path
-                                d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"
-                            ></path>
-                        </svg>
-                    </button>
-                </form>
-            </div>
+        <!-- Navigation -->
+        <div class="flex gap-2">
+          {
+            prevUrl && (
+              <a
+                href={prevUrl}
+                class="px-4 py-2 bg-white/20 rounded-full backdrop-blur-sm text-sm font-semibold"
+              >
+                Prev
+              </a>
+            )
+          }
+          {
+            nextUrl && (
+              <a
+                id="next-btn"
+                href={nextUrl}
+                class="px-4 py-2 bg-red-600 rounded-full text-white text-sm font-semibold shadow-red-900/50 shadow-lg"
+              >
+                Next Ep
+              </a>
+            )
+          }
         </div>
-        <!-- Comments Overlay Backdrop -->
-        <div
-            id="comments-backdrop"
-            class="absolute inset-0 z-40 bg-black/50 opacity-0 pointer-events-none transition-opacity duration-300 backdrop-blur-sm"
-        >
-        </div>
+      </div>
     </div>
 
-    <!-- Delete Confirmation Modal (Professional Style) -->
+    <!-- Play/Pause Overlay Hitbox -->
+    <div id="play-overlay" class="absolute inset-0 z-0"></div>
     <div
-        id="delete-confirm-modal"
-        class="hidden absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+      id="play-icon"
+      class="absolute inset-0 z-30 flex items-center justify-center pointer-events-none opacity-0 transition-opacity"
     >
-        <div
-            class="bg-zinc-900 border border-zinc-700 p-6 rounded-2xl w-[90%] max-w-sm text-center shadow-xl transform scale-100"
-        >
-            <h3 class="text-white font-bold text-lg mb-2">Delete Comment?</h3>
-            <p class="text-zinc-400 text-sm mb-6">
-                Are you sure you want to delete this comment? This action cannot
-                be undone.
-            </p>
-            <div class="grid grid-cols-2 gap-3">
-                <button
-                    id="btn-cancel-delete"
-                    class="px-4 py-3 rounded-xl bg-zinc-800 text-white font-semibold hover:bg-zinc-700 transition-colors"
-                    >Cancel</button
-                >
-                <button
-                    id="btn-confirm-delete"
-                    class="px-4 py-3 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors"
-                    >Delete</button
-                >
-            </div>
-        </div>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="white"
+        viewBox="0 0 24 24"
+        class="w-20 h-20 drop-shadow-lg"
+      >
+        <path d="M8 5v14l11-7z"></path>
+      </svg>
     </div>
+
+    <!-- Comments Bottom Sheet -->
+    <div
+      id="comments-sheet"
+      class="absolute inset-x-0 bottom-0 z-50 bg-[#1a1a1a] rounded-t-2xl transform translate-y-full transition-transform duration-300 ease-out h-[70vh] flex flex-col shadow-2xl border-t border-white/10"
+    >
+      <!-- Handle Bar -->
+      <div class="w-full flex justify-center pt-3 pb-1" id="comments-handle">
+        <div class="w-12 h-1.5 bg-zinc-700 rounded-full"></div>
+      </div>
+
+      <!-- Header -->
+      <div
+        class="px-4 py-2 flex items-center justify-between border-b border-white/5"
+      >
+        <h3 class="text-white font-bold text-lg">
+          Comments <span
+            id="comment-count"
+            class="text-zinc-500 text-sm font-normal">(0)</span
+          >
+        </h3>
+        <button id="close-comments" class="p-2 text-zinc-400 hover:text-white">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2"
+            stroke="currentColor"
+            class="w-6 h-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Comments List -->
+      <div
+        id="comments-list"
+        class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar"
+      >
+        <!-- Dynamic Content -->
+      </div>
+
+      <!-- Input Area -->
+      <div class="p-4 border-t border-white/10 bg-[#1a1a1a] pb-safe">
+        <form id="comment-form" class="flex gap-3">
+          <input
+            type="text"
+            id="comment-input"
+            placeholder="Add a comment..."
+            class="flex-1 bg-zinc-800 text-white rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-red-600 border border-transparent placeholder-zinc-500"
+          />
+          <button
+            type="submit"
+            class="bg-red-600 text-white p-2.5 rounded-full hover:bg-red-700 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              class="w-5 h-5"
+            >
+              <path
+                d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"
+              ></path>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </div>
+    <!-- Comments Overlay Backdrop -->
+    <div
+      id="comments-backdrop"
+      class="absolute inset-0 z-40 bg-black/50 opacity-0 pointer-events-none transition-opacity duration-300 backdrop-blur-sm"
+    >
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal (Professional Style) -->
+  <div
+    id="delete-confirm-modal"
+    class="hidden absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+  >
+    <div
+      class="bg-zinc-900 border border-zinc-700 p-6 rounded-2xl w-[90%] max-w-sm text-center shadow-xl transform scale-100"
+    >
+      <h3 class="text-white font-bold text-lg mb-2">Delete Comment?</h3>
+      <p class="text-zinc-400 text-sm mb-6">
+        Are you sure you want to delete this comment? This action cannot be
+        undone.
+      </p>
+      <div class="grid grid-cols-2 gap-3">
+        <button
+          id="btn-cancel-delete"
+          class="px-4 py-3 rounded-xl bg-zinc-800 text-white font-semibold hover:bg-zinc-700 transition-colors"
+          >Cancel</button
+        >
+        <button
+          id="btn-confirm-delete"
+          class="px-4 py-3 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors"
+          >Delete</button
+        >
+      </div>
+    </div>
+  </div>
 </div>
 
 <style>
-    .pb-safe {
-        padding-bottom: max(env(safe-area-inset-bottom), 16px);
-    }
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom), 16px);
+  }
 </style>
 
 <script>
-    const video = document.getElementById("main-video") as HTMLVideoElement;
-    const container = document.getElementById("video-container");
-    const playOverlay = document.getElementById("play-overlay");
-    const playIcon = document.getElementById("play-icon");
-    const progressContainer = document.getElementById("progress-container");
-    const progressBar = document.getElementById("progress-bar");
-    const muteBtn = document.getElementById("mute-btn");
-    const volumeSlider = document.getElementById(
-        "volume-slider",
-    ) as HTMLInputElement;
-    const volumeControl = document.getElementById("volume-control"); // Wrapper for auto-hide
-    const iconMuted = document.getElementById("icon-muted");
-    const iconUnmuted = document.getElementById("icon-unmuted");
-    const bottomControls = document.getElementById("bottom-controls");
-    const topLeftControls = document.getElementById("top-left-controls");
+  const video = document.getElementById("main-video") as HTMLVideoElement;
+  const container = document.getElementById("video-container");
+  const playOverlay = document.getElementById("play-overlay");
+  const playIcon = document.getElementById("play-icon");
+  const progressContainer = document.getElementById("progress-container");
+  const progressBar = document.getElementById("progress-bar");
+  const muteBtn = document.getElementById("mute-btn");
+  const volumeSlider = document.getElementById(
+    "volume-slider"
+  ) as HTMLInputElement;
+  const volumeControl = document.getElementById("volume-control"); // Wrapper for auto-hide
+  const iconMuted = document.getElementById("icon-muted");
+  const iconUnmuted = document.getElementById("icon-unmuted");
+  const bottomControls = document.getElementById("bottom-controls");
+  const topLeftControls = document.getElementById("top-left-controls");
 
-    // Comment Elements
-    const commentsSheet = document.getElementById("comments-sheet");
-    const commentsBackdrop = document.getElementById("comments-backdrop");
-    const commentCount = document.getElementById("comment-count");
-    const commentsList = document.getElementById("comments-list");
-    const commentForm = document.getElementById("comment-form");
-    const commentInput = document.getElementById(
-        "comment-input",
-    ) as HTMLInputElement;
+  // Comment Elements
+  const commentsSheet = document.getElementById("comments-sheet");
+  const commentsBackdrop = document.getElementById("comments-backdrop");
+  const commentCount = document.getElementById("comment-count");
+  const commentsList = document.getElementById("comments-list");
+  const commentForm = document.getElementById("comment-form");
+  const commentInput = document.getElementById(
+    "comment-input"
+  ) as HTMLInputElement;
 
-    // Modal Elements
-    const deleteModal = document.getElementById("delete-confirm-modal");
-    const btnCancelDelete = document.getElementById("btn-cancel-delete");
-    const btnConfirmDelete = document.getElementById("btn-confirm-delete");
-    let pendingDeleteIndex = -1;
+  // Modal Elements
+  const deleteModal = document.getElementById("delete-confirm-modal");
+  const btnCancelDelete = document.getElementById("btn-cancel-delete");
+  const btnConfirmDelete = document.getElementById("btn-confirm-delete");
+  let pendingDeleteIndex = -1;
 
-    console.log("Video Player Script Initialized");
+  console.log("Video Player Script Initialized");
 
-    if (video) {
-        // --- History Saving Logic ---
-        const saveHistory = async () => {
-            try {
-                const userStr = localStorage.getItem("user");
-                if (!userStr) return;
-                const user = JSON.parse(userStr);
+  if (video) {
+    // --- History Saving Logic ---
+    const saveHistory = async () => {
+      try {
+        const userStr = localStorage.getItem("user");
+        if (!userStr) return;
+        const user = JSON.parse(userStr);
 
-                // Extract episode index from URL or props
-                // We need 0-based index. url is /watch/:id/:epNumber
-                const currentPath = window.location.pathname;
-                const parts = currentPath.split("/");
-                const epNum = parseInt(parts[parts.length - 1]);
-                const epIdx = isNaN(epNum) ? 0 : epNum - 1;
+        // Extract episode index from URL or props
+        // We need 0-based index. url is /watch/:id/:epNumber
+        const currentPath = window.location.pathname;
+        const parts = currentPath.split("/");
+        const epNum = parseInt(parts[parts.length - 1]);
+        const epIdx = isNaN(epNum) ? 0 : epNum - 1;
 
-                if (!video.dataset.bookId || !user.id) return;
+        if (!video.dataset.bookId || !user.id) return;
 
-                const apiUrl = "/api/history";
+        const apiUrl = "/api/history";
 
-                const res = await fetch(apiUrl, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        userId: parseInt(user.id), // Ensure INT for backend
-                        bookId: video.dataset.bookId,
-                        episodeIdx: epIdx,
-                    }),
-                });
+        const res = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: parseInt(user.id), // Ensure INT for backend
+            bookId: video.dataset.bookId,
+            episodeIdx: epIdx,
+          }),
+        });
 
-                const json = await res.json();
-                if (res.ok && json.status === "success") {
-                    console.log(
-                        `History saved: Episode ${epIdx + 1} (Debug Index: ${epIdx})`,
-                    );
-                    localStorage.setItem(
-                        "last_watch_update",
-                        Date.now().toString(),
-                    );
-                } else {
-                    console.error("Server failed to save history:", json);
-                }
-            } catch (err) {
-                console.error("Failed to save history:", err);
-            }
-        };
+        const json = await res.json();
+        if (res.ok && json.status === "success") {
+          console.log(
+            `History saved: Episode ${epIdx + 1} (Debug Index: ${epIdx})`
+          );
+          localStorage.setItem("last_watch_update", Date.now().toString());
+        } else {
+          console.error("Server failed to save history:", json);
+        }
+      } catch (err) {
+        console.error("Failed to save history:", err);
+      }
+    };
 
-        // Save on initial play
-        video.addEventListener(
-            "play",
-            () => {
-                saveHistory();
-            },
-            { once: true },
+    // Save on initial play
+    video.addEventListener(
+      "play",
+      () => {
+        saveHistory();
+      },
+      { once: true }
+    );
+
+    // Save periodically (e.g., every 30 seconds)
+    let lastSave = 0;
+    video.addEventListener("timeupdate", () => {
+      const now = Date.now();
+      if (now - lastSave > 30000) {
+        saveHistory();
+        lastSave = now;
+      }
+    });
+
+    // --- Core Video Logic ---
+
+    // Mute State & Slider Sync
+    function updateVolumeUI() {
+      if (video.muted || video.volume === 0) {
+        iconMuted?.classList.remove("hidden");
+        iconUnmuted?.classList.add("hidden");
+        if (volumeSlider) volumeSlider.value = "0";
+      } else {
+        iconMuted?.classList.add("hidden");
+        iconUnmuted?.classList.remove("hidden");
+        if (volumeSlider) volumeSlider.value = video.volume.toString();
+      }
+    }
+
+    // Initial Sync
+    updateVolumeUI();
+
+    // Play/Pause Interactions
+    if (playOverlay) {
+      playOverlay.addEventListener("click", () => {
+        if (video.paused) {
+          video.play();
+          playIcon!.style.opacity = "0";
+        } else {
+          video.pause();
+          playIcon!.style.opacity = "1";
+        }
+      });
+    }
+
+    // Mute Toggle
+    if (muteBtn) {
+      muteBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        // If muted, unmute and restore volume (default 1 if 0)
+        if (video.muted) {
+          video.muted = false;
+          if (video.volume === 0) video.volume = 1;
+        } else {
+          // Toggle mute
+          video.muted = !video.muted;
+        }
+        updateVolumeUI();
+      });
+    }
+
+    // Volume Slider Change
+    if (volumeSlider) {
+      volumeSlider.addEventListener("input", (e) => {
+        e.stopPropagation();
+        const val = parseFloat(volumeSlider.value);
+        video.volume = val;
+        video.muted = val === 0;
+        updateVolumeUI();
+      });
+
+      // Prevent container click from closing/pausing if needed
+      volumeSlider.addEventListener("click", (e) => e.stopPropagation());
+    }
+
+    // Controls Visibility Auto-Hide
+    function updateControlsVisibility() {
+      // Hide if playing AND time > 5s
+      const shouldHide = !video.paused && video.currentTime > 5;
+
+      // Helper to toggle classes safely
+      const toggle = (el: HTMLElement | null) => {
+        if (!el) return;
+
+        // If interacting with volume, don't auto-hide immediately (optional enhancement, but keep simple for now)
+        // Actually, if user hovers volume-control, we might want to keep it visible.
+        // CSS hover handles the slider visibility, but opacity-0 on parent hides everything.
+
+        if (!shouldHide) {
+          el.classList.remove("opacity-0", "pointer-events-none");
+        } else {
+          el.classList.add("opacity-0", "pointer-events-none");
+        }
+      };
+
+      toggle(bottomControls);
+      toggle(topLeftControls);
+      toggle(volumeControl); // Updated to toggle the wrapper group
+    }
+
+    video.addEventListener("timeupdate", () => {
+      if (progressBar) {
+        const percent = (video.currentTime / video.duration) * 100;
+        progressBar.style.width = `${percent}%`;
+      }
+      updateControlsVisibility();
+    });
+
+    video.addEventListener("play", updateControlsVisibility);
+    video.addEventListener("pause", updateControlsVisibility);
+    video.addEventListener("volumechange", updateVolumeUI); // Listen for external volume changes
+
+    // Auto-Play Next Episode
+    video.addEventListener("ended", () => {
+      const nextUrl = video.dataset.nextUrl;
+      // Check Setting (Default: true if null/missing)
+      const autoplayPref = localStorage.getItem("pref_autoplay") !== "false";
+
+      if (autoplayPref && nextUrl && nextUrl !== window.location.pathname) {
+        // console.log("Video Ended. Auto-playing next:", nextUrl);
+        window.location.href = nextUrl;
+      }
+    });
+
+    // Tap container (not overlay) to show controls?
+    // Actually playOverlay covers everything, so its click handler handles Play/Pause.
+    // We might want a separate "Show Controls" tap if we don't want to pause?
+    // For now, let's stick to current behavior: Click = Toggle Play = Show Controls (if paused).
+
+    // Video Ended Logic
+    // ... (existing ended listener)
+
+    // --- Seeking Logic ---
+    if (progressContainer) {
+      const handleSeek = (e: MouseEvent | TouchEvent) => {
+        const rect = progressContainer.getBoundingClientRect();
+        const clientX =
+          "touches" in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
+        const width = rect.width;
+        // Clamp between 0 and 1
+        const percent = Math.min(Math.max((clientX - rect.left) / width, 0), 1);
+
+        if (isFinite(video.duration)) {
+          video.currentTime = percent * video.duration;
+          // Optional: Update visual bar immediately for smoother feel
+          if (progressBar) progressBar.style.width = `${percent * 100}%`;
+        }
+      };
+
+      progressContainer.addEventListener("click", handleSeek);
+      progressContainer.addEventListener("touchmove", (e) => {
+        e.preventDefault(); // Prevent scrolling while scrubbing
+        handleSeek(e);
+      });
+      progressContainer.addEventListener("touchstart", handleSeek); // Jump on touch
+    }
+
+    // --- My List Logic ---
+    const myListBtn = document.getElementById("mylist-btn");
+    const iconAdd = document.getElementById("icon-add");
+    const iconCheck = document.getElementById("icon-check");
+    const myListText = document.getElementById("mylist-text");
+
+    // Book ID & Data
+    // Use a fallback to ensure we don't error out
+    const bookId = video.dataset.bookId || "unknown_book";
+    const dramaTitle = video.dataset.dramaTitle || "Unknown Title";
+    const totalEpisodes = video.dataset.totalEpisodes || "?";
+    const coverUrl = video.dataset.coverUrl || "";
+
+    function updateMyListUI(isSaved: boolean) {
+      if (isSaved) {
+        iconAdd?.classList.add("hidden");
+        iconCheck?.classList.remove("hidden");
+        if (myListText) myListText.textContent = "Saved";
+        myListBtn?.classList.add("text-red-500");
+      } else {
+        iconAdd?.classList.remove("hidden");
+        iconCheck?.classList.add("hidden");
+        if (myListText) myListText.textContent = "My List";
+        myListBtn?.classList.remove("text-red-500");
+      }
+    }
+
+    if (myListBtn) {
+      const savedList = JSON.parse(
+        localStorage.getItem("drama_mylist") || "[]"
+      );
+      const isSaved = savedList.some((d: any) => d.id === bookId);
+      updateMyListUI(isSaved);
+
+      myListBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const currentList = JSON.parse(
+          localStorage.getItem("drama_mylist") || "[]"
+        );
+        const existingIndex = currentList.findIndex(
+          (d: any) => d.id === bookId
         );
 
-        // Save periodically (e.g., every 30 seconds)
-        let lastSave = 0;
-        video.addEventListener("timeupdate", () => {
-            const now = Date.now();
-            if (now - lastSave > 30000) {
-                saveHistory();
-                lastSave = now;
-            }
-        });
-
-        // --- Core Video Logic ---
-
-        // Mute State & Slider Sync
-        function updateVolumeUI() {
-            if (video.muted || video.volume === 0) {
-                iconMuted?.classList.remove("hidden");
-                iconUnmuted?.classList.add("hidden");
-                if (volumeSlider) volumeSlider.value = "0";
-            } else {
-                iconMuted?.classList.add("hidden");
-                iconUnmuted?.classList.remove("hidden");
-                if (volumeSlider) volumeSlider.value = video.volume.toString();
-            }
+        if (existingIndex >= 0) {
+          currentList.splice(existingIndex, 1);
+          updateMyListUI(false);
+        } else {
+          currentList.push({
+            id: bookId,
+            title: dramaTitle,
+            episodes: totalEpisodes,
+            cover: coverUrl,
+          });
+          updateMyListUI(true);
         }
+        localStorage.setItem("drama_mylist", JSON.stringify(currentList));
+      });
+    }
 
-        // Initial Sync
-        updateVolumeUI();
+    // --- Swipe Gestures ---
+    let touchStartY = 0;
+    if (container) {
+      container.addEventListener(
+        "touchstart",
+        (e) => {
+          touchStartY = e.changedTouches[0].screenY;
+        },
+        { passive: false }
+      );
 
-        // Play/Pause Interactions
-        if (playOverlay) {
-            playOverlay.addEventListener("click", () => {
-                if (video.paused) {
-                    video.play();
-                    playIcon!.style.opacity = "0";
-                } else {
-                    video.pause();
-                    playIcon!.style.opacity = "1";
-                }
-            });
+      container.addEventListener(
+        "touchmove",
+        (e) => {
+          const target = e.target as HTMLElement;
+          // Allow scrolling in comments list
+          if (target.closest("#comments-list")) {
+            e.stopPropagation();
+            return;
+          }
+          e.preventDefault();
+        },
+        { passive: false }
+      );
+
+      container.addEventListener("touchend", (e) => {
+        const touchEndY = e.changedTouches[0].screenY;
+        const diffY = touchStartY - touchEndY;
+
+        // Block swipe if comments open
+        const commentsOpen =
+          commentsSheet &&
+          !commentsSheet.classList.contains("translate-y-full");
+        if (commentsOpen) return;
+
+        // Swipe Up -> Next Ep
+        if (diffY > 30) {
+          const nextUrl = video.dataset.nextUrl;
+          if (nextUrl && nextUrl !== window.location.pathname) {
+            console.log("Swipe Up Detected. Navigating to:", nextUrl);
+            window.location.href = nextUrl;
+          }
         }
-
-        // Mute Toggle
-        if (muteBtn) {
-            muteBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                // If muted, unmute and restore volume (default 1 if 0)
-                if (video.muted) {
-                    video.muted = false;
-                    if (video.volume === 0) video.volume = 1;
-                } else {
-                    // Toggle mute
-                    video.muted = !video.muted;
-                }
-                updateVolumeUI();
-            });
+        // Swipe Down -> Prev Ep
+        else if (diffY < -30) {
+          const prevUrl = video.dataset.prevUrl;
+          if (prevUrl && prevUrl !== window.location.pathname) {
+            console.log("Swipe Down Detected. Navigating to:", prevUrl);
+            window.location.href = prevUrl;
+          }
         }
-
-        // Volume Slider Change
-        if (volumeSlider) {
-            volumeSlider.addEventListener("input", (e) => {
-                e.stopPropagation();
-                const val = parseFloat(volumeSlider.value);
-                video.volume = val;
-                video.muted = val === 0;
-                updateVolumeUI();
-            });
-
-            // Prevent container click from closing/pausing if needed
-            volumeSlider.addEventListener("click", (e) => e.stopPropagation());
-        }
-
-        // Controls Visibility Auto-Hide
-        function updateControlsVisibility() {
-            // Hide if playing AND time > 5s
-            const shouldHide = !video.paused && video.currentTime > 5;
-
-            // Helper to toggle classes safely
-            const toggle = (el: HTMLElement | null) => {
-                if (!el) return;
-
-                // If interacting with volume, don't auto-hide immediately (optional enhancement, but keep simple for now)
-                // Actually, if user hovers volume-control, we might want to keep it visible.
-                // CSS hover handles the slider visibility, but opacity-0 on parent hides everything.
-
-                if (!shouldHide) {
-                    el.classList.remove("opacity-0", "pointer-events-none");
-                } else {
-                    el.classList.add("opacity-0", "pointer-events-none");
-                }
-            };
-
-            toggle(bottomControls);
-            toggle(topLeftControls);
-            toggle(volumeControl); // Updated to toggle the wrapper group
-        }
-
-        video.addEventListener("timeupdate", () => {
-            if (progressBar) {
-                const percent = (video.currentTime / video.duration) * 100;
-                progressBar.style.width = `${percent}%`;
-            }
-            updateControlsVisibility();
-        });
-
-        video.addEventListener("play", updateControlsVisibility);
-        video.addEventListener("pause", updateControlsVisibility);
-        video.addEventListener("volumechange", updateVolumeUI); // Listen for external volume changes
-
-        // Auto-Play Next Episode
-        video.addEventListener("ended", () => {
-            const nextUrl = video.dataset.nextUrl;
-            // Check Setting (Default: true if null/missing)
-            const autoplayPref =
-                localStorage.getItem("pref_autoplay") !== "false";
-
-            if (
-                autoplayPref &&
-                nextUrl &&
-                nextUrl !== window.location.pathname
-            ) {
-                // console.log("Video Ended. Auto-playing next:", nextUrl);
-                window.location.href = nextUrl;
-            }
-        });
-
-        // Tap container (not overlay) to show controls?
-        // Actually playOverlay covers everything, so its click handler handles Play/Pause.
-        // We might want a separate "Show Controls" tap if we don't want to pause?
-        // For now, let's stick to current behavior: Click = Toggle Play = Show Controls (if paused).
-
-        // Video Ended Logic
-        // ... (existing ended listener)
-
-        // --- Seeking Logic ---
-        if (progressContainer) {
-            const handleSeek = (e: MouseEvent | TouchEvent) => {
-                const rect = progressContainer.getBoundingClientRect();
-                const clientX =
-                    "touches" in e
-                        ? e.touches[0].clientX
-                        : (e as MouseEvent).clientX;
-                const width = rect.width;
-                // Clamp between 0 and 1
-                const percent = Math.min(
-                    Math.max((clientX - rect.left) / width, 0),
-                    1,
-                );
-
-                if (isFinite(video.duration)) {
-                    video.currentTime = percent * video.duration;
-                    // Optional: Update visual bar immediately for smoother feel
-                    if (progressBar)
-                        progressBar.style.width = `${percent * 100}%`;
-                }
-            };
-
-            progressContainer.addEventListener("click", handleSeek);
-            progressContainer.addEventListener("touchmove", (e) => {
-                e.preventDefault(); // Prevent scrolling while scrubbing
-                handleSeek(e);
-            });
-            progressContainer.addEventListener("touchstart", handleSeek); // Jump on touch
-        }
-
-        // --- My List Logic ---
-        const myListBtn = document.getElementById("mylist-btn");
-        const iconAdd = document.getElementById("icon-add");
-        const iconCheck = document.getElementById("icon-check");
-        const myListText = document.getElementById("mylist-text");
-
-        // Book ID & Data
-        // Use a fallback to ensure we don't error out
-        const bookId = video.dataset.bookId || "unknown_book";
-        const dramaTitle = video.dataset.dramaTitle || "Unknown Title";
-        const totalEpisodes = video.dataset.totalEpisodes || "?";
-        const coverUrl = video.dataset.coverUrl || "";
-
-        function updateMyListUI(isSaved: boolean) {
-            if (isSaved) {
-                iconAdd?.classList.add("hidden");
-                iconCheck?.classList.remove("hidden");
-                if (myListText) myListText.textContent = "Saved";
-                myListBtn?.classList.add("text-red-500");
-            } else {
-                iconAdd?.classList.remove("hidden");
-                iconCheck?.classList.add("hidden");
-                if (myListText) myListText.textContent = "My List";
-                myListBtn?.classList.remove("text-red-500");
-            }
-        }
-
-        if (myListBtn) {
-            const savedList = JSON.parse(
-                localStorage.getItem("drama_mylist") || "[]",
-            );
-            const isSaved = savedList.some((d: any) => d.id === bookId);
-            updateMyListUI(isSaved);
-
-            myListBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                const currentList = JSON.parse(
-                    localStorage.getItem("drama_mylist") || "[]",
-                );
-                const existingIndex = currentList.findIndex(
-                    (d: any) => d.id === bookId,
-                );
-
-                if (existingIndex >= 0) {
-                    currentList.splice(existingIndex, 1);
-                    updateMyListUI(false);
-                } else {
-                    currentList.push({
-                        id: bookId,
-                        title: dramaTitle,
-                        episodes: totalEpisodes,
-                        cover: coverUrl,
-                    });
-                    updateMyListUI(true);
-                }
-                localStorage.setItem(
-                    "drama_mylist",
-                    JSON.stringify(currentList),
-                );
-            });
-        }
-
-        // --- Swipe Gestures ---
-        let touchStartY = 0;
-        if (container) {
-            container.addEventListener(
-                "touchstart",
-                (e) => {
-                    touchStartY = e.changedTouches[0].screenY;
-                },
-                { passive: false },
-            );
-
-            container.addEventListener(
-                "touchmove",
-                (e) => {
-                    const target = e.target as HTMLElement;
-                    // Allow scrolling in comments list
-                    if (target.closest("#comments-list")) {
-                        e.stopPropagation();
-                        return;
-                    }
-                    e.preventDefault();
-                },
-                { passive: false },
-            );
-
-            container.addEventListener("touchend", (e) => {
-                const touchEndY = e.changedTouches[0].screenY;
-                const diffY = touchStartY - touchEndY;
-
-                // Block swipe if comments open
-                const commentsOpen =
-                    commentsSheet &&
-                    !commentsSheet.classList.contains("translate-y-full");
-                if (commentsOpen) return;
-
-                // Swipe Up -> Next Ep
-                if (diffY > 30) {
-                    const nextUrl = video.dataset.nextUrl;
-                    if (nextUrl && nextUrl !== window.location.pathname) {
-                        console.log(
-                            "Swipe Up Detected. Navigating to:",
-                            nextUrl,
-                        );
-                        window.location.href = nextUrl;
-                    }
-                }
-                // Swipe Down -> Prev Ep
-                else if (diffY < -30) {
-                    const prevUrl = video.dataset.prevUrl;
-                    if (prevUrl && prevUrl !== window.location.pathname) {
-                        console.log(
-                            "Swipe Down Detected. Navigating to:",
-                            prevUrl,
-                        );
-                        window.location.href = prevUrl;
-                    }
-                }
-            });
-        }
+      });
+    }
 
     // --- Comment Feature (Real Backend Integration) ---
     function timeAgo(dateString: string) {
-        if (!dateString) return "";
-        const date = new Date(dateString);
-        const now = new Date();
-        const diff = now.getTime() - date.getTime();
+      if (!dateString) return "";
+      const date = new Date(dateString);
+      const now = new Date();
+      const diff = now.getTime() - date.getTime();
 
-        // Ensure no negative time due to clock skew
-        if (diff < 0) return "Just now";
+      // Ensure no negative time due to clock skew
+      if (diff < 0) return "Just now";
 
-        const seconds = Math.floor(diff / 1000);
+      const seconds = Math.floor(diff / 1000);
 
-        if (seconds < 60) return "Just now";
-        const minutes = Math.floor(seconds / 60);
-        if (minutes < 60) return `${minutes}m ago`;
-        const hours = Math.floor(minutes / 60);
-        if (hours < 24) return `${hours}h ago`;
-        const days = Math.floor(hours / 24);
-        if (days < 7) return `${days}d ago`;
-        if (days < 30) return `${Math.floor(days / 7)}w ago`;
+      if (seconds < 60) return "Just now";
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return `${minutes}m ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      if (days < 7) return `${days}d ago`;
+      if (days < 30) return `${Math.floor(days / 7)}w ago`;
 
-        return date.toLocaleDateString();
+      return date.toLocaleDateString();
     }
 
     async function loadComments() {
-        if (!commentsList || !commentCount) return;
-        
-        // Loading State
-        commentsList.innerHTML = `
+      if (!commentsList || !commentCount) return;
+
+      // Loading State
+      commentsList.innerHTML = `
             <div class="animate-pulse flex gap-4">
                 <div class="w-10 h-10 bg-zinc-800 rounded-full"></div>
                 <div class="flex-1 space-y-2">
@@ -817,40 +788,40 @@ const {
                 </div>
             </div>`;
 
-        try {
-            const res = await fetch(`/api/comments/${bookId}`);
-            let comments = [];
-            if (res.ok) {
-                const json = await res.json();
-                if (json.status === "success") {
-                    comments = json.data;
-                }
-            }
+      try {
+        const res = await fetch(`/api/comments/${bookId}`);
+        let comments = [];
+        if (res.ok) {
+          const json = await res.json();
+          if (json.status === "success") {
+            comments = json.data;
+          }
+        }
 
-            commentCount.textContent = `(${comments.length})`;
-            
-            if (comments.length === 0) {
-                 commentsList.innerHTML = `<p class="text-zinc-500 text-sm text-center py-8">No comments yet. Be the first!</p>`;
-                 return;
-            }
+        commentCount.textContent = `(${comments.length})`;
 
-            // Get Current User
-            const userStr = localStorage.getItem("user");
-            let currentUserName = "";
-            if (userStr) {
-                try {
-                    const u = JSON.parse(userStr);
-                    currentUserName = u.name || u.username || "";
-                } catch (e) {}
-            }
+        if (comments.length === 0) {
+          commentsList.innerHTML = `<p class="text-zinc-500 text-sm text-center py-8">No comments yet. Be the first!</p>`;
+          return;
+        }
 
-            commentsList.innerHTML = comments
-                .map((c: any) => {
-                    const avatarHtml = c.user.avatar
-                        ? `<img src="${c.user.avatar}" class="w-8 h-8 rounded-full object-cover shrink-0">`
-                        : `<div class="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-white shrink-0">${c.user.name[0]}</div>`;
+        // Get Current User
+        const userStr = localStorage.getItem("user");
+        let currentUserName = "";
+        if (userStr) {
+          try {
+            const u = JSON.parse(userStr);
+            currentUserName = u.name || u.username || "";
+          } catch (e) {}
+        }
 
-                    return `
+        commentsList.innerHTML = comments
+          .map((c: any) => {
+            const avatarHtml = c.user.avatar
+              ? `<img src="${c.user.avatar}" class="w-8 h-8 rounded-full object-cover shrink-0">`
+              : `<div class="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-white shrink-0">${c.user.name[0]}</div>`;
+
+            return `
                     <div class="flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300 comment-item" data-time="${c.created_at}">
                         ${avatarHtml}
                         <div class="flex-1 space-y-1">
@@ -862,134 +833,141 @@ const {
                         </div>
                     </div>
                 `;
-                })
-                .join("");
-
-        } catch (err) {
-            console.error("Error loading comments:", err);
-            commentsList.innerHTML = `<p class="text-red-500 text-sm text-center">Failed to load comments.</p>`;
-        }
+          })
+          .join("");
+      } catch (err) {
+        console.error("Error loading comments:", err);
+        commentsList.innerHTML = `<p class="text-red-500 text-sm text-center">Failed to load comments.</p>`;
+      }
     }
 
     // Live Update Timestamps
     setInterval(() => {
-        if (!commentsSheet || commentsSheet.classList.contains("translate-y-full")) return; // Only if open
-         document.querySelectorAll(".comment-item").forEach((item) => {
-            const timeStr = item.getAttribute("data-time");
-            const display = item.querySelector(".time-display");
-            if (timeStr && display) {
-                const newTime = timeAgo(timeStr);
-                if (display.textContent !== newTime) display.textContent = newTime;
-            }
-        });
+      if (
+        !commentsSheet ||
+        commentsSheet.classList.contains("translate-y-full")
+      )
+        return; // Only if open
+      document.querySelectorAll(".comment-item").forEach((item) => {
+        const timeStr = item.getAttribute("data-time");
+        const display = item.querySelector(".time-display");
+        if (timeStr && display) {
+          const newTime = timeAgo(timeStr);
+          if (display.textContent !== newTime) display.textContent = newTime;
+        }
+      });
     }, 5000);
 
-
     function openComments() {
-        if (!commentsSheet || !commentsBackdrop) return;
-        commentsSheet.classList.remove("translate-y-full");
-        commentsBackdrop.classList.remove("opacity-0", "pointer-events-none");
-        loadComments();
+      if (!commentsSheet || !commentsBackdrop) return;
+      commentsSheet.classList.remove("translate-y-full");
+      commentsBackdrop.classList.remove("opacity-0", "pointer-events-none");
+      loadComments();
     }
 
     function closeComments() {
-        if (!commentsSheet || !commentsBackdrop) return;
-        commentsSheet.classList.add("translate-y-full");
-        commentsBackdrop.classList.add("opacity-0", "pointer-events-none");
+      if (!commentsSheet || !commentsBackdrop) return;
+      commentsSheet.classList.add("translate-y-full");
+      commentsBackdrop.classList.add("opacity-0", "pointer-events-none");
     }
 
     // Attach Listeners
     document.addEventListener("click", (e) => {
-        const target = e.target as HTMLElement;
+      const target = e.target as HTMLElement;
 
-        // Open Button
-        const openBtn = target.closest("#comment-btn");
-        if (openBtn) {
-            e.stopPropagation();
-            openComments();
-            return;
-        }
+      // Open Button
+      const openBtn = target.closest("#comment-btn");
+      if (openBtn) {
+        e.stopPropagation();
+        openComments();
+        return;
+      }
 
-        // Close Button
-        const closeBtn = target.closest("#close-comments");
-        if (closeBtn) {
-            closeComments();
-            return;
-        }
+      // Close Button
+      const closeBtn = target.closest("#close-comments");
+      if (closeBtn) {
+        closeComments();
+        return;
+      }
 
-        // Handle Bar
-        const handle = target.closest("#comments-handle");
-        if (handle) {
-            closeComments();
-            return;
-        }
+      // Handle Bar
+      const handle = target.closest("#comments-handle");
+      if (handle) {
+        closeComments();
+        return;
+      }
 
-        // Backdrop
-        if (target.id === "comments-backdrop") {
-            closeComments();
-        }
+      // Backdrop
+      if (target.id === "comments-backdrop") {
+        closeComments();
+      }
     });
 
     // Post Comment
     if (commentForm) {
-        commentForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const text = commentInput.value.trim();
-            if (!text) return;
+      commentForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const text = commentInput.value.trim();
+        if (!text) return;
 
-             // Check Auth
-            const token = localStorage.getItem("token");
-            const userStr = localStorage.getItem("user");
-            
-            if (!token || !userStr) {
-                // Show login prompt/toast roughly (Assuming toast exists or just alert for now)
-                // Ideally redirect to login or show modal. 
-                // For now, let's just alert or console log as fallback
-                window.location.href = "/login"; 
-                return;
-            }
+        // Check Auth
+        const token = localStorage.getItem("token");
+        const userStr = localStorage.getItem("user");
 
-            let currentUser = null;
-            try { currentUser = JSON.parse(userStr); } catch(e) {}
-            const userId = currentUser ? currentUser.id : 0;
+        if (!token || !userStr) {
+          // Show login prompt/toast roughly (Assuming toast exists or just alert for now)
+          // Ideally redirect to login or show modal.
+          // For now, let's just alert or console log as fallback
+          window.location.href = "/login";
+          return;
+        }
 
-            // Optimistic UI? No, let's wait for server response to be safe
-            const submitBtn = commentForm.querySelector('button[type="submit"]') as HTMLButtonElement;
-            const originalBtnContent = submitBtn.innerHTML;
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+        let currentUser = null;
+        try {
+          currentUser = JSON.parse(userStr);
+        } catch (e) {}
+        const userId = currentUser ? currentUser.id : 0;
 
-            try {
-                 const res = await fetch(`/api/comments`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": token
-                    },
-                    body: JSON.stringify({
-                        book_id: bookId,
-                        user_id: userId,
-                        content: text
-                    })
-                });
+        // Optimistic UI? No, let's wait for server response to be safe
+        const submitBtn = commentForm.querySelector(
+          'button[type="submit"]'
+        ) as HTMLButtonElement;
+        const originalBtnContent = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
 
-                const json = await res.json();
-                
-                if (res.ok && json.status === "success") {
-                    commentInput.value = "";
-                    loadComments(); // Refresh list
-                } else {
-                    console.error("Failed to post:", json);
-                    alert("Failed to post: " + (json.message || "Unknown error"));
-                }
-            } catch (err) {
-                console.error("Error posting:", err);
-                alert("Error posting comment");
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnContent;
-                // Keep sheet open
-            }
-        });
+        try {
+          const res = await fetch(`/api/comments`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: token,
+            },
+            body: JSON.stringify({
+              book_id: bookId,
+              user_id: userId,
+              content: text,
+            }),
+          });
+
+          const json = await res.json();
+
+          if (res.ok && json.status === "success") {
+            commentInput.value = "";
+            loadComments(); // Refresh list
+          } else {
+            console.error("Failed to post:", json);
+            alert("Failed to post: " + (json.message || "Unknown error"));
+          }
+        } catch (err) {
+          console.error("Error posting:", err);
+          alert("Error posting comment");
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnContent;
+          // Keep sheet open
+        }
+      });
     }
+  }
 </script>
