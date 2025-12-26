@@ -96,51 +96,78 @@ const {
       </a>
     </div>
 
-    <!-- Volume Control Group (Top Right) -->
-    <!-- Redesigned: Single Pill expanding upwards -->
+    <!-- Top Right Group (Volume + Fullscreen) -->
     <div
-      id="volume-control"
-      class="absolute top-4 right-4 z-20 flex flex-col items-center bg-black/50 hover:bg-black/70 backdrop-blur-md rounded-full p-2 transition-all duration-300 group"
+      class="absolute top-4 right-4 z-20 flex flex-col gap-3 transition-opacity duration-500"
+      id="top-right-controls"
     >
-      <!-- Vertical Slider Container (Collapses to 0 height) -->
+      <!-- Volume Control Group -->
       <div
-        class="h-0 w-8 overflow-hidden group-hover:h-24 transition-all duration-300 ease-out flex items-center justify-center"
+        id="volume-control"
+        class="flex flex-col items-center bg-black/50 hover:bg-black/70 backdrop-blur-md rounded-full p-2 transition-all duration-300 group"
       >
-        <input
-          type="range"
-          id="volume-slider"
-          min="0"
-          max="1"
-          step="0.1"
-          value="1"
-          class="w-20 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer -rotate-90 origin-center accent-red-600 hover:accent-red-500"
-        />
+        <!-- Vertical Slider Container (Collapses to 0 height) -->
+        <div
+          class="h-0 w-8 overflow-hidden group-hover:h-24 transition-all duration-300 ease-out flex items-center justify-center"
+        >
+          <input
+            type="range"
+            id="volume-slider"
+            min="0"
+            max="1"
+            step="0.1"
+            value="1"
+            class="w-20 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer -rotate-90 origin-center accent-red-600 hover:accent-red-500"
+          />
+        </div>
+
+        <!-- Mute Button -->
+        <button
+          id="mute-btn"
+          class="p-1 text-white active:scale-90 transition-transform"
+        >
+          <!-- Muted Icon -->
+          <svg
+            id="icon-muted"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-6 h-6 hidden"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"
+            ></path>
+          </svg>
+          <!-- Unmuted Icon -->
+          <svg
+            id="icon-unmuted"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-6 h-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"
+            ></path>
+          </svg>
+        </button>
       </div>
 
-      <!-- Mute Button (Icon only, transparency handled by parent) -->
+      <!-- Fullscreen Button -->
       <button
-        id="mute-btn"
-        class="p-1 text-white active:scale-90 transition-transform"
+        id="fullscreen-btn"
+        class="p-3 bg-black/50 hover:bg-black/70 backdrop-blur-md rounded-full text-white active:scale-90 transition-transform flex items-center justify-center"
       >
-        <!-- Muted Icon -->
         <svg
-          id="icon-muted"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke-width="1.5"
-          stroke="currentColor"
-          class="w-6 h-6 hidden"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"
-          ></path>
-        </svg>
-        <!-- Unmuted Icon -->
-        <svg
-          id="icon-unmuted"
+          id="icon-maximize"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
@@ -151,7 +178,22 @@ const {
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
-            d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"
+            d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
+          ></path>
+        </svg>
+        <svg
+          id="icon-minimize"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-6 h-6 hidden"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5M15 15l5.25 5.25"
           ></path>
         </svg>
       </button>
@@ -161,6 +203,70 @@ const {
     <div
       class="absolute bottom-0 left-0 w-full h-64 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none z-10"
     >
+    </div>
+
+    <!-- Seek Indicators -->
+    <div
+      id="seek-overlay-left"
+      class="absolute inset-y-0 left-0 w-1/3 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-200 z-30"
+    >
+      <div
+        class="bg-black/60 rounded-full p-4 backdrop-blur-md flex flex-col items-center"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2"
+          stroke="currentColor"
+          class="w-10 h-10 text-white"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M18.75 19.5l-7.5-7.5 7.5-7.5m-6 15L5.25 12l7.5-7.5"></path>
+        </svg>
+        <span class="text-white text-xs font-bold mt-1">-10s</span>
+      </div>
+    </div>
+    <div
+      id="seek-overlay-right"
+      class="absolute inset-y-0 right-0 w-1/3 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-200 z-30"
+    >
+      <div
+        class="bg-black/60 rounded-full p-4 backdrop-blur-md flex flex-col items-center"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2"
+          stroke="currentColor"
+          class="w-10 h-10 text-white"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M11.25 4.5l7.5 7.5-7.5 7.5m-6-15l7.5 7.5-7.5 7.5"></path>
+        </svg>
+        <span class="text-white text-xs font-bold mt-1">+10s</span>
+      </div>
+    </div>
+
+    <!-- Play/Pause Overlay Hitbox (Transparent) -->
+    <div id="play-overlay" class="absolute inset-0 z-0"></div>
+    <div
+      id="play-icon"
+      class="absolute inset-0 z-30 flex items-center justify-center pointer-events-none opacity-0 transition-opacity"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="white"
+        viewBox="0 0 24 24"
+        class="w-20 h-20 drop-shadow-lg"
+      >
+        <path d="M8 5v14l11-7z"></path>
+      </svg>
     </div>
 
     <!-- Bottom Info & Controls -->
@@ -569,14 +675,8 @@ const {
       // Hide if playing AND time > 5s
       const shouldHide = !video.paused && video.currentTime > 5;
 
-      // Helper to toggle classes safely
       const toggle = (el: HTMLElement | null) => {
         if (!el) return;
-
-        // If interacting with volume, don't auto-hide immediately (optional enhancement, but keep simple for now)
-        // Actually, if user hovers volume-control, we might want to keep it visible.
-        // CSS hover handles the slider visibility, but opacity-0 on parent hides everything.
-
         if (!shouldHide) {
           el.classList.remove("opacity-0", "pointer-events-none");
         } else {
@@ -586,7 +686,7 @@ const {
 
       toggle(bottomControls);
       toggle(topLeftControls);
-      toggle(volumeControl); // Updated to toggle the wrapper group
+      toggle(document.getElementById("top-right-controls")); // Use wrapper
     }
 
     video.addEventListener("timeupdate", () => {
@@ -604,46 +704,137 @@ const {
     // Auto-Play Next Episode
     video.addEventListener("ended", () => {
       const nextUrl = video.dataset.nextUrl;
-      // Check Setting (Default: true if null/missing)
       const autoplayPref = localStorage.getItem("pref_autoplay") !== "false";
 
       if (autoplayPref && nextUrl && nextUrl !== window.location.pathname) {
-        // console.log("Video Ended. Auto-playing next:", nextUrl);
         window.location.href = nextUrl;
       }
     });
 
-    // Tap container (not overlay) to show controls?
-    // Actually playOverlay covers everything, so its click handler handles Play/Pause.
-    // We might want a separate "Show Controls" tap if we don't want to pause?
-    // For now, let's stick to current behavior: Click = Toggle Play = Show Controls (if paused).
+    // --- SMART CLICK (Double Tap Seek) ---
+    let clickCount = 0;
+    let clickTimer: any = null;
+    const seekOverlayLeft = document.getElementById("seek-overlay-left");
+    const seekOverlayRight = document.getElementById("seek-overlay-right");
 
-    // Video Ended Logic
-    // ... (existing ended listener)
+    if (playOverlay) {
+      playOverlay.addEventListener("click", (e) => {
+        clickCount++;
 
-    // --- Seeking Logic ---
-    if (progressContainer) {
-      const handleSeek = (e: MouseEvent | TouchEvent) => {
-        const rect = progressContainer.getBoundingClientRect();
-        const clientX =
-          "touches" in e ? e.touches[0].clientX : (e as MouseEvent).clientX;
-        const width = rect.width;
-        // Clamp between 0 and 1
-        const percent = Math.min(Math.max((clientX - rect.left) / width, 0), 1);
+        if (clickCount === 1) {
+          clickTimer = setTimeout(() => {
+            // Single Click -> Play/Pause
+            clickCount = 0;
+            if (video.paused) {
+              video.play();
+              playIcon!.style.opacity = "0";
+            } else {
+              video.pause();
+              playIcon!.style.opacity = "1";
+            }
+          }, 250); // 250ms wait
+        } else if (clickCount === 2) {
+          // Double Click -> Seek
+          clearTimeout(clickTimer);
+          clickCount = 0;
 
-        if (isFinite(video.duration)) {
-          video.currentTime = percent * video.duration;
-          // Optional: Update visual bar immediately for smoother feel
-          if (progressBar) progressBar.style.width = `${percent * 100}%`;
+          const rect = playOverlay.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const width = rect.width;
+
+          // Determine Zone
+          // Left 35%
+          if (x < width * 0.35) {
+            video.currentTime = Math.max(0, video.currentTime - 10);
+            triggerSeekAnim("left");
+          }
+          // Right 35%
+          else if (x > width * 0.65) {
+            video.currentTime = Math.min(
+              video.duration,
+              video.currentTime + 10
+            );
+            triggerSeekAnim("right");
+          }
+          // Center -> Maybe toggle fullscreen? Or just Play/Pause immediately?
+          // Let's keep center strictly for Play/Pause if user clicks slowly, but if double click center, maybe standard play/pause toggle instantly?
+          // For now, let's treat center double click as "Toggle Fullscreen" if we want to mimic YouTube, or just Ignore.
+          // Let's Ignore seeking for center double tap.
+          else {
+            // Center double tap = Toggle Play/Pause violently?
+            // Just toggle once.
+            if (video.paused) {
+              video.play();
+              playIcon!.style.opacity = "0";
+            } else {
+              video.pause();
+              playIcon!.style.opacity = "1";
+            }
+          }
         }
-      };
-
-      progressContainer.addEventListener("click", handleSeek);
-      progressContainer.addEventListener("touchmove", (e) => {
-        e.preventDefault(); // Prevent scrolling while scrubbing
-        handleSeek(e);
       });
-      progressContainer.addEventListener("touchstart", handleSeek); // Jump on touch
+    }
+
+    function triggerSeekAnim(side: "left" | "right") {
+      const el = side === "left" ? seekOverlayLeft : seekOverlayRight;
+      if (!el) return;
+
+      // Reset animation
+      el.classList.remove("opacity-0");
+      el.style.animation = "none";
+      el.offsetHeight; /* trigger reflow */
+      el.style.animation = "pulse 0.5s";
+
+      setTimeout(() => {
+        el.classList.add("opacity-0");
+      }, 500);
+    }
+
+    // --- FULLSCREEN LOGIC ---
+    const fullscreenBtn = document.getElementById("fullscreen-btn");
+    const iconMaximize = document.getElementById("icon-maximize");
+    const iconMinimize = document.getElementById("icon-minimize");
+
+    if (fullscreenBtn && container) {
+      fullscreenBtn.addEventListener("click", () => {
+        if (!document.fullscreenElement) {
+          if (container.requestFullscreen) {
+            container.requestFullscreen();
+          } else if ((container as any).webkitRequestFullscreen) {
+            /* Safari */
+            (container as any).webkitRequestFullscreen();
+          }
+        } else {
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          } else if ((document as any).webkitExitFullscreen) {
+            /* Safari */
+            (document as any).webkitExitFullscreen();
+          }
+        }
+      });
+
+      // Listen for change
+      document.addEventListener("fullscreenchange", updateFullscreenUI);
+      document.addEventListener("webkitfullscreenchange", updateFullscreenUI);
+
+      function updateFullscreenUI() {
+        if (document.fullscreenElement) {
+          iconMaximize?.classList.add("hidden");
+          iconMinimize?.classList.remove("hidden");
+          container?.classList.remove("aspect-[9/16]", "max-w-full");
+          container?.classList.add("w-screen", "h-screen");
+          // On mobile, aspect-[9/16] might constrain it.
+          // When fullscreen, we want it to fill user's screen completely.
+          // Container styles might need adjustment.
+        } else {
+          iconMaximize?.classList.remove("hidden");
+          iconMinimize?.classList.add("hidden");
+          // Restore
+          container?.classList.add("aspect-[9/16]", "max-w-full");
+          container?.classList.remove("w-screen", "h-screen");
+        }
+      }
     }
 
     // --- My List Logic ---
