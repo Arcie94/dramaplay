@@ -802,7 +802,7 @@ const {
         if (res.ok) {
           const json = await res.json();
           if (json.status === "success") {
-            comments = json.data;
+            comments = json.data || [];
           }
         }
 
