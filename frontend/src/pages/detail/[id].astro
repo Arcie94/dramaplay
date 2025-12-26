@@ -7,7 +7,7 @@ const { id } = Astro.params;
 // Fetch Detail
 let drama = null;
 let episodes = [];
-const API_URL = process.env.INTERNAL_API_URL || "http://10.0.2.2:3000/api";
+const API_URL = process.env.INTERNAL_API_URL || "https://dramaplay.online/api";
 
 try {
   const res = await fetch(`${API_URL}/detail?bookId=${id}`);

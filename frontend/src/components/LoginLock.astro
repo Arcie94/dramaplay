@@ -198,7 +198,10 @@
   const loginForm = document.getElementById("login-form");
   const overlay = document.getElementById("login-overlay");
   // const API_BASE = "/api";
-  const API_BASE = "http://10.0.2.2:3000/api"; // Android Emulator Special Localhost IP
+  // Use 10.0.2.2 for Android Emulator, otherwise Production API for Web
+  const API_BASE = Capacitor.isNativePlatform()
+    ? "http://10.0.2.2:3000/api"
+    : "https://dramaplay.online/api";
 
   // --- Google Login Integration ---
   import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";

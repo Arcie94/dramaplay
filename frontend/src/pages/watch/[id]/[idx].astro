@@ -6,7 +6,7 @@ const { id, idx } = Astro.params;
 
 // Fetch Stream Data
 // Fetch Stream Data
-const API_URL = process.env.INTERNAL_API_URL || "http://10.0.2.2:3000/api";
+const API_URL = process.env.INTERNAL_API_URL || "https://dramaplay.online/api";
 const currentIndex = idx ? parseInt(idx) - 1 : 0;
 let streamData = null;
 let detailJson: any = {};
