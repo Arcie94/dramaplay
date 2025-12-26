@@ -718,23 +718,26 @@ const {
     const seekOverlayRight = document.getElementById("seek-overlay-right");
 
     if (playOverlay) {
+      // Ensure overlay is clickable
+      playOverlay.style.zIndex = "10";
+
       playOverlay.addEventListener("click", (e) => {
         clickCount++;
 
         if (clickCount === 1) {
           clickTimer = setTimeout(() => {
-            // Single Click -> Play/Pause
+            // SINGLE CLICK -> Play/Pause
             clickCount = 0;
             if (video.paused) {
               video.play();
-              playIcon!.style.opacity = "0";
+              if (playIcon) playIcon.style.opacity = "0";
             } else {
               video.pause();
-              playIcon!.style.opacity = "1";
+              if (playIcon) playIcon.style.opacity = "1";
             }
-          }, 250); // 250ms wait
+          }, 300); // Increased window to 300ms
         } else if (clickCount === 2) {
-          // Double Click -> Seek
+          // DOUBLE CLICK -> Seek
           clearTimeout(clickTimer);
           clickCount = 0;
 
@@ -743,33 +746,24 @@ const {
           const width = rect.width;
 
           // Determine Zone
-          // Left 35%
           if (x < width * 0.35) {
-            video.currentTime = Math.max(0, video.currentTime - 10);
-            triggerSeekAnim("left");
-          }
-          // Right 35%
-          else if (x > width * 0.65) {
-            video.currentTime = Math.min(
-              video.duration,
-              video.currentTime + 10
-            );
-            triggerSeekAnim("right");
-          }
-          // Center -> Maybe toggle fullscreen? Or just Play/Pause immediately?
-          // Let's keep center strictly for Play/Pause if user clicks slowly, but if double click center, maybe standard play/pause toggle instantly?
-          // For now, let's treat center double click as "Toggle Fullscreen" if we want to mimic YouTube, or just Ignore.
-          // Let's Ignore seeking for center double tap.
-          else {
-            // Center double tap = Toggle Play/Pause violently?
-            // Just toggle once.
-            if (video.paused) {
-              video.play();
-              playIcon!.style.opacity = "0";
-            } else {
-              video.pause();
-              playIcon!.style.opacity = "1";
+            // Left 35%
+            if (isFinite(video.duration)) {
+              video.currentTime = Math.max(0, video.currentTime - 10);
+              triggerSeekAnim("left");
             }
+          } else if (x > width * 0.65) {
+            // Right 35%
+            if (isFinite(video.duration)) {
+              video.currentTime = Math.min(
+                video.duration,
+                video.currentTime + 10
+              );
+              triggerSeekAnim("right");
+            }
+          } else {
+            // Center Double Tap -> Toggle Fullscreen (Standard behavior)
+            toggleFullscreen();
           }
         }
       });
@@ -779,10 +773,9 @@ const {
       const el = side === "left" ? seekOverlayLeft : seekOverlayRight;
       if (!el) return;
 
-      // Reset animation
       el.classList.remove("opacity-0");
       el.style.animation = "none";
-      el.offsetHeight; /* trigger reflow */
+      el.offsetHeight; /* reflow */
       el.style.animation = "pulse 0.5s";
 
       setTimeout(() => {
@@ -795,53 +788,67 @@ const {
     const iconMaximize = document.getElementById("icon-maximize");
     const iconMinimize = document.getElementById("icon-minimize");
 
-    if (fullscreenBtn && container) {
-      fullscreenBtn.addEventListener("click", () => {
-        const isFullscreen =
-          document.fullscreenElement ||
-          (document as any).webkitFullscreenElement;
+    function toggleFullscreen() {
+      const isFullscreen =
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (video as any).webkitDisplayingFullscreen;
 
-        if (!isFullscreen) {
-          if (container.requestFullscreen) {
-            container.requestFullscreen();
-          } else if ((container as any).webkitRequestFullscreen) {
-            /* Safari */
-            (container as any).webkitRequestFullscreen();
-          }
-        } else {
-          if (document.exitFullscreen) {
-            document.exitFullscreen();
-          } else if ((document as any).webkitExitFullscreen) {
-            /* Safari */
-            (document as any).webkitExitFullscreen();
-          }
+      if (!isFullscreen) {
+        // ENTER
+        if (container && container.requestFullscreen) {
+          container.requestFullscreen();
+        } else if (container && (container as any).webkitRequestFullscreen) {
+          (container as any).webkitRequestFullscreen();
+        } else if (video && (video as any).webkitEnterFullscreen) {
+          // iOS Fallback -> Target VIDEO directly
+          (video as any).webkitEnterFullscreen();
         }
-      });
-
-      // Listen for change
-      document.addEventListener("fullscreenchange", updateFullscreenUI);
-      document.addEventListener("webkitfullscreenchange", updateFullscreenUI);
-
-      function updateFullscreenUI() {
-        const isFullscreen =
-          document.fullscreenElement ||
-          (document as any).webkitFullscreenElement;
-
-        if (isFullscreen) {
-          iconMaximize?.classList.add("hidden");
-          iconMinimize?.classList.remove("hidden");
-          container?.classList.remove("aspect-[9/16]", "max-w-full");
-          container?.classList.add("w-screen", "h-screen");
-          // On mobile, aspect-[9/16] might constrain it.
-          // When fullscreen, we want it to fill user's screen completely.
-          // Container styles might need adjustment.
-        } else {
-          iconMaximize?.classList.remove("hidden");
-          iconMinimize?.classList.add("hidden");
-          // Restore
-          container?.classList.add("aspect-[9/16]", "max-w-full");
-          container?.classList.remove("w-screen", "h-screen");
+      } else {
+        // EXIT
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if ((document as any).webkitExitFullscreen) {
+          (document as any).webkitExitFullscreen();
+        } else if ((video as any).webkitExitFullscreen) {
+          (video as any).webkitExitFullscreen();
         }
+      }
+    }
+
+    if (fullscreenBtn) {
+      fullscreenBtn.addEventListener("click", toggleFullscreen);
+    }
+
+    // Listen for change
+    document.addEventListener("fullscreenchange", updateFullscreenUI);
+    document.addEventListener("webkitfullscreenchange", updateFullscreenUI);
+
+    // Listen for iOS-specific fullscreen change on video element
+    video.addEventListener("webkitbeginfullscreen", () => {
+      // iOS native player took over. UI might not matter but let's update state for consistency
+      iconMaximize?.classList.add("hidden");
+      iconMinimize?.classList.remove("hidden");
+    });
+    video.addEventListener("webkitendfullscreen", () => {
+      iconMaximize?.classList.remove("hidden");
+      iconMinimize?.classList.add("hidden");
+    });
+
+    function updateFullscreenUI() {
+      const isFullscreen =
+        document.fullscreenElement || (document as any).webkitFullscreenElement;
+
+      if (isFullscreen) {
+        iconMaximize?.classList.add("hidden");
+        iconMinimize?.classList.remove("hidden");
+        container?.classList.remove("aspect-[9/16]", "max-w-full");
+        container?.classList.add("w-screen", "h-screen");
+      } else {
+        iconMaximize?.classList.remove("hidden");
+        iconMinimize?.classList.add("hidden");
+        container?.classList.add("aspect-[9/16]", "max-w-full");
+        container?.classList.remove("w-screen", "h-screen");
       }
     }
 
