@@ -468,9 +468,16 @@
       }
     } catch (err) {
       console.error("Login error", err);
+      // DEBUG: Show alert to user
+      alert(
+        "Login Error: " + (err instanceof Error ? err.message : String(err))
+      );
+
       // In case of network error, show it
       if (errorMsg) {
-        errorMsg.textContent = "Network error. Please try again.";
+        errorMsg.textContent =
+          "Network error: " +
+          (err instanceof Error ? err.message : String(err));
         errorMsg.classList.remove("hidden");
       }
     }
