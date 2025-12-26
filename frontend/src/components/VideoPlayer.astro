@@ -715,13 +715,15 @@ const {
     video.addEventListener("pause", updateControlsVisibility);
     video.addEventListener("volumechange", updateVolumeUI); // Listen for external volume changes
 
-    // Auto-Play Next Episode
+    // Auto-Play Next Episode (SPA)
     video.addEventListener("ended", () => {
       const nextUrl = video.dataset.nextUrl;
       const autoplayPref = localStorage.getItem("pref_autoplay") !== "false";
 
       if (autoplayPref && nextUrl && nextUrl !== window.location.pathname) {
-        window.location.href = nextUrl;
+        // Use SPA navigation instead of hard reload
+        // Check if loadEpisode is defined (it is defined in this scope)
+        loadEpisode(nextUrl);
       }
     });
 
@@ -732,7 +734,7 @@ const {
         if (e.type === "touchstart") e.preventDefault();
 
         if (video.paused) {
-          video.play();
+          video.play().catch((e) => console.error(e));
           if (playIcon) playIcon.style.opacity = "0";
         } else {
           video.pause();
@@ -797,6 +799,29 @@ const {
       iconMaximize?.classList.remove("hidden");
       iconMinimize?.classList.add("hidden");
     });
+
+    // Reattach Click Listener closer to elements if delegation fails?
+    // Let's keep document delegation but make sure it halts immediate propagation.
+    const handleSpaClick = (e: Event) => {
+      const target = (e.target as HTMLElement).closest("a");
+      if (!target) return;
+
+      const href = target.getAttribute("href");
+      if (!href || !href.startsWith("/watch/")) return;
+
+      // Check if it's Next or Prev button in the player
+      if (
+        target.closest("#bottom-controls") ||
+        target.closest("#top-left-controls")
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+        loadEpisode(href);
+      }
+    };
+
+    // Use 'click' on document
+    document.addEventListener("click", handleSpaClick, true); // Use Capture phase to ensure we get it first
 
     function updateFullscreenUI() {
       const isFullscreen =
