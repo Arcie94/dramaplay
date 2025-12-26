@@ -4,8 +4,10 @@ import (
 	"dramabang/database"
 	"dramabang/models"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -67,23 +69,40 @@ func GetHistory(c *fiber.Ctx) error {
 		if h.Drama.BookID == "" {
 			// Drama missing in local DB (likely from Trending proxy)
 			// Fetch from external API and save
-			go func(bookId string, index int) {
-				// Async ingest could lead to race, but for now we do simple blocking or accept next reload fix.
-				// Let's do blocking for this request to ensure UI isn't empty on first load.
-			}(h.BookID, i)
-
-			// Blocking fetch for better UX on first load
-			url := "https://dramabox-asia.vercel.app/api/detail?bookId=" + h.BookID
+			// Fetch from external API and save (Blocking for first load UX)
+			url := fmt.Sprintf("%s/detail/%s/v2", BaseAPI, h.BookID)
 			resp, err := http.Get(url)
 			if err == nil && resp.StatusCode == 200 {
 				body, _ := io.ReadAll(resp.Body)
-				var apiResp struct {
-					Status string       `json:"status"`
-					Data   models.Drama `json:"data"`
-				}
-				if json.Unmarshal(body, &apiResp) == nil && apiResp.Data.BookID != "" {
-					database.DB.Save(&apiResp.Data)
-					histories[i].Drama = apiResp.Data
+
+				var raw ExtResponse
+				if json.Unmarshal(body, &raw) == nil {
+					var detailData ExtDetailData
+					if json.Unmarshal(raw.Data, &detailData) == nil && detailData.Drama.BookID != "" {
+						// Map Tags
+						var tags []string
+						for _, t := range detailData.Drama.Tags {
+							if s, ok := t.(string); ok {
+								tags = append(tags, s)
+							} else if m, ok := t.(map[string]interface{}); ok {
+								if tagName, ok := m["tagName"].(string); ok {
+									tags = append(tags, tagName)
+								}
+							}
+						}
+
+						newDrama := models.Drama{
+							BookID:       detailData.Drama.BookID,
+							Judul:        detailData.Drama.BookName,
+							Cover:        detailData.Drama.Cover,
+							Deskripsi:    detailData.Drama.Introduction,
+							TotalEpisode: fmt.Sprintf("%d", detailData.Drama.ChapterCount),
+							Genre:        strings.Join(tags, ", "),
+						}
+
+						database.DB.Save(&newDrama)
+						histories[i].Drama = newDrama
+					}
 				}
 				resp.Body.Close()
 			}
