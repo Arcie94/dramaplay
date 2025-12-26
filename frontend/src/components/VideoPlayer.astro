@@ -780,374 +780,216 @@ const {
             });
         }
 
-        // --- Comment Feature (Refactored) ---
-        const dummyComments = [
-            {
-                name: "Sarah J.",
-                text: "Omg this episode!! 😭😭",
-                time: "2m ago",
-            },
-            {
-                name: "DracoFan",
-                text: "Why is he so handsome?",
-                time: "5m ago",
-            },
-            {
-                name: "KdramaAddict",
-                text: "Waiting for next ep...",
-                time: "10m ago",
-            },
-            { name: "User123", text: "Plot twist detected!", time: "1h ago" },
-            {
-                name: "Mina",
-                text: "Please upload faster admin 🙏",
-                time: "2h ago",
-            },
-        ];
+    // --- Comment Feature (Real Backend Integration) ---
+    function timeAgo(dateString: string) {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        const now = new Date();
+        const diff = now.getTime() - date.getTime();
 
-        function loadComments() {
-            if (!commentsList || !commentCount) return;
-            try {
-                const storageKey = `comments_${bookId}`;
-                const userComments = JSON.parse(
-                    localStorage.getItem(storageKey) || "[]",
-                );
-                const allComments = [...userComments, ...dummyComments];
+        // Ensure no negative time due to clock skew
+        if (diff < 0) return "Just now";
 
-                // Get current user for fallback/retroactive fix
-                const userStr = localStorage.getItem("user");
-                let currentUserPhoto = "";
-                let currentUserName = "You";
-                if (userStr) {
-                    try {
-                        const u = JSON.parse(userStr);
-                        // Check valid keys
-                        currentUserPhoto = u.avatar || u.photo_profile || "";
-                        currentUserName = u.name || u.username || "You";
-                    } catch (e) {}
+        const seconds = Math.floor(diff / 1000);
+
+        if (seconds < 60) return "Just now";
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes}m ago`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours}h ago`;
+        const days = Math.floor(hours / 24);
+        if (days < 7) return `${days}d ago`;
+        if (days < 30) return `${Math.floor(days / 7)}w ago`;
+
+        return date.toLocaleDateString();
+    }
+
+    async function loadComments() {
+        if (!commentsList || !commentCount) return;
+        
+        // Loading State
+        commentsList.innerHTML = `
+            <div class="animate-pulse flex gap-4">
+                <div class="w-10 h-10 bg-zinc-800 rounded-full"></div>
+                <div class="flex-1 space-y-2">
+                    <div class="h-4 bg-zinc-800 rounded w-1/4"></div>
+                    <div class="h-4 bg-zinc-800 rounded w-3/4"></div>
+                </div>
+            </div>`;
+
+        try {
+            const res = await fetch(`/api/comments/${bookId}`);
+            let comments = [];
+            if (res.ok) {
+                const json = await res.json();
+                if (json.status === "success") {
+                    comments = json.data;
                 }
+            }
 
-                commentCount.textContent = `(${allComments.length})`;
-                commentsList.innerHTML = allComments
-                    .map((c, i) => {
-                        // Improved Owner Logic: Check Index OR Name match
-                        const isOwner =
-                            i < userComments.length ||
-                            c.name === currentUserName ||
-                            c.name === "You";
+            commentCount.textContent = `(${comments.length})`;
+            
+            if (comments.length === 0) {
+                 commentsList.innerHTML = `<p class="text-zinc-500 text-sm text-center py-8">No comments yet. Be the first!</p>`;
+                 return;
+            }
 
-                        // Photo logic                       // Photo logic
-                        const photoToUse =
-                            c.photo ||
-                            (c.name === currentUserName || c.name === "You"
-                                ? currentUserPhoto
-                                : "");
+            // Get Current User
+            const userStr = localStorage.getItem("user");
+            let currentUserName = "";
+            if (userStr) {
+                try {
+                    const u = JSON.parse(userStr);
+                    currentUserName = u.name || u.username || "";
+                } catch (e) {}
+            }
 
-                        const avatarHtml = photoToUse
-                            ? `<img src="${photoToUse}" class="w-8 h-8 rounded-full object-cover shrink-0">`
-                            : `<div class="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-white shrink-0">${c.name[0]}</div>`;
+            commentsList.innerHTML = comments
+                .map((c: any) => {
+                    const avatarHtml = c.user.avatar
+                        ? `<img src="${c.user.avatar}" class="w-8 h-8 rounded-full object-cover shrink-0">`
+                        : `<div class="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-white shrink-0">${c.user.name[0]}</div>`;
 
-                        // Actions (Three-Dot Menu)
-                        const actionsHtml = isOwner
-                            ? `
-                           <div class="relative ml-2">
-                               <button class="menu-btn text-zinc-500 hover:text-white p-1 rounded-full transition-colors" data-index="${i}">
-                                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
-                                   </svg>
-                               </button>
-                               <!-- Dropdown Menu -->
-                               <div id="menu-dropdown-${i}" class="menu-dropdown hidden absolute right-0 top-8 w-32 bg-zinc-900 border border-zinc-700 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] z-20 overflow-hidden animate-in fade-in zoom-in-95 duration-150 origin-top-right ring-1 ring-white/5">
-                                   <button class="edit-btn w-full text-left px-4 py-2.5 text-xs font-medium text-zinc-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2" data-index="${i}">
-                                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
-                                      Edit
-                                   </button>
-                                   <div class="h-px bg-white/5"></div>
-                                   <button class="delete-btn w-full text-left px-4 py-2.5 text-xs font-medium text-red-500 hover:bg-red-500/10 transition-colors flex items-center gap-2" data-index="${i}">
-                                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
-                                      Delete
-                                   </button>
-                               </div>
-                           </div>
-                        `
-                            : "";
-
-                        return `
-                    <div class="flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    return `
+                    <div class="flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300 comment-item" data-time="${c.created_at}">
                         ${avatarHtml}
-                        <div class="flex-1 space-y-1 group">
+                        <div class="flex-1 space-y-1">
                             <div class="flex items-baseline justify-between">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-sm font-bold text-white">${c.name}</span>
-                                    <span class="text-[10px] text-zinc-500">${c.time}</span>
-                                </div>
-                                ${actionsHtml}
+                                <span class="text-sm font-bold text-white">${c.user.name}</span>
+                                <span class="text-[10px] text-zinc-500 time-display">${timeAgo(c.created_at)}</span>
                             </div>
-                            
-                            <!-- Display Mode -->
-                            <p class="text-sm text-zinc-300 leading-snug" id="comment-text-${i}">${c.text}</p>
-                            
-                            <!-- Edit Mode -->
-                            <form class="hidden flex-col gap-2 mt-2 edit-form" data-index="${i}" id="edit-form-${i}">
-                                <textarea class="w-full bg-zinc-800 text-white text-sm rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-red-600 resize-none" rows="2">${c.text}</textarea>
-                                <div class="flex justify-end gap-2">
-                                    <button type="button" class="text-xs text-zinc-400 font-bold hover:text-white cancel-btn" data-index="${i}">CANCEL</button>
-                                    <button type="submit" class="text-xs text-red-500 font-bold hover:text-red-400">SAVE</button>
-                                </div>
-                            </form>
+                            <p class="text-sm text-zinc-300 leading-snug whitespace-pre-line">${c.content}</p>
                         </div>
                     </div>
                 `;
+                })
+                .join("");
+
+        } catch (err) {
+            console.error("Error loading comments:", err);
+            commentsList.innerHTML = `<p class="text-red-500 text-sm text-center">Failed to load comments.</p>`;
+        }
+    }
+
+    // Live Update Timestamps
+    setInterval(() => {
+        if (!commentsSheet || commentsSheet.classList.contains("translate-y-full")) return; // Only if open
+         document.querySelectorAll(".comment-item").forEach((item) => {
+            const timeStr = item.getAttribute("data-time");
+            const display = item.querySelector(".time-display");
+            if (timeStr && display) {
+                const newTime = timeAgo(timeStr);
+                if (display.textContent !== newTime) display.textContent = newTime;
+            }
+        });
+    }, 5000);
+
+
+    function openComments() {
+        if (!commentsSheet || !commentsBackdrop) return;
+        commentsSheet.classList.remove("translate-y-full");
+        commentsBackdrop.classList.remove("opacity-0", "pointer-events-none");
+        loadComments();
+    }
+
+    function closeComments() {
+        if (!commentsSheet || !commentsBackdrop) return;
+        commentsSheet.classList.add("translate-y-full");
+        commentsBackdrop.classList.add("opacity-0", "pointer-events-none");
+    }
+
+    // Attach Listeners
+    document.addEventListener("click", (e) => {
+        const target = e.target as HTMLElement;
+
+        // Open Button
+        const openBtn = target.closest("#comment-btn");
+        if (openBtn) {
+            e.stopPropagation();
+            openComments();
+            return;
+        }
+
+        // Close Button
+        const closeBtn = target.closest("#close-comments");
+        if (closeBtn) {
+            closeComments();
+            return;
+        }
+
+        // Handle Bar
+        const handle = target.closest("#comments-handle");
+        if (handle) {
+            closeComments();
+            return;
+        }
+
+        // Backdrop
+        if (target.id === "comments-backdrop") {
+            closeComments();
+        }
+    });
+
+    // Post Comment
+    if (commentForm) {
+        commentForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const text = commentInput.value.trim();
+            if (!text) return;
+
+             // Check Auth
+            const token = localStorage.getItem("token");
+            const userStr = localStorage.getItem("user");
+            
+            if (!token || !userStr) {
+                // Show login prompt/toast roughly (Assuming toast exists or just alert for now)
+                // Ideally redirect to login or show modal. 
+                // For now, let's just alert or console log as fallback
+                window.location.href = "/login"; 
+                return;
+            }
+
+            let currentUser = null;
+            try { currentUser = JSON.parse(userStr); } catch(e) {}
+            const userId = currentUser ? currentUser.id : 0;
+
+            // Optimistic UI? No, let's wait for server response to be safe
+            const submitBtn = commentForm.querySelector('button[type="submit"]') as HTMLButtonElement;
+            const originalBtnContent = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+
+            try {
+                 const res = await fetch(`/api/comments`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": token
+                    },
+                    body: JSON.stringify({
+                        book_id: bookId,
+                        user_id: userId,
+                        content: text
                     })
-                    .join("");
+                });
+
+                const json = await res.json();
+                
+                if (res.ok && json.status === "success") {
+                    commentInput.value = "";
+                    loadComments(); // Refresh list
+                } else {
+                    console.error("Failed to post:", json);
+                    alert("Failed to post: " + (json.message || "Unknown error"));
+                }
             } catch (err) {
-                console.error("Error loading comments:", err);
-            }
-        }
-
-        function openComments() {
-            console.log("Opening Comments Sheet");
-            if (!commentsSheet || !commentsBackdrop) {
-                console.error("Comments elements not found!");
-                return;
-            }
-            commentsSheet.classList.remove("translate-y-full");
-            commentsBackdrop.classList.remove(
-                "opacity-0",
-                "pointer-events-none",
-            );
-            loadComments();
-        }
-
-        function closeComments() {
-            if (!commentsSheet || !commentsBackdrop) return;
-            commentsSheet.classList.add("translate-y-full");
-            commentsBackdrop.classList.add("opacity-0", "pointer-events-none");
-        }
-
-        // Attach Listeners via Event Delegation for Robustness
-        document.addEventListener("click", (e) => {
-            const target = e.target as HTMLElement;
-
-            // Open Button
-            const openBtn = target.closest("#comment-btn");
-            if (openBtn) {
-                e.stopPropagation();
-                openComments();
-                return;
-            }
-
-            // Close Button
-            const closeBtn = target.closest("#close-comments");
-            if (closeBtn) {
-                closeComments();
-                return;
-            }
-
-            // Handle Bar (to close)
-            const handle = target.closest("#comments-handle");
-            if (handle) {
-                closeComments();
-                return;
-            }
-
-            // Check if clicked outside sheet (Backdrop)
-            if (target.id === "comments-backdrop") {
-                closeComments();
-            }
-
-            // --- Three Dot Menu Logic ---
-            // 1. Toggle Menu
-            const menuBtn = target.closest(".menu-btn") as HTMLElement;
-            if (menuBtn) {
-                e.stopPropagation(); // Stop bubble so document listener doesn't close it immediately
-                const idx = menuBtn.dataset.index;
-                const menuId = `menu-dropdown-${idx}`;
-
-                // Close all other menus
-                document.querySelectorAll(".menu-dropdown").forEach((el) => {
-                    if (el.id !== menuId) el.classList.add("hidden");
-                });
-
-                // Toggle this one
-                const menu = document.getElementById(menuId);
-                if (menu) menu.classList.toggle("hidden");
-                return;
-            }
-
-            // 2. Close Menu if clicked outside (General)
-            // If click is NOT on menu, close all menus
-            if (!target.closest(".menu-dropdown")) {
-                document.querySelectorAll(".menu-dropdown").forEach((el) => {
-                    el.classList.add("hidden");
-                });
-            }
-
-            // --- Comment Actions (Delete / Edit / Cancel) ---
-
-            // Action Click automatically closes menu due to 'General' handler above, but safer to force close logic in buttons if prop stopped.
-            // But actually, delete/edit buttons are inside menu-dropdown, so clicking them WONT trigger the "close all" above if we check !closest.
-            // We want clicking Edit/Delete to CLOSE the menu.
-
-            // Edit (Show Form)
-            const editBtn = target.closest(".edit-btn") as HTMLElement;
-            if (editBtn) {
-                // Close Menus
-                document
-                    .querySelectorAll(".menu-dropdown")
-                    .forEach((el) => el.classList.add("hidden"));
-
-                const idx = parseInt(editBtn.dataset.index || "-1");
-                if (idx > -1) {
-                    const textEl = document.getElementById(
-                        `comment-text-${idx}`,
-                    );
-                    const formEl = document.getElementById(`edit-form-${idx}`);
-                    if (textEl && formEl) {
-                        textEl.classList.add("hidden");
-                        formEl.classList.remove("hidden");
-                        formEl.classList.add("flex");
-                        // Focus textarea
-                        const ta = formEl.querySelector("textarea");
-                        if (ta) ta.focus();
-                    }
-                }
-                return;
-            }
-
-            // Delete (Open Modal)
-            const deleteBtn = target.closest(".delete-btn") as HTMLElement;
-            if (deleteBtn) {
-                // Close Menus
-                document
-                    .querySelectorAll(".menu-dropdown")
-                    .forEach((el) => el.classList.add("hidden"));
-
-                const idx = parseInt(deleteBtn.dataset.index || "-1");
-                if (idx > -1) {
-                    pendingDeleteIndex = idx;
-                    if (deleteModal) deleteModal.classList.remove("hidden");
-                }
-                return;
-            }
-
-            // Cancel Edit
-            const cancelBtn = target.closest(".cancel-btn") as HTMLElement;
-            if (cancelBtn) {
-                const idx = parseInt(cancelBtn.dataset.index || "-1");
-                if (idx > -1) {
-                    const textEl = document.getElementById(
-                        `comment-text-${idx}`,
-                    );
-                    const formEl = document.getElementById(`edit-form-${idx}`);
-                    if (textEl && formEl) {
-                        textEl.classList.remove("hidden");
-                        formEl.classList.add("hidden");
-                        formEl.classList.remove("flex");
-                    }
-                }
-                return;
+                console.error("Error posting:", err);
+                alert("Error posting comment");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnContent;
+                // Keep sheet open
             }
         });
-
-        // Event for Edit Form Submit (Dynamic)
-        document.addEventListener("submit", (e) => {
-            const target = e.target as HTMLElement;
-            const form = target.closest(".edit-form") as HTMLFormElement;
-            if (form) {
-                e.preventDefault();
-                const idx = parseInt(form.dataset.index || "-1");
-                const ta = form.querySelector("textarea");
-                const newText = ta ? ta.value.trim() : "";
-
-                if (idx > -1 && newText) {
-                    const storageKey = `comments_${bookId}`;
-                    const userComments = JSON.parse(
-                        localStorage.getItem(storageKey) || "[]",
-                    );
-                    if (userComments[idx]) {
-                        userComments[idx].text = newText;
-                        userComments[idx].time = "Edited just now"; // Optional: Update time
-                        localStorage.setItem(
-                            storageKey,
-                            JSON.stringify(userComments),
-                        );
-                        loadComments();
-                    }
-                }
-            }
-        });
-
-        // Form Submit
-        if (commentForm) {
-            commentForm.addEventListener("submit", (e) => {
-                e.preventDefault();
-                const text = commentInput.value.trim();
-                if (!text) return;
-
-                // Get User Data
-                const userStr = localStorage.getItem("user");
-                let userName = "You";
-                let userPhoto = "";
-
-                if (userStr) {
-                    try {
-                        const user = JSON.parse(userStr);
-                        // Check multiple keys for robustness
-                        userName = user.name || user.username || "You";
-                        userPhoto = user.avatar || user.photo_profile || "";
-                    } catch (e) {}
-                }
-
-                const newComment = {
-                    name: userName,
-                    photo: userPhoto,
-                    text: text,
-                    time: "Just now",
-                };
-
-                const storageKey = `comments_${bookId}`;
-                const currentComments = JSON.parse(
-                    localStorage.getItem(storageKey) || "[]",
-                );
-                currentComments.unshift(newComment);
-                localStorage.setItem(
-                    storageKey,
-                    JSON.stringify(currentComments),
-                );
-
-                commentInput.value = "";
-                loadComments();
-                if (commentsList) commentsList.scrollTop = 0;
-            });
-        }
-        // Modal Listeners
-        if (btnCancelDelete && deleteModal) {
-            btnCancelDelete.addEventListener("click", () => {
-                deleteModal.classList.add("hidden");
-                pendingDeleteIndex = -1;
-            });
-        }
-
-        if (btnConfirmDelete && deleteModal) {
-            btnConfirmDelete.addEventListener("click", () => {
-                if (pendingDeleteIndex > -1) {
-                    const storageKey = `comments_${bookId}`;
-                    const userComments = JSON.parse(
-                        localStorage.getItem(storageKey) || "[]",
-                    );
-                    if (userComments[pendingDeleteIndex]) {
-                        userComments.splice(pendingDeleteIndex, 1);
-                        localStorage.setItem(
-                            storageKey,
-                            JSON.stringify(userComments),
-                        );
-                        loadComments();
-                    }
-                    deleteModal.classList.add("hidden");
-                    pendingDeleteIndex = -1;
-                }
-            });
-        }
     }
 </script>
