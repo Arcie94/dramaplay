@@ -469,7 +469,7 @@ const schema = JSON.stringify({
         .join("");
     }
 
-    // Update timestamps every minute
+    // Update timestamps every 5 seconds
     setInterval(() => {
       document.querySelectorAll(".comment-item").forEach((item) => {
         const timeStr = item.getAttribute("data-time");
@@ -478,7 +478,7 @@ const schema = JSON.stringify({
           display.innerText = timeAgo(timeStr);
         }
       });
-    }, 60000);
+    }, 5000);
 
     fetchComments();
 
