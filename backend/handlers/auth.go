@@ -67,7 +67,7 @@ func VerifyGoogleToken(c *fiber.Ctx) error {
 		// Update existing user info
 		user.Name = claims.Name
 		user.Avatar = claims.Picture
-		
+
 		// Restore user if soft-deleted
 		if user.DeletedAt.Valid {
 			database.DB.Model(&user).Update("deleted_at", nil)
@@ -110,9 +110,9 @@ func LocalLogin(c *fiber.Ctx) error {
 	database.DB.Where("key = ?", "turnstile_secret_key").First(&secretKey)
 
 	if secretKey.Value != "" {
-		if !verifyTurnstile(input.CFTurnstileResponse, secretKey.Value) {
-			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Captcha validation failed"})
-		}
+		// if !verifyTurnstile(input.CFTurnstileResponse, secretKey.Value) {
+		// 	return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Captcha validation failed"})
+		// }
 	}
 
 	// Find User

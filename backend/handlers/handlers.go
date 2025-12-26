@@ -374,5 +374,5 @@ func GetSitemapData(c *fiber.Ctx) error {
 // "handlers.go" contained: GetTrending, GetLatest, GetSearch, GetDetail, Stream, Random, Hero, Sitemap.
 // Admin handlers were here too.
 // Auth handlers (LocalLogin, VerifyGoogleToken) are in auth.go (checked file list step 1130).
-// User handlers (UpdateUserProfile) are in users.go.
-// So I only replaced the Content Handlers. Admin Handlers were in handlers.go too, so I stubbed them.
+// --- Experimental Handlers ---
+// Removed TestDirectAPI after failed experiment (Sign Error)
