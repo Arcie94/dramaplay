@@ -196,11 +196,13 @@
 <script>
   console.log("LoginLock Script Running");
   const loginForm = document.getElementById("login-form");
-  const overlay = document.getElementById("login-overlay");
-  // const API_BASE = "/api";
-  // Use relative API path. Since the app is loaded from the server (http://IP),
-  // this will correctly resolve to http://IP/api via Nginx.
-  const API_BASE = "/api";
+  // Dynamic API Base: Localhost/Emulator -> Local API, Production -> Prod API
+  const isDev =
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "10.0.2.2";
+  const API_BASE = isDev
+    ? "http://10.0.2.2:3000/api"
+    : "https://dramaplay.online/api";
 
   // --- Google Login Integration ---
   import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
