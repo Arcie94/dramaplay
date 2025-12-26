@@ -82,11 +82,24 @@ type ExtStreamResponse struct {
 	} `json:"data"`
 }
 
+type ExtBookCategory struct {
+	BookID       string   `json:"bookId"`
+	BookName     string   `json:"bookName"`
+	Cover        string   `json:"cover"`
+	Introduction string   `json:"introduction"`
+	ChapterCount int      `json:"chapterCount"`
+	Tags         []string `json:"tags"`
+}
+
+type ExtCategoryData struct {
+	BookList    []ExtBookCategory `json:"bookList"`
+	CurrentPage int               `json:"currentPage"`
+	Total       int64             `json:"total"`
+}
+
 type ExtCategoryResponse struct {
-	Data []struct {
-		ID   int    `json:"id"`
-		Name string `json:"name"`
-	} `json:"data"`
+	Success bool            `json:"success"`
+	Data    ExtCategoryData `json:"data"`
 }
 
 // --- Utils ---
@@ -149,9 +162,45 @@ func GetTrending(c *fiber.Ctx) error {
 	})
 }
 
-// GetLatest uses Home data as well since there's no specific latest endpoint documented
+// GetLatest now uses Category 0 ("All") to support pagination and browsing
 func GetLatest(c *fiber.Ctx) error {
-	return GetTrending(c)
+	page := c.Query("page", "1")
+	// genre := c.Query("genre") // TODO: Map genre string to ID if needed
+
+	// Default to Category 0 (All)
+	catID := "0"
+	url := fmt.Sprintf("%s/category/%s?page=%s", BaseAPI, catID, page)
+
+	body, err := fetchExternal(url)
+	if err != nil {
+		return c.Status(502).JSON(fiber.Map{"error": "Failed to fetch category data"})
+	}
+
+	var raw ExtCategoryResponse
+	if err := json.Unmarshal(body, &raw); err != nil {
+		fmt.Println("JSON Error Late:", err) // Debug print
+		return c.Status(500).JSON(fiber.Map{"error": "Invalid JSON"})
+	}
+
+	var dramas []models.Drama
+	for _, b := range raw.Data.BookList {
+		dramas = append(dramas, models.Drama{
+			BookID:       b.BookID,
+			Judul:        b.BookName,
+			Cover:        b.Cover,
+			Deskripsi:    b.Introduction,
+			TotalEpisode: fmt.Sprintf("%d", b.ChapterCount),
+			Genre:        strings.Join(b.Tags, ", "),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"type":   "latest",
+		"page":   raw.Data.CurrentPage,
+		"total":  raw.Data.Total,
+		"data":   dramas,
+	})
 }
 
 func GetHero(c *fiber.Ctx) error {
