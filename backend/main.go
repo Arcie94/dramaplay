@@ -36,6 +36,8 @@ func main() {
 	models.MigrateUsers(database.DB)
 	models.MigrateHistory(database.DB)
 	models.MigrateLogs(database.DB)
+	// Migrate Comments
+	database.DB.AutoMigrate(&models.Comment{})
 
 	// Routes
 	api := app.Group("/api")
@@ -54,6 +56,10 @@ func main() {
 	api.Post("/auth/login", handlers.LocalLogin)
 	api.Put("/user/profile", handlers.UpdateUserProfile) // New Profile Update
 	api.Put("/user/password", handlers.UpdatePassword)   // New Password Change
+
+	// Comments
+	api.Get("/comments/:bookId", handlers.GetComments)
+	api.Post("/comments", handlers.PostComment)
 
 	// History
 	api.Post("/history", handlers.SaveHistory)
