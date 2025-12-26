@@ -950,6 +950,7 @@ const {
         closeComments();
         return;
       }
+    });
 
     // --- Custom UI Helpers ---
     const toastEl = document.getElementById("custom-toast");
@@ -959,60 +960,72 @@ const {
     function showToast(msg: string, isError = false) {
       if (!toastEl || !toastMsg) return;
       toastMsg.textContent = msg;
-      
+
       // Reset classes
-      toastEl.className = "absolute top-20 left-1/2 -translate-x-1/2 z-[60] px-6 py-2.5 text-sm font-medium rounded-full shadow-2xl border transition-all duration-300 transform";
-      
+      toastEl.className =
+        "absolute top-20 left-1/2 -translate-x-1/2 z-[60] px-6 py-2.5 text-sm font-medium rounded-full shadow-2xl border transition-all duration-300 transform";
+
       if (isError) {
         toastEl.classList.add("bg-red-900/90", "border-red-700", "text-white");
       } else {
-        toastEl.classList.add("bg-zinc-800/90", "border-zinc-700", "text-white");
+        toastEl.classList.add(
+          "bg-zinc-800/90",
+          "border-zinc-700",
+          "text-white"
+        );
       }
 
       // Show
       requestAnimationFrame(() => {
-         toastEl.classList.remove("opacity-0", "translate-y-[-10px]", "pointer-events-none");
-         toastEl.classList.add("opacity-100", "translate-y-0");
+        toastEl.classList.remove(
+          "opacity-0",
+          "translate-y-[-10px]",
+          "pointer-events-none"
+        );
+        toastEl.classList.add("opacity-100", "translate-y-0");
       });
 
       // Auto Hide
       if (toastTimeout) clearTimeout(toastTimeout);
       toastTimeout = setTimeout(() => {
-         toastEl.classList.remove("opacity-100", "translate-y-0");
-         toastEl.classList.add("opacity-0", "translate-y-[-10px]", "pointer-events-none");
+        toastEl.classList.remove("opacity-100", "translate-y-0");
+        toastEl.classList.add(
+          "opacity-0",
+          "translate-y-[-10px]",
+          "pointer-events-none"
+        );
       }, 3000);
     }
 
     // Modal Helpers
     function openDeleteModal(index: string, id: string) {
-       if (!deleteModal) return;
-       deleteModal.classList.remove("hidden");
-       pendingDeleteIndex = parseInt(index); 
-       // Store the ID on the confirm button or in a var
-       if(btnConfirmDelete) btnConfirmDelete.setAttribute("data-id", id);
+      if (!deleteModal) return;
+      deleteModal.classList.remove("hidden");
+      pendingDeleteIndex = parseInt(index);
+      // Store the ID on the confirm button or in a var
+      if (btnConfirmDelete) btnConfirmDelete.setAttribute("data-id", id);
     }
 
     function closeDeleteModal() {
-       if (!deleteModal) return;
-       deleteModal.classList.add("hidden");
-       pendingDeleteIndex = -1;
+      if (!deleteModal) return;
+      deleteModal.classList.add("hidden");
+      pendingDeleteIndex = -1;
     }
 
     // Modal Listeners
     if (btnCancelDelete) {
-        btnCancelDelete.addEventListener("click", closeDeleteModal);
-    }
-    
-    if (btnConfirmDelete) {
-        btnConfirmDelete.addEventListener("click", () => {
-             const id = btnConfirmDelete.getAttribute("data-id");
-             if (id) {
-                 deleteComment(id);
-             }
-             closeDeleteModal();
-        });
+      btnCancelDelete.addEventListener("click", closeDeleteModal);
     }
 
+    if (btnConfirmDelete) {
+      btnConfirmDelete.addEventListener("click", () => {
+        const id = btnConfirmDelete.getAttribute("data-id");
+        if (id) {
+          deleteComment(id);
+        }
+        closeDeleteModal();
+      });
+    }
 
     // --- Post Comment ---
     if (commentForm) {
@@ -1036,7 +1049,9 @@ const {
         } catch (e) {}
         const userId = currentUser ? currentUser.id : 0;
 
-        const submitBtn = commentForm.querySelector('button[type="submit"]') as HTMLButtonElement;
+        const submitBtn = commentForm.querySelector(
+          'button[type="submit"]'
+        ) as HTMLButtonElement;
         const originalBtnContent = submitBtn.innerHTML;
         submitBtn.disabled = true;
         submitBtn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
@@ -1060,7 +1075,7 @@ const {
           if (res.ok && json.status === "success") {
             commentInput.value = "";
             showToast("Comment posted successfully");
-            loadComments(); 
+            loadComments();
           } else {
             console.error("Failed to post:", json);
             showToast(json.message || "Failed to post comment", true);
@@ -1078,7 +1093,7 @@ const {
 
     // --- Actions Delegation ---
     document.addEventListener("click", (e) => {
-       const target = e.target as HTMLElement;
+      const target = e.target as HTMLElement;
 
       // Backdrop
       if (target.id === "comments-backdrop") {
@@ -1088,71 +1103,73 @@ const {
       // 1. Toggle Menu Dropdown
       const menuBtn = target.closest(".menu-btn");
       if (menuBtn) {
-         e.stopPropagation();
-         const index = menuBtn.getAttribute("data-index");
-         const dropdown = document.getElementById(`menu-dropdown-${index}`);
-         
-         document.querySelectorAll(".menu-dropdown").forEach(d => {
-             if (d.id !== `menu-dropdown-${index}`) d.classList.add("hidden");
-         });
+        e.stopPropagation();
+        const index = menuBtn.getAttribute("data-index");
+        const dropdown = document.getElementById(`menu-dropdown-${index}`);
 
-         if (dropdown) dropdown.classList.toggle("hidden");
-         return;
+        document.querySelectorAll(".menu-dropdown").forEach((d) => {
+          if (d.id !== `menu-dropdown-${index}`) d.classList.add("hidden");
+        });
+
+        if (dropdown) dropdown.classList.toggle("hidden");
+        return;
       }
 
       if (!target.closest(".menu-dropdown") && !target.closest(".menu-btn")) {
-          document.querySelectorAll(".menu-dropdown").forEach(d => d.classList.add("hidden"));
+        document
+          .querySelectorAll(".menu-dropdown")
+          .forEach((d) => d.classList.add("hidden"));
       }
 
       // 2. Edit Button
       const editBtn = target.closest(".edit-btn");
       if (editBtn) {
-          e.stopPropagation();
-          const index = editBtn.getAttribute("data-index");
-          const textP = document.getElementById(`comment-text-${index}`);
-          const form = document.getElementById(`edit-form-${index}`);
-          const dropdown = document.getElementById(`menu-dropdown-${index}`);
+        e.stopPropagation();
+        const index = editBtn.getAttribute("data-index");
+        const textP = document.getElementById(`comment-text-${index}`);
+        const form = document.getElementById(`edit-form-${index}`);
+        const dropdown = document.getElementById(`menu-dropdown-${index}`);
 
-          if (textP && form && dropdown) {
-              textP.classList.add("hidden");
-              form.classList.remove("hidden");
-              form.classList.add("flex");
-              dropdown.classList.add("hidden");
-          }
-          return;
+        if (textP && form && dropdown) {
+          textP.classList.add("hidden");
+          form.classList.remove("hidden");
+          form.classList.add("flex");
+          dropdown.classList.add("hidden");
+        }
+        return;
       }
 
       // 3. Delete Button -> OPEN MODAL
       const deleteBtn = target.closest(".delete-btn");
       if (deleteBtn) {
-          e.stopPropagation();
-          const index = deleteBtn.getAttribute("data-index");
-          const commentId = deleteBtn.getAttribute("data-id");
-          
-          if(index && commentId) {
-             // Close dropdown first
-             const dropdown = document.getElementById(`menu-dropdown-${index}`);
-             if(dropdown) dropdown.classList.add("hidden");
-             
-             openDeleteModal(index, commentId);
-          }
-          return; 
+        e.stopPropagation();
+        const index = deleteBtn.getAttribute("data-index");
+        const commentId = deleteBtn.getAttribute("data-id");
+
+        if (index && commentId) {
+          // Close dropdown first
+          const dropdown = document.getElementById(`menu-dropdown-${index}`);
+          if (dropdown) dropdown.classList.add("hidden");
+
+          openDeleteModal(index, commentId);
+        }
+        return;
       }
 
       // 4. Cancel Edit
       const cancelBtn = target.closest(".cancel-btn");
       if (cancelBtn) {
-          e.stopPropagation();
-          const index = cancelBtn.getAttribute("data-index");
-          const textP = document.getElementById(`comment-text-${index}`);
-          const form = document.getElementById(`edit-form-${index}`);
-          
-          if (textP && form) {
-              textP.classList.remove("hidden");
-              form.classList.add("hidden");
-              form.classList.remove("flex");
-          }
-          return;
+        e.stopPropagation();
+        const index = cancelBtn.getAttribute("data-index");
+        const textP = document.getElementById(`comment-text-${index}`);
+        const form = document.getElementById(`edit-form-${index}`);
+
+        if (textP && form) {
+          textP.classList.remove("hidden");
+          form.classList.add("hidden");
+          form.classList.remove("flex");
+        }
+        return;
       }
     });
 
@@ -1172,7 +1189,7 @@ const {
         // Show Loading?
         const saveBtn = form.querySelector("button[type='submit']");
         const originalText = saveBtn ? saveBtn.textContent : "SAVE";
-        if(saveBtn) saveBtn.textContent = "SAVING...";
+        if (saveBtn) saveBtn.textContent = "SAVING...";
 
         try {
           const token = localStorage.getItem("token");
@@ -1195,28 +1212,28 @@ const {
           console.error(err);
           showToast("Error updating comment", true);
         } finally {
-             if(saveBtn) saveBtn.textContent = originalText;
+          if (saveBtn) saveBtn.textContent = originalText;
         }
       }
     });
 
     async function deleteComment(id: string) {
-        try {
-            const token = localStorage.getItem("token");
-            const res = await fetch(`/api/comments/${id}`, {
-                method: "DELETE",
-                headers: { "Authorization": token || "" }
-            });
-            if (res.ok) {
-                showToast("Comment deleted");
-                loadComments();
-            } else {
-                showToast("Failed to delete comment", true);
-            }
-        } catch (err) {
-            console.error(err);
-            showToast("Error deleting comment", true);
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`/api/comments/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: token || "" },
+        });
+        if (res.ok) {
+          showToast("Comment deleted");
+          loadComments();
+        } else {
+          showToast("Failed to delete comment", true);
         }
+      } catch (err) {
+        console.error(err);
+        showToast("Error deleting comment", true);
+      }
     }
   }
 </script>
