@@ -807,29 +807,75 @@ const {
 
         // Get Current User
         const userStr = localStorage.getItem("user");
-        let currentUserName = "";
+        let currentUserId = 0;
         if (userStr) {
           try {
             const u = JSON.parse(userStr);
-            currentUserName = u.name || u.username || "";
+            currentUserId = u.id || 0;
           } catch (e) {}
         }
 
         commentsList.innerHTML = comments
-          .map((c: any) => {
+          .map((c: any, i: number) => {
             const avatarHtml = c.user.avatar
               ? `<img src="${c.user.avatar}" class="w-8 h-8 rounded-full object-cover shrink-0">`
               : `<div class="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-white shrink-0">${c.user.name[0]}</div>`;
 
+            // Check Ownership
+            // Ensure we robustly check for ID.
+            // Note: c.user_id comes from DB. currentUserId comes from localStorage.
+            const isOwner =
+              currentUserId &&
+              (Number(c.user_id) === Number(currentUserId) ||
+                Number(c.user?.id) === Number(currentUserId));
+
+            const actionsHtml = isOwner
+              ? `
+                           <div class="relative ml-2">
+                               <button class="menu-btn text-zinc-500 hover:text-white p-1 rounded-full transition-colors" data-index="${i}">
+                                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+                                   </svg>
+                               </button>
+                               <!-- Dropdown Menu -->
+                               <div id="menu-dropdown-${i}" class="menu-dropdown hidden absolute right-0 top-8 w-32 bg-zinc-900 border border-zinc-700 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] z-20 overflow-hidden animate-in fade-in zoom-in-95 duration-150 origin-top-right ring-1 ring-white/5">
+                                   <button class="edit-btn w-full text-left px-4 py-2.5 text-xs font-medium text-zinc-300 hover:bg-white/5 hover:text-white transition-colors flex items-center gap-2" data-index="${i}">
+                                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
+                                      Edit
+                                   </button>
+                                   <div class="h-px bg-white/5"></div>
+                                   <button class="delete-btn w-full text-left px-4 py-2.5 text-xs font-medium text-red-500 hover:bg-red-500/10 transition-colors flex items-center gap-2" data-index="${i}">
+                                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                                      Delete
+                                   </button>
+                               </div>
+                           </div>
+                        `
+              : "";
+
             return `
                     <div class="flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300 comment-item" data-time="${c.created_at}">
                         ${avatarHtml}
-                        <div class="flex-1 space-y-1">
+                        <div class="flex-1 space-y-1 group">
                             <div class="flex items-baseline justify-between">
-                                <span class="text-sm font-bold text-white">${c.user.name}</span>
-                                <span class="text-[10px] text-zinc-500 time-display">${timeAgo(c.created_at)}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm font-bold text-white">${c.user.name}</span>
+                                    <span class="text-[10px] text-zinc-500 time-display">${timeAgo(c.created_at)}</span>
+                                </div>
+                                ${actionsHtml}
                             </div>
-                            <p class="text-sm text-zinc-300 leading-snug whitespace-pre-line">${c.content}</p>
+                            
+                            <!-- Display Mode -->
+                            <p class="text-sm text-zinc-300 leading-snug whitespace-pre-line" id="comment-text-${i}">${c.content}</p>
+                            
+                            <!-- Edit Mode -->
+                            <form class="hidden flex-col gap-2 mt-2 edit-form" data-index="${i}" id="edit-form-${i}">
+                                <textarea class="w-full bg-zinc-800 text-white text-sm rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-red-600 resize-none" rows="2">${c.content}</textarea>
+                                <div class="flex justify-end gap-2">
+                                    <button type="button" class="text-xs text-zinc-400 font-bold hover:text-white cancel-btn" data-index="${i}">CANCEL</button>
+                                    <button type="submit" class="text-xs text-red-500 font-bold hover:text-red-400">SAVE</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 `;
