@@ -597,6 +597,74 @@ const {
     }
 
     // Volume Slider Change
+      });
+    }
+
+    // --- Progress Bar Seeking Logic ---
+    if (progressContainer && video) {
+      let isScrubbing = false;
+
+      const handleSeek = (e: MouseEvent | TouchEvent) => {
+        // e.stopPropagation(); // Stop bubbling to prevent play/pause toggle if necessary
+        const rect = progressContainer.getBoundingClientRect();
+        let clientX = 0;
+
+        if (e.type.startsWith("touch")) {
+          clientX = (e as TouchEvent).touches[0].clientX;
+        } else {
+          clientX = (e as MouseEvent).clientX;
+        }
+
+        const width = rect.width;
+        const offsetX = clientX - rect.left;
+        const percentage = Math.max(0, Math.min(1, offsetX / width));
+        
+        // Update UI immediately for smoothness
+        if (progressBar) progressBar.style.width = `${percentage * 100}%`;
+        
+        // Update video time
+        if (video.duration) {
+          video.currentTime = percentage * video.duration;
+        }
+      };
+
+      // Click
+      progressContainer.addEventListener("click", handleSeek);
+
+      // Drag (Mouse)
+      progressContainer.addEventListener("mousedown", (e) => {
+        isScrubbing = true;
+        handleSeek(e); // Seek on initial click too
+      });
+      document.addEventListener("mousemove", (e) => {
+        if (isScrubbing) handleSeek(e);
+      });
+      document.addEventListener("mouseup", () => {
+        isScrubbing = false;
+      });
+
+      // Drag (Touch) - CRITICAL for Mobile
+      progressContainer.addEventListener("touchstart", (e) => {
+        isScrubbing = true;
+        // e.preventDefault(); // Prevent scroll while scrubbing
+        handleSeek(e);
+      }, { passive: false });
+
+      progressContainer.addEventListener("touchmove", (e) => {
+        if (isScrubbing) {
+           e.preventDefault(); // Stop page scrolling
+           // e.stopPropagation(); // Stop conflicting with container gestures
+           handleSeek(e);
+        }
+      }, { passive: false });
+
+      progressContainer.addEventListener("touchend", (e) => {
+        isScrubbing = false;
+        // Optionally Play video if it was paused? Nah.
+      });
+    }
+
+    // Volume Slider Change
     if (volumeSlider) {
       volumeSlider.addEventListener("input", (e) => {
         e.stopPropagation();
