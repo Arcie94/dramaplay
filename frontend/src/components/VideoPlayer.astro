@@ -1404,5 +1404,168 @@ const {
         showToast("Error deleting comment", true);
       }
     }
+    // --- SPA NAVIGATION LOGIC (PERSISTENT FULLSCREEN) ---
+    // Extract BookID and EpIdx from a URL like /watch/:bookId/:epIdx
+    function parseWatchUrl(url: string) {
+      const match = url.match(/\/watch\/([^\/]+)\/(\d+)/);
+      if (match) {
+        return { bookId: match[1], epIdx: parseInt(match[2], 10) };
+      }
+      return null;
+    }
+
+    async function loadEpisode(targetUrl: string) {
+      console.log("SPA Navigating to:", targetUrl);
+      const data = parseWatchUrl(targetUrl);
+      if (!data) {
+        // Fallback for non-standard URLs
+        window.location.href = targetUrl;
+        return;
+      }
+      const { bookId, epIdx } = data;
+
+      // 1. Show Loading State (Optional: Overlay spinner?)
+      // For now, keep current video until new one loads, or show poster?
+      // video.pause(); // Maybe don't pause to keep flow until ready?
+
+      try {
+        // 2. Fetch Stream Data
+        // Backend expects 'index' (1-based)
+        const res = await fetch(`/api/stream?bookId=${bookId}&index=${epIdx}`);
+        if (!res.ok) throw new Error("Stream fetch failed");
+
+        const json = await res.json();
+        if (json.status !== "success" || !json.data?.chapter?.video) {
+          throw new Error("Invalid stream data");
+        }
+
+        const videoData = json.data.chapter.video;
+        const newSrc = videoData.mp4 || videoData.m3u8;
+
+        if (!newSrc) throw new Error("No video source found");
+
+        // 3. Update State
+        const oldSrc = video.src;
+
+        // Update URL (Push State) without reload
+        history.pushState({}, "", targetUrl);
+
+        // Update Video Source
+        // HTMLVideoElement loads new source when src changes
+        video.src = newSrc;
+        video.load();
+        video.play().catch((e) => console.error("Autoplay failed:", e));
+
+        // 4. Update UI Text (Title)
+        // Assume format "Drama Title - Ep X"
+        // We have dramaTitle in dataset!
+        const cleanTitle = video.dataset.dramaTitle || "Drama";
+        const titleEl = document.querySelector("#bottom-controls h1");
+        if (titleEl) {
+          titleEl.textContent = `${cleanTitle} - Ep ${epIdx}`;
+        }
+
+        // 5. Update Next/Prev Buttons & Dataset
+        const total = parseInt(video.dataset.totalEpisodes || "0", 10);
+
+        // Next
+        const nextBtn = document.getElementById(
+          "next-btn"
+        ) as HTMLAnchorElement;
+        const nextIdx = epIdx + 1;
+        if (nextIdx <= total) {
+          const newNextUrl = `/watch/${bookId}/${nextIdx}`;
+          video.dataset.nextUrl = newNextUrl;
+          if (nextBtn) {
+            nextBtn.href = newNextUrl;
+            nextBtn.parentElement?.classList.remove("hidden"); // Ensure visible
+            // Remove old listener effectively by logic below or cloned node?
+            // Actually we use a delegated listener or just let the global click handler catch it.
+            // We will use a global click handler for .spa-link logic.
+          }
+        } else {
+          video.dataset.nextUrl = "";
+          if (nextBtn) nextBtn.parentElement?.classList.add("hidden");
+        }
+
+        // Prev
+        const prevBtn = document.querySelector(
+          "a[href*='/watch/']"
+        ) as HTMLAnchorElement; // Select prev button generically if no ID, or add ID generic
+        // Actually the prev button in the template is: { prevUrl && ( <a href={prevUrl}...>Prev</a> ) }
+        // It doesn't have an ID "prev-btn". Let's assume we can find it via DOM order or add ID in template.
+        // For now, let's look at the parent div: #bottom-controls .flex.gap-2 a
+
+        const navLinks = document.querySelectorAll(
+          "#bottom-controls .flex.gap-2 a"
+        );
+        let prevEl = null;
+        if (navLinks.length > 0) {
+          // Usually Prev is first if both exist, or checking text content
+          navLinks.forEach((el) => {
+            if (el.textContent?.trim() === "Prev")
+              prevEl = el as HTMLAnchorElement;
+          });
+        }
+
+        const prevIdx = epIdx - 1;
+        if (prevIdx > 0) {
+          const newPrevUrl = `/watch/${bookId}/${prevIdx}`;
+          video.dataset.prevUrl = newPrevUrl;
+
+          if (prevEl) {
+            (prevEl as HTMLAnchorElement).href = newPrevUrl;
+            (prevEl as HTMLElement).classList.remove("hidden");
+          } else {
+            // If it was hidden/removed, we might need to recreate it?
+            // For simplicity, persistent fullscreen usually implies Next is most important.
+            // Ensuring Prev works is bonus. If it was conditionally rendered off, it's missing from DOM.
+            // We won't re-add it if missing to keep it simple, but we update if present.
+          }
+        } else {
+          video.dataset.prevUrl = "";
+          if (prevEl) (prevEl as HTMLElement).classList.add("hidden");
+        }
+
+        // 6. Save History (Logic re-reads URL, so it should work automatically via 'play' event or we trigger it)
+        // The 'play' event will fire when video.play() is called.
+        // But saveHistory parses URL. We updated window.location via pushState. So it should work!
+
+        // 7. Reset Comments?
+        // As analyzed, comments are per-book, so they persist.
+        // But if we want to be safe or if comments were ep-specific?? No, they are per book.
+
+        showToast(`Playing Episode ${epIdx}`);
+      } catch (err) {
+        console.error("SPA Nav Failed:", err);
+        showToast("Error loading episode", true);
+        // Fallback: Hard Navigate
+        window.location.href = targetUrl;
+      }
+    }
+
+    // Attach SPA Listener to Next/Prev
+    // We delegate to document to handle button updates seamlessly
+    document.addEventListener("click", (e) => {
+      const target = (e.target as HTMLElement).closest("a");
+      if (!target) return;
+
+      const href = target.getAttribute("href");
+      if (!href || !href.startsWith("/watch/")) return;
+
+      // Check if it's Next or Prev button in the player
+      if (target.closest("#bottom-controls")) {
+        e.preventDefault();
+        e.stopPropagation();
+        loadEpisode(href);
+      }
+    });
+
+    // Handle Browser Back/Forward (Popstate)
+    // If user goes back in history, we should probably reload to ensure state consistency
+    // OR implement loadEpisode for popstate.
+    window.addEventListener("popstate", () => {
+      loadEpisode(window.location.pathname);
+    });
   }
 </script>
