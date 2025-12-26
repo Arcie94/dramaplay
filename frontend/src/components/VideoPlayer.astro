@@ -597,8 +597,6 @@ const {
     }
 
     // Volume Slider Change
-      });
-    }
 
     // --- Progress Bar Seeking Logic ---
     if (progressContainer && video) {
@@ -618,10 +616,10 @@ const {
         const width = rect.width;
         const offsetX = clientX - rect.left;
         const percentage = Math.max(0, Math.min(1, offsetX / width));
-        
+
         // Update UI immediately for smoothness
         if (progressBar) progressBar.style.width = `${percentage * 100}%`;
-        
+
         // Update video time
         if (video.duration) {
           video.currentTime = percentage * video.duration;
@@ -644,19 +642,27 @@ const {
       });
 
       // Drag (Touch) - CRITICAL for Mobile
-      progressContainer.addEventListener("touchstart", (e) => {
-        isScrubbing = true;
-        // e.preventDefault(); // Prevent scroll while scrubbing
-        handleSeek(e);
-      }, { passive: false });
+      progressContainer.addEventListener(
+        "touchstart",
+        (e) => {
+          isScrubbing = true;
+          // e.preventDefault(); // Prevent scroll while scrubbing
+          handleSeek(e);
+        },
+        { passive: false }
+      );
 
-      progressContainer.addEventListener("touchmove", (e) => {
-        if (isScrubbing) {
-           e.preventDefault(); // Stop page scrolling
-           // e.stopPropagation(); // Stop conflicting with container gestures
-           handleSeek(e);
-        }
-      }, { passive: false });
+      progressContainer.addEventListener(
+        "touchmove",
+        (e) => {
+          if (isScrubbing) {
+            e.preventDefault(); // Stop page scrolling
+            // e.stopPropagation(); // Stop conflicting with container gestures
+            handleSeek(e);
+          }
+        },
+        { passive: false }
+      );
 
       progressContainer.addEventListener("touchend", (e) => {
         isScrubbing = false;
