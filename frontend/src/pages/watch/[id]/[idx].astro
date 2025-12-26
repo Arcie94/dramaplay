@@ -12,32 +12,32 @@ let streamData = null;
 let detailJson = {};
 
 try {
-    const res = await fetch(
-        `${API_URL}/stream?bookId=${id}&index=${currentIndex}`,
-    );
-    if (res.ok) {
-        const json = await res.json();
-        streamData = json.data;
-    }
+  const res = await fetch(
+    `${API_URL}/stream?bookId=${id}&index=${currentIndex}`
+  );
+  if (res.ok) {
+    const json = await res.json();
+    streamData = json.data;
+  }
 } catch (e) {
-    console.error("Stream Fetch Error:", e);
+  console.error("Stream Fetch Error:", e);
 }
 
 if (!streamData) {
-    console.error("No stream data found");
-    return Astro.redirect("/404");
+  console.error("No stream data found");
+  return Astro.redirect("/404");
 }
 
 const videoUrl = streamData.chapter?.video?.mp4 || "";
 
 // Fetch Detail for title
 try {
-    const detailRes = await fetch(`${API_URL}/detail?bookId=${id}`);
-    if (detailRes.ok) {
-        detailJson = await detailRes.json();
-    }
+  const detailRes = await fetch(`${API_URL}/detail?bookId=${id}`);
+  if (detailRes.ok) {
+    detailJson = await detailRes.json();
+  }
 } catch (e) {
-    console.error("Detail Fetch Error (Watch Page):", e);
+  console.error("Detail Fetch Error (Watch Page):", e);
 }
 
 const dramaTitle = detailJson.judul || "Drama";
@@ -47,18 +47,266 @@ const coverUrl = detailJson.cover || "";
 const currentEpNumber = idx ? parseInt(idx) : 1;
 const nextUrl = `/watch/${id}/${currentEpNumber + 1}`;
 const prevUrl =
-    currentEpNumber > 1 ? `/watch/${id}/${currentEpNumber - 1}` : undefined;
+  currentEpNumber > 1 ? `/watch/${id}/${currentEpNumber - 1}` : undefined;
 ---
 
 <Layout title={`Watch ${dramaTitle}`}>
-    <VideoPlayer
-        videoUrl={videoUrl}
-        coverUrl={coverUrl}
-        title={`${dramaTitle} - Ep ${idx}`}
-        nextUrl={nextUrl}
-        prevUrl={prevUrl}
-        id={id}
-        dramaTitle={dramaTitle}
-        totalEpisodes={detailJson.total_episode}
-    />
+  <VideoPlayer
+    videoUrl={videoUrl}
+    coverUrl={coverUrl}
+    title={`${dramaTitle} - Ep ${idx}`}
+    nextUrl={nextUrl}
+    prevUrl={prevUrl}
+    id={id}
+    dramaTitle={dramaTitle}
+    totalEpisodes={detailJson.total_episode}
+  />
+
+  <!-- Comments Section -->
+  <div class="relative z-10 px-4 pb-10 max-w-4xl mx-auto">
+    <div class="mt-8 border-t border-zinc-900 pt-6">
+      <h3 class="font-bold text-white mb-6 text-xl">Comments</h3>
+
+      <!-- Comment Inputs -->
+      <div id="comment-form-container" class="mb-8">
+        <div class="flex gap-4">
+          <div
+            class="w-10 h-10 rounded-full bg-zinc-800 flex-shrink-0 overflow-hidden"
+          >
+            <img
+              id="user-avatar"
+              src="https://ui-avatars.com/api/?name=User&background=random"
+              class="w-full h-full object-cover opacity-0 transition-opacity duration-300"
+              onload="this.classList.remove('opacity-0')"
+            />
+          </div>
+          <div class="flex-1">
+            <textarea
+              id="comment-input"
+              rows="3"
+              class="w-full bg-zinc-900/50 border border-zinc-700/50 rounded-xl p-4 text-zinc-200 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-600/50 resize-none transition-all"
+              placeholder="Write a comment..."></textarea>
+            <div class="flex justify-end mt-2">
+              <button
+                id="submit-comment"
+                class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Post
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Login Prompt (Hidden by default) -->
+      <div
+        id="login-prompt"
+        class="hidden mb-8 text-center p-8 border border-dashed border-zinc-800 rounded-xl bg-zinc-900/30"
+      >
+        <p class="text-zinc-400 mb-4">Please login to join the discussion.</p>
+        <a
+          href="/login"
+          class="inline-block px-6 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-full text-sm font-medium transition-colors"
+        >
+          Login
+        </a>
+      </div>
+
+      <!-- Comments List -->
+      <div id="comments-list" class="space-y-6">
+        <!-- Loading State -->
+        <div class="animate-pulse flex gap-4">
+          <div class="w-10 h-10 bg-zinc-800 rounded-full"></div>
+          <div class="flex-1 space-y-2">
+            <div class="h-4 bg-zinc-800 rounded w-1/4"></div>
+            <div class="h-4 bg-zinc-800 rounded w-3/4"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div
+    id="toast"
+    class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-white/90 text-black px-4 py-2 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-300 z-50 text-sm font-bold flex items-center gap-2"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke-width="2"
+      stroke="currentColor"
+      class="w-4 h-4 text-green-600"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M4.5 12.75l6 6 9-13.5"></path>
+    </svg>
+    <span>Link Copied!</span>
+  </div>
 </Layout>
+
+<script define:vars={{ drama: detailJson }}>
+  const API_URL = "/api";
+  document.addEventListener("DOMContentLoaded", () => {
+    const toast = document.getElementById("toast");
+
+    function showToast(msg) {
+      if (toast) {
+        const span = toast.querySelector("span");
+        if (span) span.innerText = msg;
+        toast.classList.remove("opacity-0");
+        setTimeout(() => {
+          toast.classList.add("opacity-0");
+        }, 2000);
+      }
+    }
+
+    // --- COMMENTS LOGIC ---
+    const commentFormContainer = document.getElementById(
+      "comment-form-container"
+    );
+    const loginPrompt = document.getElementById("login-prompt");
+    const commentsList = document.getElementById("comments-list");
+    const commentInput = document.getElementById("comment-input");
+    const submitCommentBtn = document.getElementById("submit-comment");
+    const userAvatar = document.getElementById("user-avatar");
+
+    // Check Auth
+    const token = localStorage.getItem("token");
+    const userStr = localStorage.getItem("user");
+    let currentUser = null;
+
+    if (token && userStr) {
+      currentUser = JSON.parse(userStr);
+      if (currentUser.avatar) userAvatar.src = currentUser.avatar;
+      commentFormContainer.classList.remove("hidden");
+      loginPrompt.classList.add("hidden");
+    } else {
+      commentFormContainer.classList.add("hidden");
+      loginPrompt.classList.remove("hidden");
+    }
+
+    // Fetch Comments
+    async function fetchComments() {
+      try {
+        const res = await fetch(`${API_URL}/comments/${drama.bookId}`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.status === "success") {
+            renderComments(json.data);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch comments", e);
+        commentsList.innerHTML = `<p class="text-zinc-500 text-sm">Failed to load comments.</p>`;
+      }
+    }
+
+    function timeAgo(dateString) {
+      if (!dateString) return "";
+      const date = new Date(dateString);
+      const now = new Date();
+      const diff = now - date;
+
+      // Ensure no negative time due to clock skew
+      if (diff < 0) return "Just now";
+
+      const seconds = Math.floor(diff / 1000);
+
+      if (seconds < 60) return "Just now";
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return `${minutes}m ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      if (days < 7) return `${days}d ago`;
+      if (days < 30) return `${Math.floor(days / 7)}w ago`;
+
+      return date.toLocaleDateString();
+    }
+
+    function renderComments(comments) {
+      if (comments.length === 0) {
+        commentsList.innerHTML = `<p class="text-zinc-500 text-sm">Be the first to comment!</p>`;
+        return;
+      }
+
+      commentsList.innerHTML = comments
+        .map(
+          (c) => `
+            <div class="flex gap-4 group comment-item" data-time="${c.created_at}">
+                <div class="w-10 h-10 rounded-full bg-zinc-800 flex-shrink-0 overflow-hidden">
+                    <img src="${c.user.avatar || "https://ui-avatars.com/api/?background=random&name=" + c.user.name}" class="w-full h-full object-cover">
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-baseline justify-between mb-1">
+                        <h4 class="font-bold text-zinc-300 text-sm">${c.user.name}</h4>
+                        <span class="text-xs text-gray-300 time-display">${timeAgo(c.created_at)}</span>
+                    </div>
+                    <p class="text-zinc-400 text-sm leading-relaxed whitespace-pre-line">${c.content}</p>
+                </div>
+            </div>
+        `
+        )
+        .join("");
+    }
+
+    // Update timestamps every 5 seconds
+    setInterval(() => {
+      document.querySelectorAll(".comment-item").forEach((item) => {
+        const timeStr = item.getAttribute("data-time");
+        const display = item.querySelector(".time-display");
+        if (timeStr && display) {
+          display.innerText = timeAgo(timeStr);
+        }
+      });
+    }, 5000);
+
+    fetchComments();
+
+    // Post Comment
+    if (submitCommentBtn) {
+      submitCommentBtn.addEventListener("click", async () => {
+        const content = commentInput.value.trim();
+        if (!content) return;
+
+        submitCommentBtn.disabled = true;
+        submitCommentBtn.innerText = "Posting...";
+
+        try {
+          const res = await fetch(`${API_URL}/comments`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: token, // If needed by backend middleware? Currently generic handler.
+            },
+            body: JSON.stringify({
+              book_id: drama.bookId,
+              user_id: currentUser ? currentUser.id : 0,
+              content: content,
+            }),
+          });
+
+          const json = await res.json();
+          if (res.ok && json.status === "success") {
+            commentInput.value = "";
+            showToast("Comment Posted!");
+            // Refresh comments
+            fetchComments();
+          } else {
+            showToast(json.message || "Failed to post");
+          }
+        } catch (e) {
+          console.error(e);
+          showToast("Error posting comment");
+        } finally {
+          submitCommentBtn.disabled = false;
+          submitCommentBtn.innerText = "Post";
+        }
+      });
+    }
+  });
+</script>
