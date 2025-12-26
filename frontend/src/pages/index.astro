@@ -8,46 +8,43 @@ const API_URL = process.env.INTERNAL_API_URL || "http://localhost:3000/api";
 console.log(`[SSR] Fetching data from: ${API_URL}`);
 
 const safeFetch = async (endpoint: string, fallback: any = []) => {
-    try {
-        const res = await fetch(`${API_URL}${endpoint}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-        return json.data || fallback;
-    } catch (e) {
-        console.error(`[SSR] Error fetching ${endpoint}:`, e);
-        return fallback;
-    }
+  try {
+    const res = await fetch(`${API_URL}${endpoint}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    return json.data || fallback;
+  } catch (e) {
+    console.error(`[SSR] Error fetching ${endpoint}:`, e);
+    return fallback;
+  }
 };
 
 // Parallel Fetches
 const [trending, rawHeroData, latest, randomData, romanceData, actionData] =
-    await Promise.all([
-        safeFetch("/trending", []),
-        safeFetch("/hero", {}),
-        safeFetch("/latest", []),
-        safeFetch("/random", []),
-        safeFetch(
-            `/random?genre=${encodeURIComponent("Modern Romance & CEO")}`,
-            [],
-        ),
-        safeFetch(
-            `/random?genre=${encodeURIComponent("Martial Arts Action")}`,
-            [],
-        ),
-    ]);
+  await Promise.all([
+    safeFetch("/trending", []),
+    safeFetch("/hero", {}),
+    safeFetch("/latest", []),
+    safeFetch("/random", []),
+    safeFetch(
+      `/random?genre=${encodeURIComponent("Modern Romance & CEO")}`,
+      []
+    ),
+    safeFetch(`/random?genre=${encodeURIComponent("Martial Arts Action")}`, []),
+  ]);
 
 // Process Hero
 const rawHeroList = Array.isArray(rawHeroData)
-    ? rawHeroData
-    : rawHeroData
-      ? [rawHeroData]
-      : [];
+  ? rawHeroData
+  : rawHeroData
+    ? [rawHeroData]
+    : [];
 const heroList =
-    rawHeroList.length > 0
-        ? rawHeroList
-        : trending.length > 0
-          ? [trending[0]]
-          : [];
+  rawHeroList.length > 0
+    ? rawHeroList
+    : trending.length > 0
+      ? [trending[0]]
+      : [];
 
 const random = randomData;
 const romance = romanceData;
@@ -58,309 +55,322 @@ export const prerender = false;
 // Fetch Settings (Logo)
 let siteLogo = "/favicon.png";
 try {
-    const settingsRes = await fetch(`${API_URL}/settings?t=${Date.now()}`);
-    if (settingsRes.ok) {
-        const settingsData = await settingsRes.json();
-        if (settingsData.site_logo) {
-            siteLogo = settingsData.site_logo;
-        }
+  const settingsRes = await fetch(`${API_URL}/settings?t=${Date.now()}`);
+  if (settingsRes.ok) {
+    const settingsData = await settingsRes.json();
+    if (settingsData.site_logo) {
+      siteLogo = settingsData.site_logo;
     }
+  }
 } catch (e) {
-    console.error(`[SSR] Error fetching settings:`, e);
+  console.error(`[SSR] Error fetching settings:`, e);
 }
 ---
 
 <Layout title="DramaPlay - Home">
-    <main class="pb-20">
-        <!-- Global Login Gate (Client-side check) -->
-        <LoginLock />
+  <main class="pb-20">
+    <!-- Global Login Gate (Client-side check) -->
+    <LoginLock />
 
-        <!-- Header -->
-        <header
-            class="sticky top-0 z-50 flex items-center justify-between bg-zinc-950/80 px-4 py-3 backdrop-blur-md"
+    <!-- Header -->
+    <header
+      class="sticky top-0 z-50 flex items-center justify-between bg-zinc-950/80 px-4 py-3 backdrop-blur-md"
+    >
+      <div class="flex items-center gap-2">
+        <img
+          src={siteLogo}
+          alt="Logo"
+          class="h-8 w-8 rounded-lg object-cover"
+        />
+
+        <span class="text-lg font-bold tracking-tight text-white"
+          >DramaPlay</span
         >
-            <div class="flex items-center gap-2">
-                <img
-                    src={siteLogo}
-                    alt="Logo"
-                    class="h-8 w-8 rounded-lg object-cover"
-                />
+      </div>
+    </header>
 
-                <span class="text-lg font-bold tracking-tight text-white"
-                    >DramaPlay</span
-                >
-            </div>
-            <a href="/search" class="text-zinc-400">
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="2"
-                    stroke="currentColor"
-                    class="w-6 h-6"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-                    ></path>
-                </svg>
-            </a>
-        </header>
+    <div class="flex items-center gap-4">
+      <a
+        href="/dramaplay.apk"
+        download
+        class="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-full px-3 py-1.5 text-zinc-300 hover:text-green-400 hover:border-green-500/50 transition-all group"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          class="w-4 h-4 text-green-500 group-hover:animate-bounce"
+        >
+          <path
+            d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.75 3c1.99 0 3.757 1.008 4.75 2.543A5.465 5.465 0 0117.25 3c3.036 0 5.5 2.322 5.5 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z"
+            class="hidden"></path>
+          <path
+            fill-rule="evenodd"
+            d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm14.024-.983a.75.75 0 010 1.06l-2.75 2.75a.75.75 0 01-1.06 0l-2.75-2.75a.75.75 0 011.06-1.06l1.47 1.47V7.875a.75.75 0 011.5 0V12.5l1.47-1.47a.75.75 0 011.06 0z"
+            clip-rule="evenodd"></path>
+        </svg>
+        <span class="text-xs font-bold">App</span>
+      </a>
 
-        <!-- Genre Navbar -->
+      <a href="/search" class="text-zinc-400">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2"
+          stroke="currentColor"
+          class="w-6 h-6"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+          ></path>
+        </svg>
+      </a>
+    </div>
+  </main>
+
+  <!-- Genre Navbar -->
+  <div
+    class="sticky top-[56px] z-40 bg-zinc-950/95 backdrop-blur-sm border-b border-white/5 py-3 px-4 flex gap-3 overflow-x-auto no-scrollbar"
+  >
+    {
+      [
+        "All",
+        "Epic Fantasy & Mythology",
+        "Martial Arts Action",
+        "Historical Romance",
+        "Palace Intrigue & Politics",
+        "Modern Romance & CEO",
+        "School & Youth",
+        "Mystery & Detective",
+        "E-Sports & Gaming",
+      ].map((genre) => (
+        <a
+          href={
+            genre === "All" ? "/" : `/search?genre=${encodeURIComponent(genre)}`
+          }
+          class="whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-medium bg-zinc-900 border border-white/10 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+        >
+          {genre}
+        </a>
+      ))
+    }
+  </div>
+
+  <!-- Hero / Featured -->
+  {
+    heroList.length > 0 && (
+      <div class="relative w-full h-[600px] md:h-auto md:aspect-[21/9] group overflow-hidden">
         <div
-            class="sticky top-[56px] z-40 bg-zinc-950/95 backdrop-blur-sm border-b border-white/5 py-3 px-4 flex gap-3 overflow-x-auto no-scrollbar"
+          id="hero-carousel"
+          class="flex w-full h-full overflow-x-auto snap-x snap-mandatory no-scrollbar"
         >
-            {
-                [
-                    "All",
-                    "Epic Fantasy & Mythology",
-                    "Martial Arts Action",
-                    "Historical Romance",
-                    "Palace Intrigue & Politics",
-                    "Modern Romance & CEO",
-                    "School & Youth",
-                    "Mystery & Detective",
-                    "E-Sports & Gaming",
-                ].map((genre) => (
-                    <a
-                        href={
-                            genre === "All"
-                                ? "/"
-                                : `/search?genre=${encodeURIComponent(genre)}`
-                        }
-                        class="whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-medium bg-zinc-900 border border-white/10 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
-                    >
-                        {genre}
-                    </a>
-                ))
-            }
+          {heroList.map((item: any) => (
+            <div class="relative w-full h-full flex-shrink-0 snap-center bg-zinc-950 overflow-hidden">
+              <div class="absolute inset-0">
+                <img
+                  src={item.cover}
+                  alt="Background"
+                  class="h-full w-full object-cover opacity-60 blur-2xl scale-125 select-none"
+                />
+                <div class="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent" />
+                <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-transparent" />
+              </div>
+
+              <div class="relative w-full h-full container mx-auto px-6 md:px-12 flex items-center">
+                <div class="flex flex-col-reverse md:grid md:grid-cols-12 gap-6 md:gap-8 w-full items-center h-full md:h-auto justify-center">
+                  <div class="w-full md:col-span-7 flex flex-col justify-end md:justify-center items-start z-20 pb-12 md:pb-0">
+                    <div class="hidden md:block bg-red-600/20 text-red-500 text-xs font-bold px-3 py-1 rounded-full mb-4 border border-red-500/20 backdrop-blur-sm">
+                      FEATURED DRAMA
+                    </div>
+                    <h2 class="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-2 md:mb-4 leading-tight tracking-tight drop-shadow-lg line-clamp-1">
+                      {item.judul}
+                    </h2>
+                    <p class="text-zinc-200 text-sm md:text-lg mb-6 md:mb-8 line-clamp-2 max-w-2xl leading-relaxed drop-shadow-md text-shadow-sm">
+                      {item.deskripsi}
+                    </p>
+
+                    <div class="flex gap-3 md:gap-4 w-full md:w-auto">
+                      <a
+                        href={`/detail/${item.bookId}`}
+                        class="flex-1 md:flex-none justify-center group flex items-center gap-2 md:gap-3 bg-red-600 text-white px-4 md:px-8 py-3.5 md:py-3.5 rounded-xl font-bold text-sm md:text-base shadow-xl shadow-red-900/40 hover:bg-red-700 hover:scale-105 transition-all duration-300"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                          class="w-5 h-5 group-hover:animate-pulse"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                        Watch Now
+                      </a>
+                      <button class="flex-1 md:flex-none justify-center flex items-center gap-2 px-4 md:px-6 py-3.5 md:py-3.5 rounded-xl font-semibold text-white bg-white/10 border border-white/20 hover:bg-white/20 transition-all backdrop-blur-md text-sm md:text-base shadow-lg">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="2"
+                          stroke="currentColor"
+                          class="w-5 h-5"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"
+                          />
+                        </svg>
+                        My List
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="w-full md:col-span-5 flex justify-center items-center relative z-10 pt-8 md:pt-0">
+                    <div class="relative w-[240px] md:w-[300px] aspect-[2/3] transform transition-transform hover:scale-105 duration-500 shadow-2xl">
+                      <div class="absolute inset-x-4 top-4 bottom-0 bg-black/50 blur-xl rounded-2xl" />
+                      <img
+                        src={item.cover}
+                        alt={item.judul}
+                        class="relative h-full w-full object-cover rounded-xl md:rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] border border-white/10 ring-1 ring-white/20"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
-        <!-- Hero / Featured -->
-        {
-            heroList.length > 0 && (
-                <div class="relative w-full h-[600px] md:h-auto md:aspect-[21/9] group overflow-hidden">
-                    <div
-                        id="hero-carousel"
-                        class="flex w-full h-full overflow-x-auto snap-x snap-mandatory no-scrollbar"
-                    >
-                        {heroList.map((item: any) => (
-                            <div class="relative w-full h-full flex-shrink-0 snap-center bg-zinc-950 overflow-hidden">
-                                <div class="absolute inset-0">
-                                    <img
-                                        src={item.cover}
-                                        alt="Background"
-                                        class="h-full w-full object-cover opacity-60 blur-2xl scale-125 select-none"
-                                    />
-                                    <div class="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent" />
-                                    <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-transparent" />
-                                </div>
+        {heroList.length > 1 && (
+          <div class="absolute bottom-4 right-4 flex gap-2">
+            {heroList.map((_: any, index: number) => (
+              <div
+                class="w-2 h-2 rounded-full bg-white/50"
+                data-hero-index={index}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
 
-                                <div class="relative w-full h-full container mx-auto px-6 md:px-12 flex items-center">
-                                    <div class="flex flex-col-reverse md:grid md:grid-cols-12 gap-6 md:gap-8 w-full items-center h-full md:h-auto justify-center">
-                                        <div class="w-full md:col-span-7 flex flex-col justify-end md:justify-center items-start z-20 pb-12 md:pb-0">
-                                            <div class="hidden md:block bg-red-600/20 text-red-500 text-xs font-bold px-3 py-1 rounded-full mb-4 border border-red-500/20 backdrop-blur-sm">
-                                                FEATURED DRAMA
-                                            </div>
-                                            <h2 class="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-2 md:mb-4 leading-tight tracking-tight drop-shadow-lg line-clamp-1">
-                                                {item.judul}
-                                            </h2>
-                                            <p class="text-zinc-200 text-sm md:text-lg mb-6 md:mb-8 line-clamp-2 max-w-2xl leading-relaxed drop-shadow-md text-shadow-sm">
-                                                {item.deskripsi}
-                                            </p>
+  <!-- Continue Watching Section -->
+  <section id="continue-watching-section" class="mt-6 px-4 hidden">
+    <div class="flex items-center gap-2 mb-4">
+      <span class="text-2xl">⏳</span>
+      <h2 class="text-lg font-bold text-white">Continue Watching</h2>
+    </div>
+    <div
+      id="continue-watching-list"
+      class="flex gap-4 overflow-x-auto pb-4 no-scrollbar snap-x scroll-smooth"
+    >
+      <!-- JS Populated -->
+    </div>
+  </section>
 
-                                            <div class="flex gap-3 md:gap-4 w-full md:w-auto">
-                                                <a
-                                                    href={`/detail/${item.bookId}`}
-                                                    class="flex-1 md:flex-none justify-center group flex items-center gap-2 md:gap-3 bg-red-600 text-white px-4 md:px-8 py-3.5 md:py-3.5 rounded-xl font-bold text-sm md:text-base shadow-xl shadow-red-900/40 hover:bg-red-700 hover:scale-105 transition-all duration-300"
-                                                >
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        viewBox="0 0 24 24"
-                                                        fill="currentColor"
-                                                        class="w-5 h-5 group-hover:animate-pulse"
-                                                    >
-                                                        <path
-                                                            fill-rule="evenodd"
-                                                            d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z"
-                                                            clip-rule="evenodd"
-                                                        />
-                                                    </svg>
-                                                    Watch Now
-                                                </a>
-                                                <button class="flex-1 md:flex-none justify-center flex items-center gap-2 px-4 md:px-6 py-3.5 md:py-3.5 rounded-xl font-semibold text-white bg-white/10 border border-white/20 hover:bg-white/20 transition-all backdrop-blur-md text-sm md:text-base shadow-lg">
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                        stroke-width="2"
-                                                        stroke="currentColor"
-                                                        class="w-5 h-5"
-                                                    >
-                                                        <path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"
-                                                        />
-                                                    </svg>
-                                                    My List
-                                                </button>
-                                            </div>
-                                        </div>
+  <!-- Trending Section -->
+  <section class="mt-6 px-4">
+    <h2 class="mb-4 text-lg font-bold text-white">Trending in DramaPlay</h2>
+    <div
+      id="trending-carousel"
+      class="flex gap-4 overflow-x-auto pb-4 no-scrollbar snap-x"
+    >
+      {
+        trending.slice(0, 10).map((drama: any, index: number) => (
+          <div class="min-w-[140px] w-[140px] md:min-w-[calc(20%-13px)] md:w-[calc(20%-13px)] snap-start shrink-0 transition-all duration-300">
+            <DramaCard
+              id={drama.bookId}
+              title={drama.judul}
+              cover={drama.cover}
+              episodes={drama.total_episode}
+              rank={index + 1}
+            />
+          </div>
+        ))
+      }
+    </div>
+  </section>
 
-                                        <div class="w-full md:col-span-5 flex justify-center items-center relative z-10 pt-8 md:pt-0">
-                                            <div class="relative w-[240px] md:w-[300px] aspect-[2/3] transform transition-transform hover:scale-105 duration-500 shadow-2xl">
-                                                <div class="absolute inset-x-4 top-4 bottom-0 bg-black/50 blur-xl rounded-2xl" />
-                                                <img
-                                                    src={item.cover}
-                                                    alt={item.judul}
-                                                    class="relative h-full w-full object-cover rounded-xl md:rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] border border-white/10 ring-1 ring-white/20"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // 1. Login/Profile Logic
+      const loginBtn = document.getElementById("login-nav-btn");
+      const profileBtn = document.getElementById("profile-nav-btn");
 
-                    {heroList.length > 1 && (
-                        <div class="absolute bottom-4 right-4 flex gap-2">
-                            {heroList.map((_: any, index: number) => (
-                                <div
-                                    class="w-2 h-2 rounded-full bg-white/50"
-                                    data-hero-index={index}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )
+      const updateButtonState = () => {
+        const isLoggedIn =
+          localStorage.getItem("isLoggedIn") === "true" &&
+          !!localStorage.getItem("token") &&
+          !!localStorage.getItem("user");
+        console.log("Nav Update: IsLoggedIn =", isLoggedIn);
+        if (isLoggedIn) {
+          loginBtn?.classList.add("hidden");
+          profileBtn?.classList.remove("hidden");
+        } else {
+          loginBtn?.classList.remove("hidden");
+          profileBtn?.classList.add("hidden");
         }
+      };
 
-        <!-- Continue Watching Section -->
-        <section id="continue-watching-section" class="mt-6 px-4 hidden">
-            <div class="flex items-center gap-2 mb-4">
-                <span class="text-2xl">⏳</span>
-                <h2 class="text-lg font-bold text-white">Continue Watching</h2>
-            </div>
-            <div
-                id="continue-watching-list"
-                class="flex gap-4 overflow-x-auto pb-4 no-scrollbar snap-x scroll-smooth"
-            >
-                <!-- JS Populated -->
-            </div>
-        </section>
+      updateButtonState();
+      window.addEventListener("login-success", updateButtonState);
 
-        <!-- Trending Section -->
-        <section class="mt-6 px-4">
-            <h2 class="mb-4 text-lg font-bold text-white">
-                Trending in DramaPlay
-            </h2>
-            <div
-                id="trending-carousel"
-                class="flex gap-4 overflow-x-auto pb-4 no-scrollbar snap-x"
-            >
-                {
-                    trending.slice(0, 10).map((drama: any, index: number) => (
-                        <div class="min-w-[140px] w-[140px] md:min-w-[calc(20%-13px)] md:w-[calc(20%-13px)] snap-start shrink-0 transition-all duration-300">
-                            <DramaCard
-                                id={drama.bookId}
-                                title={drama.judul}
-                                cover={drama.cover}
-                                episodes={drama.total_episode}
-                                rank={index + 1}
-                            />
-                        </div>
-                    ))
-                }
-            </div>
-        </section>
+      if (loginBtn) {
+        loginBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          if ((window as any).showLoginPopup) {
+            (window as any).showLoginPopup();
+          } else {
+            // Fallback
+            const overlay = document.getElementById("login-overlay");
+            if (overlay) overlay.style.display = "flex";
+          }
+        });
+      }
 
-        <script>
-            document.addEventListener("DOMContentLoaded", () => {
-                // 1. Login/Profile Logic
-                const loginBtn = document.getElementById("login-nav-btn");
-                const profileBtn = document.getElementById("profile-nav-btn");
+      // 2. Continue Watching Logic
+      const initContinueWatching = () => {
+        const section = document.getElementById("continue-watching-section");
+        const list = document.getElementById("continue-watching-list");
+        const userStr = localStorage.getItem("user");
 
-                const updateButtonState = () => {
-                    const isLoggedIn =
-                        localStorage.getItem("isLoggedIn") === "true" &&
-                        !!localStorage.getItem("token") &&
-                        !!localStorage.getItem("user");
-                    console.log("Nav Update: IsLoggedIn =", isLoggedIn);
-                    if (isLoggedIn) {
-                        loginBtn?.classList.add("hidden");
-                        profileBtn?.classList.remove("hidden");
-                    } else {
-                        loginBtn?.classList.remove("hidden");
-                        profileBtn?.classList.add("hidden");
-                    }
-                };
+        if (!section || !list || !userStr) return;
 
-                updateButtonState();
-                window.addEventListener("login-success", updateButtonState);
+        try {
+          const user = JSON.parse(userStr);
+          if (!user.id) return;
 
-                if (loginBtn) {
-                    loginBtn.addEventListener("click", (e) => {
-                        e.preventDefault();
-                        if ((window as any).showLoginPopup) {
-                            (window as any).showLoginPopup();
-                        } else {
-                            // Fallback
-                            const overlay =
-                                document.getElementById("login-overlay");
-                            if (overlay) overlay.style.display = "flex";
-                        }
-                    });
-                }
+          fetch(`/api/history?userId=${user.id}`)
+            .then((res) => res.json())
+            .then((json) => {
+              if (
+                json.status === "success" &&
+                json.data &&
+                json.data.length > 0
+              ) {
+                // Filter out items with missing drama, ID, or COVER
+                const validItems = json.data.filter(
+                  (h: any) => h.drama && h.drama.bookId && h.drama.cover
+                );
 
-                // 2. Continue Watching Logic
-                const initContinueWatching = () => {
-                    const section = document.getElementById(
-                        "continue-watching-section",
-                    );
-                    const list = document.getElementById(
-                        "continue-watching-list",
-                    );
-                    const userStr = localStorage.getItem("user");
+                if (validItems.length > 0) {
+                  section.classList.remove("hidden");
+                  list.innerHTML = validItems
+                    .map((h: any) => {
+                      if (!h.drama) return "";
+                      const title = h.drama.judul;
+                      const cover = h.drama.cover;
+                      const displayEp = (h.episodeIdx || 0) + 1;
+                      const bookId = h.drama.bookId;
 
-                    if (!section || !list || !userStr) return;
-
-                    try {
-                        const user = JSON.parse(userStr);
-                        if (!user.id) return;
-
-                        fetch(`/api/history?userId=${user.id}`)
-                            .then((res) => res.json())
-                            .then((json) => {
-                                if (
-                                    json.status === "success" &&
-                                    json.data &&
-                                    json.data.length > 0
-                                ) {
-                                    // Filter out items with missing drama, ID, or COVER
-                                    const validItems = json.data.filter(
-                                        (h: any) =>
-                                            h.drama &&
-                                            h.drama.bookId &&
-                                            h.drama.cover,
-                                    );
-
-                                    if (validItems.length > 0) {
-                                        section.classList.remove("hidden");
-                                        list.innerHTML = validItems
-                                            .map((h: any) => {
-                                                if (!h.drama) return "";
-                                                const title = h.drama.judul;
-                                                const cover = h.drama.cover;
-                                                const displayEp =
-                                                    (h.episodeIdx || 0) + 1;
-                                                const bookId = h.drama.bookId;
-
-                                                return `
+                      return `
                                             <div class="min-w-[140px] w-[140px] md:min-w-[calc(20%-13px)] md:w-[calc(20%-13px)] snap-start shrink-0">
                                                 <a href="/watch/${bookId}/${displayEp}" class="block group relative w-full h-full rounded-xl overflow-hidden">
                                                     <div class="aspect-[2/3] w-full overflow-hidden relative">
@@ -375,416 +385,375 @@ try {
                                                     </div>
                                                 </a>
                                             </div>`;
-                                            })
-                                            .join("");
+                    })
+                    .join("");
 
-                                        // Helper to hide section if all items are removed by onerror
-                                        (window as any).checkEmptySection =
-                                            () => {
-                                                if (
-                                                    list.children.length === 0
-                                                ) {
-                                                    section.classList.add(
-                                                        "hidden",
-                                                    );
-                                                }
-                                            };
-                                    }
-                                }
-                            })
-                            .catch((err) =>
-                                console.error("History fetch error", err),
-                            );
-                    } catch (e) {
-                        console.error("User parse error", e);
+                  // Helper to hide section if all items are removed by onerror
+                  (window as any).checkEmptySection = () => {
+                    if (list.children.length === 0) {
+                      section.classList.add("hidden");
                     }
-                };
-
-                initContinueWatching();
-                window.addEventListener("login-success", initContinueWatching);
-                window.addEventListener("storage", (e) => {
-                    if (e.key === "last_watch_update") {
-                        initContinueWatching();
-                    }
-                });
-
-                // 3. Carousel Logic (Hero & Trending)
-
-                // --- Hero Carousel (Infinite Loop) ---
-                const setupHeroCarousel = () => {
-                    const heroContainer =
-                        document.getElementById("hero-carousel");
-                    const dots = document.querySelectorAll("[data-hero-index]");
-
-                    if (!heroContainer || heroContainer.children.length <= 1)
-                        return;
-
-                    // Clone first slide for infinity effect
-                    const firstSlide = heroContainer.children[0];
-                    const clone = firstSlide.cloneNode(true);
-                    heroContainer.appendChild(clone);
-
-                    let currentIndex = 0;
-                    const realTotalSlides = heroContainer.children.length - 1; // Exclude clone
-                    const intervalTime = 5000;
-                    let autoSlideInterval: any;
-                    let isTransitioning = false;
-
-                    const updateDots = (index: number) => {
-                        const realIndex = index % realTotalSlides;
-                        dots.forEach((dot, i) => {
-                            if (i === realIndex) {
-                                dot.classList.remove("bg-white/50");
-                                dot.classList.add("bg-white", "scale-125");
-                            } else {
-                                dot.classList.add("bg-white/50");
-                                dot.classList.remove("bg-white", "scale-125");
-                            }
-                        });
-                    };
-
-                    const scrollToSlide = (index: number, smooth = true) => {
-                        const slide = heroContainer.children[index];
-                        if (slide) {
-                            // Use container scrollTo instead of element.scrollIntoView to avoid scrolling the whole page
-                            heroContainer.scrollTo({
-                                left: (slide as HTMLElement).offsetLeft,
-                                behavior: smooth ? "smooth" : "auto",
-                            });
-
-                            // Only update dots if we are at a "real" index or the clone (which maps to 0)
-                            updateDots(index);
-
-                            currentIndex = index;
-                        }
-                    };
-
-                    const nextSlide = () => {
-                        if (isTransitioning) return;
-
-                        currentIndex++;
-                        scrollToSlide(currentIndex, true);
-
-                        // If we reached the clone (last item)
-                        if (currentIndex === realTotalSlides) {
-                            isTransitioning = true;
-                            // Wait for smooth scroll to finish, then jump to real 0
-                            setTimeout(() => {
-                                scrollToSlide(0, false); // Instant jump
-                                currentIndex = 0;
-                                isTransitioning = false;
-                            }, 600); // 600ms match css current transition roughly
-                        }
-                    };
-
-                    const startAutoSlide = () => {
-                        stopAutoSlide();
-                        autoSlideInterval = setInterval(
-                            nextSlide,
-                            intervalTime,
-                        );
-                    };
-
-                    const stopAutoSlide = () => {
-                        clearInterval(autoSlideInterval);
-                    };
-
-                    // Event Listeners for Dots
-                    dots.forEach((dot) => {
-                        dot.addEventListener("click", (e) => {
-                            const target = e.target as HTMLElement;
-                            const index = parseInt(
-                                target.dataset.heroIndex || "0",
-                            );
-                            scrollToSlide(index, true);
-                            startAutoSlide();
-                        });
-                    });
-
-                    // Pause on hover
-                    heroContainer.addEventListener("mouseenter", stopAutoSlide);
-                    heroContainer.addEventListener(
-                        "mouseleave",
-                        startAutoSlide,
-                    );
-
-                    // Initial state
-                    updateDots(0);
-                    startAutoSlide();
-                };
-                setupHeroCarousel();
-
-                // --- Trending Carousel (Infinite Auto-Slide) ---
-                const setupTrendingCarousel = () => {
-                    const container =
-                        document.getElementById("trending-carousel");
-                    if (!container) return;
-
-                    // Clone content to ensure seamless loop
-                    const originalContent = Array.from(container.children);
-                    // Append clones
-                    originalContent.forEach((item) =>
-                        container.appendChild(item.cloneNode(true)),
-                    );
-
-                    let autoSlideInterval: any;
-                    const intervalTime = 3000; // 3 detik per slide
-
-                    const nextSlide = () => {
-                        // Ambil lebar kartu pertama + gap (asumsi gap 1rem = 16px)
-                        // Atau lebih aman hitung dari posisi kartu kedua
-                        if (container.children.length < 2) return;
-
-                        const firstCard = container.children[0] as HTMLElement;
-                        const secondCard = container.children[1] as HTMLElement;
-                        const cardWidth =
-                            secondCard.offsetLeft - firstCard.offsetLeft;
-
-                        // Scroll ke kanan 1 kartu
-                        container.scrollBy({
-                            left: cardWidth,
-                            behavior: "smooth",
-                        });
-
-                        // Cek reset setelah animasi (asumsi 500ms cukup)
-                        setTimeout(() => {
-                            // Jika sudah melewati setengah (masuk ke area clone)
-                            // scrollWidth / 2 adalah titik awal clone (karena kita duplikasi 1x)
-                            if (
-                                container.scrollLeft >=
-                                container.scrollWidth / 2
-                            ) {
-                                container.scrollLeft = 0;
-                            }
-                        }, 600);
-                    };
-
-                    const startAutoSlide = () => {
-                        stopAutoSlide();
-                        autoSlideInterval = setInterval(
-                            nextSlide,
-                            intervalTime,
-                        );
-                    };
-
-                    const stopAutoSlide = () => {
-                        clearInterval(autoSlideInterval);
-                    };
-
-                    // Pause on hover
-                    container.addEventListener("mouseenter", stopAutoSlide);
-                    container.addEventListener("mouseleave", startAutoSlide);
-                    container.addEventListener("touchstart", stopAutoSlide);
-                    container.addEventListener("touchend", startAutoSlide);
-
-                    startAutoSlide();
-                };
-                setupTrendingCarousel();
-            });
-        </script>
-
-        <!-- Latest Section (New Releases) -->
-        <section class="mt-4 px-4">
-            <h2 class="mb-4 text-lg font-bold text-white">New Releases</h2>
-            <div class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6">
-                {
-                    latest.map((drama: any) => (
-                        <DramaCard
-                            id={drama.bookId}
-                            title={drama.judul}
-                            cover={drama.cover}
-                            episodes={drama.total_episode}
-                        />
-                    ))
+                  };
                 }
-            </div>
-        </section>
-
-        <!-- Recommended For You (Random) -->
-        {
-            random.length > 0 && (
-                <section class="mt-8 px-4">
-                    <div class="flex items-center gap-2 mb-4">
-                        <span class="text-2xl">🔥</span>
-                        <h2 class="text-lg font-bold text-white">
-                            Recommended for You
-                        </h2>
-                    </div>
-                    <div class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6">
-                        {random.map((drama: any) => (
-                            <DramaCard
-                                id={drama.bookId}
-                                title={drama.judul}
-                                cover={drama.cover}
-                                episodes={drama.total_episode}
-                            />
-                        ))}
-                    </div>
-                </section>
-            )
+              }
+            })
+            .catch((err) => console.error("History fetch error", err));
+        } catch (e) {
+          console.error("User parse error", e);
         }
+      };
 
-        <!-- Top Romance (Genre) -->
-        {
-            romance.length >= 6 && (
-                <section class="mt-8 px-4">
-                    <div class="flex items-center gap-2 mb-4">
-                        <span class="text-2xl">❤️</span>
-                        <h2 class="text-lg font-bold text-white">
-                            Top Romance Selection
-                        </h2>
-                    </div>
-                    <div class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6">
-                        {romance.map((drama: any) => (
-                            <DramaCard
-                                id={drama.bookId}
-                                title={drama.judul}
-                                cover={drama.cover}
-                                episodes={drama.total_episode}
-                            />
-                        ))}
-                    </div>
-                </section>
-            )
+      initContinueWatching();
+      window.addEventListener("login-success", initContinueWatching);
+      window.addEventListener("storage", (e) => {
+        if (e.key === "last_watch_update") {
+          initContinueWatching();
         }
+      });
 
-        <!-- Action Picks (Genre) -->
-        {
-            action.length >= 6 && (
-                <section class="mt-8 px-4 mb-24">
-                    <div class="flex items-center gap-2 mb-4">
-                        <span class="text-2xl">⚔️</span>
-                        <h2 class="text-lg font-bold text-white">
-                            Martial Arts & Action
-                        </h2>
-                    </div>
-                    <div class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6">
-                        {action.map((drama: any) => (
-                            <DramaCard
-                                id={drama.bookId}
-                                title={drama.judul}
-                                cover={drama.cover}
-                                episodes={drama.total_episode}
-                            />
-                        ))}
-                    </div>
-                </section>
-            )
-        }
+      // 3. Carousel Logic (Hero & Trending)
 
-        <!-- Bottom Nav -->
-        <nav
-            class="fixed bottom-0 z-50 w-full bg-zinc-950/90 backdrop-blur-lg border-t border-white/10 pb-safe"
+      // --- Hero Carousel (Infinite Loop) ---
+      const setupHeroCarousel = () => {
+        const heroContainer = document.getElementById("hero-carousel");
+        const dots = document.querySelectorAll("[data-hero-index]");
+
+        if (!heroContainer || heroContainer.children.length <= 1) return;
+
+        // Clone first slide for infinity effect
+        const firstSlide = heroContainer.children[0];
+        const clone = firstSlide.cloneNode(true);
+        heroContainer.appendChild(clone);
+
+        let currentIndex = 0;
+        const realTotalSlides = heroContainer.children.length - 1; // Exclude clone
+        const intervalTime = 5000;
+        let autoSlideInterval: any;
+        let isTransitioning = false;
+
+        const updateDots = (index: number) => {
+          const realIndex = index % realTotalSlides;
+          dots.forEach((dot, i) => {
+            if (i === realIndex) {
+              dot.classList.remove("bg-white/50");
+              dot.classList.add("bg-white", "scale-125");
+            } else {
+              dot.classList.add("bg-white/50");
+              dot.classList.remove("bg-white", "scale-125");
+            }
+          });
+        };
+
+        const scrollToSlide = (index: number, smooth = true) => {
+          const slide = heroContainer.children[index];
+          if (slide) {
+            // Use container scrollTo instead of element.scrollIntoView to avoid scrolling the whole page
+            heroContainer.scrollTo({
+              left: (slide as HTMLElement).offsetLeft,
+              behavior: smooth ? "smooth" : "auto",
+            });
+
+            // Only update dots if we are at a "real" index or the clone (which maps to 0)
+            updateDots(index);
+
+            currentIndex = index;
+          }
+        };
+
+        const nextSlide = () => {
+          if (isTransitioning) return;
+
+          currentIndex++;
+          scrollToSlide(currentIndex, true);
+
+          // If we reached the clone (last item)
+          if (currentIndex === realTotalSlides) {
+            isTransitioning = true;
+            // Wait for smooth scroll to finish, then jump to real 0
+            setTimeout(() => {
+              scrollToSlide(0, false); // Instant jump
+              currentIndex = 0;
+              isTransitioning = false;
+            }, 600); // 600ms match css current transition roughly
+          }
+        };
+
+        const startAutoSlide = () => {
+          stopAutoSlide();
+          autoSlideInterval = setInterval(nextSlide, intervalTime);
+        };
+
+        const stopAutoSlide = () => {
+          clearInterval(autoSlideInterval);
+        };
+
+        // Event Listeners for Dots
+        dots.forEach((dot) => {
+          dot.addEventListener("click", (e) => {
+            const target = e.target as HTMLElement;
+            const index = parseInt(target.dataset.heroIndex || "0");
+            scrollToSlide(index, true);
+            startAutoSlide();
+          });
+        });
+
+        // Pause on hover
+        heroContainer.addEventListener("mouseenter", stopAutoSlide);
+        heroContainer.addEventListener("mouseleave", startAutoSlide);
+
+        // Initial state
+        updateDots(0);
+        startAutoSlide();
+      };
+      setupHeroCarousel();
+
+      // --- Trending Carousel (Infinite Auto-Slide) ---
+      const setupTrendingCarousel = () => {
+        const container = document.getElementById("trending-carousel");
+        if (!container) return;
+
+        // Clone content to ensure seamless loop
+        const originalContent = Array.from(container.children);
+        // Append clones
+        originalContent.forEach((item) =>
+          container.appendChild(item.cloneNode(true))
+        );
+
+        let autoSlideInterval: any;
+        const intervalTime = 3000; // 3 detik per slide
+
+        const nextSlide = () => {
+          // Ambil lebar kartu pertama + gap (asumsi gap 1rem = 16px)
+          // Atau lebih aman hitung dari posisi kartu kedua
+          if (container.children.length < 2) return;
+
+          const firstCard = container.children[0] as HTMLElement;
+          const secondCard = container.children[1] as HTMLElement;
+          const cardWidth = secondCard.offsetLeft - firstCard.offsetLeft;
+
+          // Scroll ke kanan 1 kartu
+          container.scrollBy({
+            left: cardWidth,
+            behavior: "smooth",
+          });
+
+          // Cek reset setelah animasi (asumsi 500ms cukup)
+          setTimeout(() => {
+            // Jika sudah melewati setengah (masuk ke area clone)
+            // scrollWidth / 2 adalah titik awal clone (karena kita duplikasi 1x)
+            if (container.scrollLeft >= container.scrollWidth / 2) {
+              container.scrollLeft = 0;
+            }
+          }, 600);
+        };
+
+        const startAutoSlide = () => {
+          stopAutoSlide();
+          autoSlideInterval = setInterval(nextSlide, intervalTime);
+        };
+
+        const stopAutoSlide = () => {
+          clearInterval(autoSlideInterval);
+        };
+
+        // Pause on hover
+        container.addEventListener("mouseenter", stopAutoSlide);
+        container.addEventListener("mouseleave", startAutoSlide);
+        container.addEventListener("touchstart", stopAutoSlide);
+        container.addEventListener("touchend", startAutoSlide);
+
+        startAutoSlide();
+      };
+      setupTrendingCarousel();
+    });
+  </script>
+
+  <!-- Latest Section (New Releases) -->
+  <section class="mt-4 px-4">
+    <h2 class="mb-4 text-lg font-bold text-white">New Releases</h2>
+    <div class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6">
+      {
+        latest.map((drama: any) => (
+          <DramaCard
+            id={drama.bookId}
+            title={drama.judul}
+            cover={drama.cover}
+            episodes={drama.total_episode}
+          />
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- Recommended For You (Random) -->
+  {
+    random.length > 0 && (
+      <section class="mt-8 px-4">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="text-2xl">🔥</span>
+          <h2 class="text-lg font-bold text-white">Recommended for You</h2>
+        </div>
+        <div class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6">
+          {random.map((drama: any) => (
+            <DramaCard
+              id={drama.bookId}
+              title={drama.judul}
+              cover={drama.cover}
+              episodes={drama.total_episode}
+            />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <!-- Top Romance (Genre) -->
+  {
+    romance.length >= 6 && (
+      <section class="mt-8 px-4">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="text-2xl">❤️</span>
+          <h2 class="text-lg font-bold text-white">Top Romance Selection</h2>
+        </div>
+        <div class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6">
+          {romance.map((drama: any) => (
+            <DramaCard
+              id={drama.bookId}
+              title={drama.judul}
+              cover={drama.cover}
+              episodes={drama.total_episode}
+            />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <!-- Action Picks (Genre) -->
+  {
+    action.length >= 6 && (
+      <section class="mt-8 px-4 mb-24">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="text-2xl">⚔️</span>
+          <h2 class="text-lg font-bold text-white">Martial Arts & Action</h2>
+        </div>
+        <div class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6">
+          {action.map((drama: any) => (
+            <DramaCard
+              id={drama.bookId}
+              title={drama.judul}
+              cover={drama.cover}
+              episodes={drama.total_episode}
+            />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <!-- Bottom Nav -->
+  <nav
+    class="fixed bottom-0 z-50 w-full bg-zinc-950/90 backdrop-blur-lg border-t border-white/10 pb-safe"
+  >
+    <div class="flex justify-around items-center h-16">
+      <a href="/" class="flex flex-col items-center gap-1 text-red-500">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="currentColor"
+          viewBox="0 0 24 24"
+          class="w-6 h-6"
         >
-            <div class="flex justify-around items-center h-16">
-                <a
-                    href="/"
-                    class="flex flex-col items-center gap-1 text-red-500"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                        class="w-6 h-6"
-                    >
-                        <path
-                            d="M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"
-                        ></path>
-                    </svg>
-                    <span class="text-[10px] font-medium">Home</span>
-                </a>
-                <a
-                    href="/search"
-                    class="flex flex-col items-center gap-1 text-zinc-500"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="2"
-                        stroke="currentColor"
-                        class="w-6 h-6"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
-                        ></path>
-                    </svg>
-                    <span class="text-[10px] font-medium">Search</span>
-                </a>
-                <a
-                    href="/mylist"
-                    class="flex flex-col items-center gap-1 text-zinc-500"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="2"
-                        stroke="currentColor"
-                        class="w-6 h-6"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"
-                        ></path>
-                    </svg>
-                    <span class="text-[10px] font-medium">My List</span>
-                </a>
-                <a
-                    href="/profile"
-                    id="profile-nav-btn"
-                    class="flex flex-col items-center gap-1 text-zinc-500 hidden"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="2"
-                        stroke="currentColor"
-                        class="w-6 h-6"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
-                        ></path>
-                    </svg>
-                    <span class="text-[10px] font-medium">Profile</span>
-                </a>
-                <a
-                    href="#"
-                    id="login-nav-btn"
-                    class="flex flex-col items-center gap-1 text-zinc-500"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="2"
-                        stroke="currentColor"
-                        class="w-6 h-6"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"
-                        ></path>
-                    </svg>
-                    <span class="text-[10px] font-medium">Login</span>
-                </a>
-            </div>
-        </nav>
-    </main>
+          <path
+            d="M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"
+          ></path>
+        </svg>
+        <span class="text-[10px] font-medium">Home</span>
+      </a>
+      <a href="/search" class="flex flex-col items-center gap-1 text-zinc-500">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2"
+          stroke="currentColor"
+          class="w-6 h-6"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+          ></path>
+        </svg>
+        <span class="text-[10px] font-medium">Search</span>
+      </a>
+      <a href="/mylist" class="flex flex-col items-center gap-1 text-zinc-500">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2"
+          stroke="currentColor"
+          class="w-6 h-6"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"
+          ></path>
+        </svg>
+        <span class="text-[10px] font-medium">My List</span>
+      </a>
+      <a
+        href="/profile"
+        id="profile-nav-btn"
+        class="flex flex-col items-center gap-1 text-zinc-500 hidden"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2"
+          stroke="currentColor"
+          class="w-6 h-6"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+          ></path>
+        </svg>
+        <span class="text-[10px] font-medium">Profile</span>
+      </a>
+      <a
+        href="#"
+        id="login-nav-btn"
+        class="flex flex-col items-center gap-1 text-zinc-500"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2"
+          stroke="currentColor"
+          class="w-6 h-6"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"
+          ></path>
+        </svg>
+        <span class="text-[10px] font-medium">Login</span>
+      </a>
+    </div>
+  </nav>
 </Layout>
 
 <style>
-    .text-shadow {
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-    }
-    .pb-safe {
-        padding-bottom: env(safe-area-inset-bottom, 20px);
-    }
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 20px);
+  }
 </style>
