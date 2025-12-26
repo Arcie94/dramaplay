@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">DramaPlay</string>
+    <string name="title_activity_main">DramaPlay</string>
+    <string name="package_name">com.dramaplay.app</string>
+    <string name="custom_url_scheme">com.dramaplay.app</string>
+</resources>
