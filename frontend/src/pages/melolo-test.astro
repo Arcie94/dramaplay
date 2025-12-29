@@ -1,6 +1,5 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import ClientOnly from "../components/ClientOnly.jsx";
 
 // Fetch initial data (Server Side or Client Side - here using Client fetch wrapper for simplicity in testing)
 // But for Astro, we can fetch on server.
@@ -54,7 +53,7 @@ try {
   </div>
 
   <script>
-    import { API_BASE } from "../config";
+    const API_BASE = "/api";
 
     async function fetchData(endpoint, elementId) {
       try {
@@ -62,6 +61,8 @@ try {
         const json = await res.json();
 
         const container = document.getElementById(elementId);
+        if (!container) return;
+
         container.innerHTML = ""; // Clear loading
 
         if (json.data && json.data.length > 0) {
@@ -86,8 +87,11 @@ try {
         }
       } catch (err) {
         console.error(err);
-        document.getElementById(elementId).innerHTML =
-          `<p class="text-red-500">Error: ${err.message}</p>`;
+        const container = document.getElementById(elementId);
+        if (container) {
+          const msg = err instanceof Error ? err.message : String(err);
+          container.innerHTML = `<p class="text-red-500">Error: ${msg}</p>`;
+        }
       }
     }
 
