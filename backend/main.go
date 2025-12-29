@@ -98,5 +98,11 @@ func main() {
 	app.Get("/api/admin/users", handlers.GetAdminUsers)
 	app.Delete("/api/admin/users/:id", handlers.DeleteUser) // New Delete Route
 
+	// Melolo API Routes (New)
+	melolo := api.Group("/melolo")
+	melolo.Get("/latest", handlers.GetMeloloLatest)
+	melolo.Get("/trending", handlers.GetMeloloTrending)
+	melolo.Get("/search", handlers.GetMeloloSearch)
+
 	log.Fatal(app.Listen(":3000"))
 }
