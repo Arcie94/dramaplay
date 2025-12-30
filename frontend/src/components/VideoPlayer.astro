@@ -675,10 +675,30 @@ const {
       volumeSlider.addEventListener("click", (e) => e.stopPropagation());
     }
 
-    // Controls Visibility Auto-Hide
+    // --- Controls Visibility (Smart Auto-Hide) ---
+    let lastInteraction = Date.now();
+    let controlsCheckInterval: any = null; // To check hide even if video paused? User wants permanent if paused usually.
+
+    function pokeInteraction() {
+      lastInteraction = Date.now();
+      updateControlsVisibility();
+    }
+
+    // Global interaction listener for the container to keep UI awake
+    if (container) {
+      container.addEventListener("mousemove", pokeInteraction);
+      container.addEventListener("touchstart", pokeInteraction, {
+        passive: true,
+      });
+      container.addEventListener("click", pokeInteraction);
+    }
+
     function updateControlsVisibility() {
-      // Hide if playing AND time > 5s
-      const shouldHide = !video.paused && video.currentTime > 5;
+      const now = Date.now();
+      // Hide if:
+      // 1. Video is PLAYING
+      // 2. Time since last interaction > 4000ms (4 seconds)
+      const shouldHide = !video.paused && now - lastInteraction > 4000;
 
       const toggle = (el: HTMLElement | null) => {
         if (!el) return;
@@ -691,19 +711,17 @@ const {
 
       toggle(bottomControls);
       toggle(topLeftControls);
-      toggle(document.getElementById("top-right-controls")); // Use wrapper
+      toggle(document.getElementById("top-right-controls"));
     }
 
-    video.addEventListener("timeupdate", () => {
-      if (progressBar) {
-        const percent = (video.currentTime / video.duration) * 100;
-        progressBar.style.width = `${percent}%`;
-      }
-      updateControlsVisibility();
-    });
+    // Loop to check visibility frequently (so it hides even if mouse doesn't move)
+    setInterval(updateControlsVisibility, 1000);
 
     video.addEventListener("play", updateControlsVisibility);
     video.addEventListener("pause", updateControlsVisibility);
+    // video.addEventListener("timeupdate") is redundant for UI hiding if we use setInterval,
+    // but useful for progress bar. Keeping the existing listener for progress bar is fine.
+
     video.addEventListener("volumechange", updateVolumeUI); // Listen for external volume changes
 
     // Auto-Play Next Episode (SPA)
@@ -712,29 +730,48 @@ const {
       const autoplayPref = localStorage.getItem("pref_autoplay") !== "false";
 
       if (autoplayPref && nextUrl && nextUrl !== window.location.pathname) {
-        // Use SPA navigation instead of hard reload
-        // Check if loadEpisode is defined (it is defined in this scope)
         loadEpisode(nextUrl);
       }
     });
 
-    // --- Play/Pause Toggle ---
+    // --- Play/Pause Toggle with "Tap to Show" Logic ---
     if (playOverlay) {
-      const togglePlay = (e: Event) => {
-        // Prevent ghost clicks if both touch and click fire
+      const handleOverlayTap = (e: Event) => {
+        // Prevent default only for touch to avoid ghost clicks,
+        // but we need to be careful not to block scrolling if it was a scroll gesture.
+        // Simple tap usually doesn't involve scroll.
         if (e.type === "touchstart") e.preventDefault();
 
-        if (video.paused) {
-          video.play().catch((e) => console.error(e));
-          if (playIcon) playIcon.style.opacity = "0";
+        const now = Date.now();
+        const areControlsHidden =
+          bottomControls?.classList.contains("opacity-0");
+
+        // Logic:
+        // 1. If Controls are HIDDEN -> Show them (Poke interaction).
+        // 2. If Controls are VISIBLE -> Toggle Play/Pause.
+
+        // Note: We check if they were hidden *before* pokeInteraction updates the state.
+
+        if (areControlsHidden) {
+          // Just wake up UI
+          pokeInteraction();
+          // Maybe show a quick "Paused" or "Play" icon animation?
+          // For now, just showing controls is enough feedback.
         } else {
-          video.pause();
-          if (playIcon) playIcon.style.opacity = "1";
+          // Controls already visible, so User intends to Play/Pause
+          pokeInteraction(); // Keep them awake
+          if (video.paused) {
+            video.play().catch((e) => console.error(e));
+            if (playIcon) playIcon.style.opacity = "0";
+          } else {
+            video.pause();
+            if (playIcon) playIcon.style.opacity = "1";
+          }
         }
       };
 
-      playOverlay.addEventListener("click", togglePlay);
-      playOverlay.addEventListener("touchstart", togglePlay, {
+      playOverlay.addEventListener("click", handleOverlayTap);
+      playOverlay.addEventListener("touchstart", handleOverlayTap, {
         passive: false,
       });
     }
