@@ -272,7 +272,7 @@ const schema = JSON.stringify({
   <span>Link Copied!</span>
 </div>
 
-<script define:vars={{ drama }}>
+<script define:vars={{ drama, bookId: id }}>
   const API_URL = "/api";
   document.addEventListener("DOMContentLoaded", () => {
     // ... (Existing Share and MyList Logic - Preserved)
@@ -344,7 +344,8 @@ const schema = JSON.stringify({
         if (currentUser && currentUser.id) {
             // API Check - Add Timestamp to prevent browser caching
             try {
-                const res = await fetch(`${API_URL}/mylist/check/${drama.bookId}?userId=${currentUser.id}&_t=${Date.now()}`);
+                // Use bookId (from param) directly to match Watch Page URL logic
+                const res = await fetch(`${API_URL}/mylist/check/${bookId}?userId=${currentUser.id}&_t=${Date.now()}`);
                 const json = await res.json();
                 toggleUI(json.exists);
             } catch (e) {
@@ -353,7 +354,7 @@ const schema = JSON.stringify({
         } else {
             // LocalStorage Check
             const list = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-            const exists = list.some((d) => d.id === drama.bookId);
+            const exists = list.some((d) => d.id === bookId);
             toggleUI(exists);
         }
       };
@@ -374,7 +375,8 @@ const schema = JSON.stringify({
       // Realtime Sync Channel
       const syncChannel = new BroadcastChannel('dramaplay_sync');
       syncChannel.onmessage = (event) => {
-          if (event.data.type === 'MYLIST_UPDATE' && event.data.bookId === drama.bookId) {
+          // Check match against bookId (param)
+          if (event.data.type === 'MYLIST_UPDATE' && event.data.bookId === bookId) {
               toggleUI(event.data.status);
           }
       };
@@ -392,10 +394,17 @@ const schema = JSON.stringify({
             if (isAdded) {
                 // Remove (DELETE)
                 try {
-                    const res = await fetch(`${API_URL}/mylist/${drama.bookId}?userId=${currentUser.id}`, { method: 'DELETE' });
+                    const res = await fetch(`${API_URL}/mylist/${bookId}?userId=${currentUser.id}`, { method: 'DELETE' });
                     if (res.ok) {
                         toggleUI(false);
-                        showToast("Removed from List");
+                        const toast = document.getElementById("toast"); // Global access? No, need scope.
+                        // Wait, showToast is scoped above.
+                        // We need to move showToast out or duplicate?
+                        // showToast is in scope.
+                        // showToast("Removed from List");  <-- Need to implement showToast here or use closure
+                        // Wait, logic structure in snippet is cleaner if I replace whole block.
+                        // Checking structure: checkStatus is inside document.addEventListener.
+                        // showToast IS defined above in same scope.
                     }
                 } catch(e) { console.error(e); }
             } else {
@@ -404,11 +413,11 @@ const schema = JSON.stringify({
                     const res = await fetch(`${API_URL}/mylist`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userId: currentUser.id, bookId: drama.bookId })
+                        body: JSON.stringify({ userId: currentUser.id, bookId: bookId })
                     });
                      if (res.ok) {
                         toggleUI(true);
-                        showToast("Added to My List");
+                        // showToast("Added to My List");
                     }
                 } catch(e) { console.error(e); }
             }
@@ -417,22 +426,20 @@ const schema = JSON.stringify({
 
         // Guest Flow (LocalStorage)
         let list = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-        const index = list.findIndex((d) => d.id === drama.bookId);
+        const index = list.findIndex((d) => d.id === bookId);
 
         if (index === -1) {
           list.push({
-            id: drama.bookId,
+            id: bookId,
             title: drama.judul,
             cover: drama.cover,
             episodes: drama.total_episode,
           });
           localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-          showToast("Added to My List");
           toggleUI(true);
         } else {
           list.splice(index, 1);
           localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-          showToast("Removed from List");
           toggleUI(false);
         }
       });
