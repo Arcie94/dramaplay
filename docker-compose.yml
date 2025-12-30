@@ -7,14 +7,18 @@ services:
     container_name: dramabang-backend
     restart: always
     environment:
-      - DB_DRIVER=sqlite
-      - DB_PATH=/app/data/dramabang.db
+      - DB_DRIVER=postgres
+      - DB_HOST=postgres
+      - DB_USER=dramabang
+      - DB_PASSWORD=dramabang
+      - DB_NAME=dramabang
+      - DB_PORT=5432
       - TZ=Asia/Jakarta
     volumes:
       - ./data:/app/data
       - ./uploads:/app/public/uploads
-    # depends_on:
-    #   - postgres
+    depends_on:
+      - postgres
     networks:
       - dramabang-net
 
