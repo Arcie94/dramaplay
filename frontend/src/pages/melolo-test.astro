@@ -71,15 +71,17 @@ try {
             card.className =
               "bg-gray-800 rounded-lg overflow-hidden group relative";
             card.innerHTML = `
-                        <div class="aspect-[2/3] overflow-hidden">
-                            <img src="${item.cover}" alt="${item.judul}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" loading="lazy" />
-                        </div>
-                        <div class="p-3">
-                            <h3 class="text-sm font-bold text-white line-clamp-1">${item.judul}</h3>
-                            <p class="text-xs text-gray-400 line-clamp-1">${item.genre || "No Genre"}</p>
-                            <p class="text-xs text-gray-500 mt-1">${item.total_episode || "?"} Eps</p>
-                        </div>
-                    `;
+                <a href="/detail/${item.bookId}" class="block h-full">
+                    <div class="aspect-[2/3] overflow-hidden">
+                        <img src="${item.cover}" alt="${item.judul}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" loading="lazy" />
+                    </div>
+                    <div class="p-3">
+                        <h3 class="text-sm font-bold text-white line-clamp-1">${item.judul}</h3>
+                        <p class="text-xs text-gray-400 line-clamp-1">${item.genre || "No Genre"}</p>
+                        <p class="text-xs text-gray-500 mt-1">${item.total_episode || "?"} Eps</p>
+                    </div>
+                </a>
+            `;
             container.appendChild(card);
           });
         } else {

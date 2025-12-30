@@ -267,9 +267,12 @@ func GetMeloloStream(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"error": "Stream not found"})
 	}
 
+	// Force HTTPS to avoid mixed content issues
+	streamURL := strings.Replace(raw.Data.MainURL, "http://", "https://", 1)
+
 	return c.JSON(fiber.Map{
 		"status":     "success",
 		"source":     "melolo",
-		"stream_url": raw.Data.MainURL,
+		"stream_url": streamURL,
 	})
 }
