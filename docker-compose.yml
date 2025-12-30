@@ -6,6 +6,8 @@ services:
       context: ./backend
     container_name: dramabang-backend
     restart: always
+    env_file:
+      - ./backend/.env
     environment:
       - DB_DRIVER=postgres
       - DB_HOST=postgres
