@@ -899,12 +899,14 @@ const {
         }
       };
 
+      // Broadcast Channel for Sync
+      const syncChannel = new BroadcastChannel("dramaplay_sync");
+
       checkStatus();
 
       myListBtn.addEventListener("click", async (e) => {
         e.stopPropagation();
 
-        // Determine current state visually or via check? Visual is faster for toggle.
         const isAdded = myListBtn.classList.contains("text-red-500");
 
         if (user && user.id) {
@@ -919,6 +921,11 @@ const {
               if (res.ok) {
                 updateMyListUI(false);
                 showToast("Removed from My List");
+                syncChannel.postMessage({
+                  type: "MYLIST_UPDATE",
+                  bookId,
+                  status: false,
+                });
               }
             } catch (e) {
               showToast("Error removing", true);
@@ -934,6 +941,11 @@ const {
               if (res.ok) {
                 updateMyListUI(true);
                 showToast("Added to My List");
+                syncChannel.postMessage({
+                  type: "MYLIST_UPDATE",
+                  bookId,
+                  status: true,
+                });
               }
             } catch (e) {
               showToast("Error adding", true);
@@ -952,6 +964,11 @@ const {
             currentList.splice(existingIndex, 1);
             updateMyListUI(false);
             showToast("Removed from My List");
+            syncChannel.postMessage({
+              type: "MYLIST_UPDATE",
+              bookId,
+              status: false,
+            });
           } else {
             currentList.push({
               id: bookId,
@@ -961,6 +978,11 @@ const {
             });
             updateMyListUI(true);
             showToast("Added to My List");
+            syncChannel.postMessage({
+              type: "MYLIST_UPDATE",
+              bookId,
+              status: true,
+            });
           }
           localStorage.setItem(STORAGE_KEY, JSON.stringify(currentList));
         }

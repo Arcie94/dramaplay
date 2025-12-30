@@ -679,6 +679,20 @@ try {
         document.addEventListener("visibilitychange", () => {
              if (document.visibilityState === "visible" && window.updateHeroButtons) window.updateHeroButtons();
         });
+
+        // Realtime Sync Channel
+        const syncChannel = new BroadcastChannel('dramaplay_sync');
+        syncChannel.onmessage = (event) => {
+            if (event.data.type === 'MYLIST_UPDATE') {
+                const btn = document.querySelector(`.hero-mylist-btn[data-id="${event.data.bookId}"]`);
+                if (btn) {
+                    // Manually simulate update UI logic since we can't easily access the inner updateUI function here without refactoring
+                    // OR we just trigger the global updater if we exposed it (which we did: window.updateHeroButtons)
+                    // But global updater pulls from DB/Local, which is safer.
+                    if (window.updateHeroButtons) window.updateHeroButtons();
+                }
+            }
+        };
       });
     </script>
 

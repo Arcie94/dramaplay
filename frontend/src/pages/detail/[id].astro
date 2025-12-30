@@ -362,8 +362,6 @@ const schema = JSON.stringify({
       checkStatus();
 
       // Reliable Sync on Page Show (Back Button, Forward Button, BFCache)
-      // We remove the 'persisted' check to force a re-check on *any* navigation to this page history entry.
-      // This is slightly redundant on fresh loads but ensures 'Back' always works.
       window.addEventListener("pageshow", () => {
           checkStatus();
       });
@@ -372,6 +370,14 @@ const schema = JSON.stringify({
       document.addEventListener("visibilitychange", () => {
           if (document.visibilityState === "visible") checkStatus();
       });
+
+      // Realtime Sync Channel
+      const syncChannel = new BroadcastChannel('dramaplay_sync');
+      syncChannel.onmessage = (event) => {
+          if (event.data.type === 'MYLIST_UPDATE' && event.data.bookId === drama.bookId) {
+              toggleUI(event.data.status);
+          }
+      };
 
       myListBtn.addEventListener("click", async () => {
         // Re-read user to ensure we have latest auth state
