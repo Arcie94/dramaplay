@@ -3,6 +3,7 @@ package handlers
 import (
 	"dramabang/models"
 	"dramabang/services/adapter"
+	"fmt"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -112,6 +113,8 @@ func GetDetail(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"error": "Drama not found or provider error: " + err.Error()})
 	}
+	// Debug print
+	fmt.Printf("Handler Debug: Received drama.Judul='%s', Episodes=%d\n", drama.Judul, len(episodes))
 
 	// Map to response format expected by frontend
 	return c.JSON(models.DetailResponse{

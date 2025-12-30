@@ -177,8 +177,15 @@ func (p *MeloloProvider) GetDetail(id string) (*models.Drama, []models.Episode, 
 
 	var raw mDetailResponse
 	if err := json.Unmarshal(body, &raw); err != nil {
+		fmt.Printf("Melolo Unmarshal Error: %v\n", err)
 		return nil, nil, err
 	}
+	if raw.Data.VideoData != nil {
+		fmt.Printf("Melolo Debug: VideoData Found. Title='%s', Episodes=%d\n", raw.Data.VideoData.SeriesTitle, len(raw.Data.VideoData.VideoList))
+	} else {
+		fmt.Printf("Melolo Debug: VideoData is NIL\n")
+	}
+	fmt.Printf("Melolo Debug: TopLevel Title='%s', Episodes=%d\n", raw.Data.SeriesTitle, len(raw.Data.VideoList))
 
 	var title, cover, intro string
 	var videoList []mVideoItem
