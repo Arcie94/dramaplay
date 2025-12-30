@@ -143,7 +143,7 @@ func (p *MeloloProvider) GetLatest(page int) ([]models.Drama, error) {
 }
 
 func (p *MeloloProvider) Search(query string) ([]models.Drama, error) {
-	url := fmt.Sprintf("%s/search?query=%s", MeloloAPI, query)
+	url := fmt.Sprintf("%s/search?query=%s", MeloloAPI, url.QueryEscape(query))
 	body, err := p.fetch(url)
 	if err != nil {
 		return nil, err

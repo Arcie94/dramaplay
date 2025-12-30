@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -151,7 +152,7 @@ func (p *DramaboxProvider) GetTrending() ([]models.Drama, error) {
 }
 
 func (p *DramaboxProvider) Search(query string) ([]models.Drama, error) {
-	url := fmt.Sprintf("%s/search?keyword=%s", DramaboxAPI, query)
+	url := fmt.Sprintf("%s/search?keyword=%s", DramaboxAPI, url.QueryEscape(query))
 	body, err := p.fetch(url)
 	if err != nil {
 		return nil, err
