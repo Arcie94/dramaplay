@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -52,6 +53,14 @@ func FetchMelolo(url string) ([]byte, error) {
 	return io.ReadAll(resp.Body)
 }
 
+func ProxyImage(originalURL string) string {
+	if originalURL == "" {
+		return ""
+	}
+	// Use wsrv.nl to proxy and convert to jpg
+	return "https://wsrv.nl/?url=" + url.QueryEscape(originalURL) + "&output=jpg"
+}
+
 func GetMeloloLatest(c *fiber.Ctx) error {
 	body, err := FetchMelolo(MeloloAPI + "/latest")
 	if err != nil {
@@ -68,7 +77,7 @@ func GetMeloloLatest(c *fiber.Ctx) error {
 		dramas = append(dramas, models.Drama{
 			BookID:       b.BookID,
 			Judul:        b.BookName,
-			Cover:        b.ThumbURL,
+			Cover:        ProxyImage(b.ThumbURL),
 			Deskripsi:    b.Abstract,
 			TotalEpisode: b.SerialCount,
 			Genre:        strings.Join(b.StatInfos, ", "),
@@ -100,7 +109,7 @@ func GetMeloloTrending(c *fiber.Ctx) error {
 		dramas = append(dramas, models.Drama{
 			BookID:       b.BookID,
 			Judul:        b.BookName,
-			Cover:        b.ThumbURL,
+			Cover:        ProxyImage(b.ThumbURL),
 			Deskripsi:    b.Abstract,
 			TotalEpisode: b.SerialCount,
 			Genre:        strings.Join(b.StatInfos, ", "),
@@ -140,7 +149,7 @@ func GetMeloloSearch(c *fiber.Ctx) error {
 			dramas = append(dramas, models.Drama{
 				BookID:       b.BookID,
 				Judul:        b.BookName,
-				Cover:        b.ThumbURL,
+				Cover:        ProxyImage(b.ThumbURL),
 				Deskripsi:    b.Abstract,
 				TotalEpisode: b.SerialCount,
 				Genre:        strings.Join(b.StatInfos, ", "),
