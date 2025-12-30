@@ -571,15 +571,13 @@ try {
         const initHeroMyList = () => {
              const btns = document.querySelectorAll(".hero-mylist-btn");
              const STORAGE_KEY = "drama_mylist";
-             const userStr = localStorage.getItem("user");
-             let user = null;
-             try { if(userStr) user = JSON.parse(userStr); } catch(e){}
-
-             btns.forEach(async (btn) => {
-                 const bookId = (btn as HTMLElement).dataset.id;
-                 const title = (btn as HTMLElement).dataset.title;
-                 const cover = (btn as HTMLElement).dataset.cover;
-                 const episodes = (btn as HTMLElement).dataset.episodes;
+             
+             // Define update logic per button to call later
+             const updateButtonState = async (btn) => {
+                 const bookId = (btn).dataset.id;
+                 const userStr = localStorage.getItem("user");
+                 let user = null;
+                 try { if(userStr) user = JSON.parse(userStr); } catch(e){}
 
                  if (!bookId) return;
 
@@ -593,66 +591,93 @@ try {
                      } catch(e){}
                  } else {
                      const list = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-                     exists = list.some((d: any) => d.id === bookId);
+                     exists = list.some((d) => d.id === bookId);
                  }
 
                  // Update UI
-                 const updateUI = (isAdded: boolean) => {
-                     if (isAdded) {
-                         (btn as HTMLElement).innerHTML = `
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                            </svg>
-                            Added
-                         `;
-                     } else {
-                         (btn as HTMLElement).innerHTML = `
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
-                          </svg>
-                          My List
-                         `;
-                     }
-                 };
+                 if (exists) {
+                     (btn).innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        Added
+                     `;
+                 } else {
+                     (btn).innerHTML = `
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                      </svg>
+                      My List
+                     `;
+                 }
+             };
 
-                 updateUI(exists);
+             // Initial Init & Click Handlers
+             btns.forEach((btn) => {
+                 updateButtonState(btn);
 
-                 // Click Handler
+                 // One-time listener attachment check? 
+                 // Assuming this runs once per page load, it's fine.
+                 // If run multiple times, might duplicate. Assuming fresh load.
+                 
                  btn.addEventListener("click", async (e) => {
                     e.preventDefault();
-                    e.stopPropagation(); // prevent carousel drag if any
+                    e.stopPropagation(); 
                     
-                    const isAdded = (btn as HTMLElement).innerText.includes("Added");
+                    const isAdded = (btn).innerText.includes("Added");
+                    
+                    // Re-read user
+                    const userStr = localStorage.getItem("user");
+                    let user = null;
+                    try { if(userStr) user = JSON.parse(userStr); } catch(e){}
+                    
+                    const bookId = (btn).dataset.id;
+                    const title = (btn).dataset.title;
+                    const cover = (btn).dataset.cover;
+                    const episodes = (btn).dataset.episodes;
 
                     if (user && user.id) {
                          // API
                          if (isAdded) {
                              await fetch(`/api/mylist/${bookId}?userId=${user.id}`, { method: 'DELETE' });
-                             updateUI(false);
+                             updateButtonState(btn); // Re-check or manually toggle
                          } else {
                              await fetch(`/api/mylist`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ userId: user.id, bookId })
                              });
-                             updateUI(true);
+                             updateButtonState(btn);
                          }
                     } else {
                         // LocalStorage
                         let list = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
                         if (isAdded) {
-                             list = list.filter((d: any) => d.id !== bookId);
-                             updateUI(false);
+                             list = list.filter((d) => d.id !== bookId);
+                             updateButtonState(btn);
                         } else {
                              list.push({ id: bookId, title, cover, episodes });
-                             updateUI(true);
+                             updateButtonState(btn);
                         }
                         localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
                     }
                  });
              });
+
+             // Expose updater for global events
+             window.updateHeroButtons = () => {
+                 btns.forEach(btn => updateButtonState(btn));
+             }
         };
         initHeroMyList();
+
+        // Sync Events
+        window.addEventListener("pageshow", (event) => {
+            if (event.persisted && window.updateHeroButtons) window.updateHeroButtons();
+        });
+        document.addEventListener("visibilitychange", () => {
+             if (document.visibilityState === "visible" && window.updateHeroButtons) window.updateHeroButtons();
+        });
       });
     </script>
 

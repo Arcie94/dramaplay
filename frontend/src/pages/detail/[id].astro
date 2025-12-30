@@ -316,8 +316,6 @@ const schema = JSON.stringify({
       const userStr = localStorage.getItem("user");
       let user = null;
       try {
-        if (userStr) user = JSON.parse(userStr);
-      } catch (e) {}
 
       // Helper: Toggle Button UI
       const toggleUI = (isAdded) => {
@@ -338,63 +336,75 @@ const schema = JSON.stringify({
       };
 
       const checkStatus = async () => {
-        if (user && user.id) {
-          // API Check
-          try {
-            const res = await fetch(
-              `${API_URL}/mylist/check/${drama.bookId}?userId=${user.id}`
-            );
-            const json = await res.json();
-            toggleUI(json.exists);
-          } catch (e) {
-            console.error("Check status failed", e);
-          }
+        // Re-read user from local storage in case it changed (e.g. login/logout in another tab)
+        const currentUserStr = localStorage.getItem("user");
+        let currentUser = null;
+        try { if (currentUserStr) currentUser = JSON.parse(currentUserStr); } catch (e) {}
+
+        if (currentUser && currentUser.id) {
+            // API Check
+            try {
+                const res = await fetch(`${API_URL}/mylist/check/${drama.bookId}?userId=${currentUser.id}`);
+                const json = await res.json();
+                toggleUI(json.exists);
+            } catch (e) {
+                console.error("Check status failed", e);
+            }
         } else {
-          // LocalStorage Check
-          const list = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-          const exists = list.some((d) => d.id === drama.bookId);
-          toggleUI(exists);
+            // LocalStorage Check
+            const list = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+            const exists = list.some((d) => d.id === drama.bookId);
+            toggleUI(exists);
         }
       };
 
+      // Initial Check
       checkStatus();
 
-      myListBtn.addEventListener("click", async () => {
-        // Logged In Flow
-        if (user && user.id) {
-          const isAdded = myListBtn.innerText === "Added";
+      // Sync on Page Show (Back Button Cache)
+      window.addEventListener("pageshow", (event) => {
+          if (event.persisted) checkStatus();
+      });
 
-          if (isAdded) {
-            // Remove (DELETE)
-            try {
-              const res = await fetch(
-                `${API_URL}/mylist/${drama.bookId}?userId=${user.id}`,
-                { method: "DELETE" }
-              );
-              if (res.ok) {
-                toggleUI(false);
-                showToast("Removed from List");
-              }
-            } catch (e) {
-              console.error(e);
+      // Sync on Tab Focus
+      document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "visible") checkStatus();
+      });
+
+      myListBtn.addEventListener("click", async () => {
+        // Re-read user to ensure we have latest auth state
+        const currentUserStr = localStorage.getItem("user");
+        let currentUser = null;
+        try { if (currentUserStr) currentUser = JSON.parse(currentUserStr); } catch (e) {}
+
+        // Logged In Flow
+        if (currentUser && currentUser.id) {
+            const isAdded = myListBtn.innerText === "Added";
+            
+            if (isAdded) {
+                // Remove (DELETE)
+                try {
+                    const res = await fetch(`${API_URL}/mylist/${drama.bookId}?userId=${currentUser.id}`, { method: 'DELETE' });
+                    if (res.ok) {
+                        toggleUI(false);
+                        showToast("Removed from List");
+                    }
+                } catch(e) { console.error(e); }
+            } else {
+                // Add (POST)
+                try {
+                    const res = await fetch(`${API_URL}/mylist`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: currentUser.id, bookId: drama.bookId })
+                    });
+                     if (res.ok) {
+                        toggleUI(true);
+                        showToast("Added to My List");
+                    }
+                } catch(e) { console.error(e); }
             }
-          } else {
-            // Add (POST)
-            try {
-              const res = await fetch(`${API_URL}/mylist`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId: user.id, bookId: drama.bookId }),
-              });
-              if (res.ok) {
-                toggleUI(true);
-                showToast("Added to My List");
-              }
-            } catch (e) {
-              console.error(e);
-            }
-          }
-          return;
+            return;
         }
 
         // Guest Flow (LocalStorage)
