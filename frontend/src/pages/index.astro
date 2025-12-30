@@ -302,11 +302,274 @@ try {
 
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        // ... (Existing Logic) ...
+        // 1. Login/Profile Logic
+        const loginBtn = document.getElementById("login-nav-btn");
+        const profileBtn = document.getElementById("profile-nav-btn");
+
+        const updateNavState = () => {
+          const isLoggedIn =
+            localStorage.getItem("isLoggedIn") === "true" &&
+            !!localStorage.getItem("token") &&
+            !!localStorage.getItem("user");
+          console.log("Nav Update: IsLoggedIn =", isLoggedIn);
+          if (isLoggedIn) {
+            loginBtn?.classList.add("hidden");
+            profileBtn?.classList.remove("hidden");
+          } else {
+            loginBtn?.classList.remove("hidden");
+            profileBtn?.classList.add("hidden");
+          }
+        };
+
+        updateNavState();
+        window.addEventListener("login-success", updateNavState);
+
+        if (loginBtn) {
+          loginBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            if ((window as any).showLoginPopup) {
+              (window as any).showLoginPopup();
+            } else {
+              // Fallback
+              const overlay = document.getElementById("login-overlay");
+              if (overlay) overlay.style.display = "flex";
+            }
+          });
+        }
+
+        // 2. Continue Watching Logic
+        const initContinueWatching = () => {
+          const section = document.getElementById("continue-watching-section");
+          const list = document.getElementById("continue-watching-list");
+          const userStr = localStorage.getItem("user");
+
+          if (!section || !list || !userStr) return;
+
+          try {
+            const user = JSON.parse(userStr);
+            if (!user.id) return;
+
+            fetch(`/api/history?userId=${user.id}`)
+              .then((res) => res.json())
+              .then((json) => {
+                if (
+                  json.status === "success" &&
+                  json.data &&
+                  json.data.length > 0
+                ) {
+                  // Filter out items with missing drama, ID, or COVER
+                  const validItems = json.data.filter(
+                    (h: any) => h.drama && h.drama.bookId && h.drama.cover
+                  );
+
+                  if (validItems.length > 0) {
+                    section.classList.remove("hidden");
+                    list.innerHTML = validItems
+                      .map((h: any) => {
+                        if (!h.drama) return "";
+                        const title = h.drama.judul;
+                        const cover = h.drama.cover;
+                        const displayEp = (h.episodeIdx || 0) + 1;
+                        const bookId = h.drama.bookId;
+
+                        return `
+                                            <div class="min-w-[140px] w-[140px] md:min-w-[calc(20%-13px)] md:w-[calc(20%-13px)] snap-start shrink-0">
+                                                <a href="/watch/${bookId}/${displayEp}" class="block group relative w-full h-full rounded-xl overflow-hidden">
+                                                    <div class="aspect-[2/3] w-full overflow-hidden relative">
+                                                        <img src="${cover}" 
+                                                             class="w-full h-full object-cover"
+                                                             onerror="this.closest('.snap-start').remove(); checkEmptySection();"
+                                                        >
+                                                        <div class="absolute top-2 right-2 px-2 py-0.5 bg-red-600/90 rounded text-[10px] font-bold text-white">Ep ${displayEp}</div>
+                                                    </div>
+                                                    <div class="p-2">
+                                                        <h3 class="font-bold text-white text-sm line-clamp-1">${title}</h3>
+                                                    </div>
+                                                </a>
+                                            </div>`;
+                      })
+                      .join("");
+
+                    // Helper to hide section if all items are removed by onerror
+                    (window as any).checkEmptySection = () => {
+                      if (list.children.length === 0) {
+                        section.classList.add("hidden");
+                      }
+                    };
+                  }
+                }
+              })
+              .catch((err) => console.error("History fetch error", err));
+          } catch (e) {
+            console.error("User parse error", e);
+          }
+        };
+
+        initContinueWatching();
+        window.addEventListener("login-success", initContinueWatching);
+        window.addEventListener("storage", (e) => {
+          if (e.key === "last_watch_update") {
+            initContinueWatching();
+          }
+        });
+
+        // 3. Carousel Logic (Hero & Trending)
+
+        // --- Hero Carousel (Infinite Loop) ---
+        const setupHeroCarousel = () => {
+          const heroContainer = document.getElementById("hero-carousel");
+          const dots = document.querySelectorAll("[data-hero-index]");
+
+          if (!heroContainer || heroContainer.children.length <= 1) return;
+
+          // Clone first slide for infinity effect
+          const firstSlide = heroContainer.children[0];
+          const clone = firstSlide.cloneNode(true);
+          heroContainer.appendChild(clone);
+
+          let currentIndex = 0;
+          const realTotalSlides = heroContainer.children.length - 1; // Exclude clone
+          const intervalTime = 5000;
+          let autoSlideInterval: any;
+          let isTransitioning = false;
+
+          const updateDots = (index: number) => {
+            const realIndex = index % realTotalSlides;
+            dots.forEach((dot, i) => {
+              if (i === realIndex) {
+                dot.classList.remove("bg-white/50");
+                dot.classList.add("bg-white", "scale-125");
+              } else {
+                dot.classList.add("bg-white/50");
+                dot.classList.remove("bg-white", "scale-125");
+              }
+            });
+          };
+
+          const scrollToSlide = (index: number, smooth = true) => {
+            const slide = heroContainer.children[index];
+            if (slide) {
+              // Use container scrollTo instead of element.scrollIntoView to avoid scrolling the whole page
+              heroContainer.scrollTo({
+                left: (slide as HTMLElement).offsetLeft,
+                behavior: smooth ? "smooth" : "auto",
+              });
+
+              // Only update dots if we are at a "real" index or the clone (which maps to 0)
+              updateDots(index);
+
+              currentIndex = index;
+            }
+          };
+
+          const nextSlide = () => {
+            if (isTransitioning) return;
+
+            currentIndex++;
+            scrollToSlide(currentIndex, true);
+
+            // If we reached the clone (last item)
+            if (currentIndex === realTotalSlides) {
+              isTransitioning = true;
+              // Wait for smooth scroll to finish, then jump to real 0
+              setTimeout(() => {
+                scrollToSlide(0, false); // Instant jump
+                currentIndex = 0;
+                isTransitioning = false;
+              }, 600); // 600ms match css current transition roughly
+            }
+          };
+
+          const startAutoSlide = () => {
+            stopAutoSlide();
+            autoSlideInterval = setInterval(nextSlide, intervalTime);
+          };
+
+          const stopAutoSlide = () => {
+            clearInterval(autoSlideInterval);
+          };
+
+          // Event Listeners for Dots
+          dots.forEach((dot) => {
+            dot.addEventListener("click", (e) => {
+              const target = e.target as HTMLElement;
+              const index = parseInt(target.dataset.heroIndex || "0");
+              scrollToSlide(index, true);
+              startAutoSlide();
+            });
+          });
+
+          // Pause on hover
+          heroContainer.addEventListener("mouseenter", stopAutoSlide);
+          heroContainer.addEventListener("mouseleave", startAutoSlide);
+
+          // Initial state
+          updateDots(0);
+          startAutoSlide();
+        };
+        setupHeroCarousel();
+
+        // --- Trending Carousel (Infinite Auto-Slide) ---
+        const setupTrendingCarousel = () => {
+          const container = document.getElementById("trending-carousel");
+          if (!container) return;
+
+          // Clone content to ensure seamless loop
+          const originalContent = Array.from(container.children);
+          // Append clones
+          originalContent.forEach((item) =>
+            container.appendChild(item.cloneNode(true))
+          );
+
+          let autoSlideInterval: any;
+          const intervalTime = 3000; // 3 detik per slide
+
+          const nextSlide = () => {
+            // Ambil lebar kartu pertama + gap (asumsi gap 1rem = 16px)
+            // Atau lebih aman hitung dari posisi kartu kedua
+            if (container.children.length < 2) return;
+
+            const firstCard = container.children[0] as HTMLElement;
+            const secondCard = container.children[1] as HTMLElement;
+            const cardWidth = secondCard.offsetLeft - firstCard.offsetLeft;
+
+            // Scroll ke kanan 1 kartu
+            container.scrollBy({
+              left: cardWidth,
+              behavior: "smooth",
+            });
+
+            // Cek reset setelah animasi (asumsi 500ms cukup)
+            setTimeout(() => {
+              // Jika sudah melewati setengah (masuk ke area clone)
+              // scrollWidth / 2 adalah titik awal clone (karena kita duplikasi 1x)
+              if (container.scrollLeft >= container.scrollWidth / 2) {
+                container.scrollLeft = 0;
+              }
+            }, 600);
+          };
+
+          const startAutoSlide = () => {
+            stopAutoSlide();
+            autoSlideInterval = setInterval(nextSlide, intervalTime);
+          };
+
+          const stopAutoSlide = () => {
+            clearInterval(autoSlideInterval);
+          };
+
+          // Pause on hover
+          container.addEventListener("mouseenter", stopAutoSlide);
+          container.addEventListener("mouseleave", startAutoSlide);
+          container.addEventListener("touchstart", stopAutoSlide);
+          container.addEventListener("touchend", startAutoSlide);
+
+          startAutoSlide();
+        };
+        setupTrendingCarousel();
 
         // 4. Hero My List Logic
         const initHeroMyList = () => {
-             // ... (Existing MyList Logic Preserved) ...
              const btns = document.querySelectorAll(".hero-mylist-btn");
              const STORAGE_KEY = "drama_mylist";
              
@@ -349,16 +612,15 @@ try {
                      `;
                  }
              };
-             // ... (Rest of MyList Logic) ... 
-             // Logic to attach listeners...
+
+             // Initial Init & Click Handlers
              btns.forEach((btn) => {
                  updateButtonState(btn);
                  btn.addEventListener("click", async (e) => {
-                    // ... (Click Handler) ...
                     e.preventDefault();
                     e.stopPropagation(); 
                     
-                    const isAdded = (btn).innerText.includes("Added");
+                    const isAdded = (btn).textContent.includes("Added");
                     
                     const userStr = localStorage.getItem("user");
                     let user = null;
@@ -441,11 +703,13 @@ try {
         window.addEventListener("pageshow", () => {
             if (window.updateHeroButtons) window.updateHeroButtons();
             initHeroResume(); // Update Resume Button too
+            updateNavState(); // Update Nav
         });
         document.addEventListener("visibilitychange", () => {
              if (document.visibilityState === "visible") {
                 if (window.updateHeroButtons) window.updateHeroButtons();
                 initHeroResume();
+                updateNavState();
              }
         });
 
