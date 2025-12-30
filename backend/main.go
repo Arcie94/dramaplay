@@ -103,6 +103,8 @@ func main() {
 	melolo.Get("/latest", handlers.GetMeloloLatest)
 	melolo.Get("/trending", handlers.GetMeloloTrending)
 	melolo.Get("/search", handlers.GetMeloloSearch)
+	melolo.Get("/detail/:book_id", handlers.GetMeloloDetail)
+	melolo.Get("/stream/:video_id", handlers.GetMeloloStream)
 
 	log.Fatal(app.Listen(":3000"))
 }

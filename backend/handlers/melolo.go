@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -39,6 +40,29 @@ type MeloloSearchResponse struct {
 			Books []MeloloBook `json:"books"`
 			Name  string       `json:"name"`
 		} `json:"search_data"`
+	} `json:"data"`
+}
+
+type MeloloDetailResponse struct {
+	Code int `json:"code"`
+	Data struct {
+		VideoList []struct {
+			Vid      string `json:"vid"`
+			Title    string `json:"title"`
+			Cover    string `json:"cover"`
+			Duration int    `json:"duration"`
+			VidIndex int    `json:"vid_index"`
+		} `json:"video_list"`
+		SeriesTitle string `json:"series_title"`
+		SeriesIntro string `json:"series_intro"`
+		SeriesCover string `json:"series_cover"`
+	} `json:"data"`
+}
+
+type MeloloStreamResponse struct {
+	Code int `json:"code"`
+	Data struct {
+		MainURL string `json:"main_url"`
 	} `json:"data"`
 }
 
@@ -163,5 +187,89 @@ func GetMeloloSearch(c *fiber.Ctx) error {
 		"source": "melolo",
 		"query":  query,
 		"data":   dramas,
+	})
+}
+
+// Custom struct for Melolo Detail Response to separate from DB models
+type MeloloEpisode struct {
+	EpisodeIndex int    `json:"episode_index"`
+	EpisodeLabel string `json:"episode_label"`
+	Vid          string `json:"vid"`
+	Cover        string `json:"cover"`
+	Duration     int    `json:"duration"`
+}
+
+func GetMeloloDetail(c *fiber.Ctx) error {
+	bookID := c.Params("book_id")
+	if bookID == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "Book ID required"})
+	}
+
+	url := fmt.Sprintf("%s/detail?bookId=%s", MeloloAPI, bookID)
+	body, err := FetchMelolo(url)
+	if err != nil {
+		return c.Status(502).JSON(fiber.Map{"error": "Melolo API unreachable"})
+	}
+
+	var raw MeloloDetailResponse
+	if err := json.Unmarshal(body, &raw); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Invalid Detail JSON"})
+	}
+
+	var episodes []MeloloEpisode
+	for _, v := range raw.Data.VideoList {
+		episodes = append(episodes, MeloloEpisode{
+			EpisodeIndex: v.VidIndex,
+			EpisodeLabel: fmt.Sprintf("Episode %d", v.VidIndex),
+			Vid:          v.Vid,
+			Cover:        ProxyImage(v.Cover),
+			Duration:     v.Duration,
+		})
+	}
+
+	// Also map the drama details itself
+	drama := models.Drama{
+		BookID:       bookID,
+		Judul:        raw.Data.SeriesTitle,
+		Cover:        ProxyImage(raw.Data.SeriesCover),
+		Deskripsi:    raw.Data.SeriesIntro,
+		TotalEpisode: strconv.Itoa(len(raw.Data.VideoList)),
+		Genre:        "", // Detail API might not return genre easily here, irrelevant for playback
+		IsFeatured:   false,
+	}
+
+	return c.JSON(fiber.Map{
+		"status":   "success",
+		"source":   "melolo",
+		"drama":    drama,
+		"episodes": episodes,
+	})
+}
+
+func GetMeloloStream(c *fiber.Ctx) error {
+	videoID := c.Params("video_id")
+	if videoID == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "Video ID required"})
+	}
+
+	url := fmt.Sprintf("%s/stream?videoId=%s", MeloloAPI, videoID)
+	body, err := FetchMelolo(url)
+	if err != nil {
+		return c.Status(502).JSON(fiber.Map{"error": "Melolo API unreachable"})
+	}
+
+	var raw MeloloStreamResponse
+	if err := json.Unmarshal(body, &raw); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Invalid Stream JSON"})
+	}
+
+	if raw.Data.MainURL == "" {
+		return c.Status(404).JSON(fiber.Map{"error": "Stream not found"})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":     "success",
+		"source":     "melolo",
+		"stream_url": raw.Data.MainURL,
 	})
 }

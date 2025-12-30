@@ -2,6 +2,7 @@
 import Layout from "../../layouts/Layout.astro";
 
 const { id } = Astro.params;
+if (!id) return Astro.redirect("/404");
 
 // Fetch Detail
 // Fetch Detail
@@ -9,13 +10,28 @@ let drama = null;
 let episodes = [];
 const API_URL = process.env.INTERNAL_API_URL || "https://dramaplay.online/api";
 
+const isMelolo = id.length > 15 && /^\d+$/.test(id); // Heuristic for Melolo Snowflake ID
+
 try {
-  const res = await fetch(`${API_URL}/detail?bookId=${id}`);
+  let res;
+  if (isMelolo) {
+    res = await fetch(`${API_URL}/melolo/detail/${id}`);
+  } else {
+    res = await fetch(`${API_URL}/detail?bookId=${id}`);
+  }
+
   if (res.ok) {
     const json = await res.json();
     if (json.status === "success") {
-      drama = json;
-      episodes = json.episodes || [];
+      drama = json.drama || json; // Melolo returns wrapped drama object, Standard returns direct or wrapped? logic below handles standard
+      if (json.source === "melolo") {
+        drama = json.drama;
+        episodes = json.episodes || [];
+      } else {
+        // Standard API handling (assuming it returns flat object or similar)
+        drama = json;
+        episodes = json.episodes || [];
+      }
     }
   }
 } catch (e) {
