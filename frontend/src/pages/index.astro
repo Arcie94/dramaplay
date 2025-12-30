@@ -585,7 +585,8 @@ try {
                  let exists = false;
                  if (user && user.id) {
                      try {
-                        const res = await fetch(`/api/mylist/check/${bookId}?userId=${user.id}`);
+                        // Add timestamp to prevent caching
+                        const res = await fetch(`/api/mylist/check/${bookId}?userId=${user.id}&_t=${Date.now()}`);
                         const json = await res.json();
                         exists = json.exists;
                      } catch(e){}
@@ -672,8 +673,8 @@ try {
         initHeroMyList();
 
         // Sync Events
-        window.addEventListener("pageshow", (event) => {
-            if (event.persisted && window.updateHeroButtons) window.updateHeroButtons();
+        window.addEventListener("pageshow", () => {
+            if (window.updateHeroButtons) window.updateHeroButtons();
         });
         document.addEventListener("visibilitychange", () => {
              if (document.visibilityState === "visible" && window.updateHeroButtons) window.updateHeroButtons();

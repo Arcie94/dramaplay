@@ -336,15 +336,15 @@ const schema = JSON.stringify({
       };
 
       const checkStatus = async () => {
-        // Re-read user from local storage in case it changed (e.g. login/logout in another tab)
+        // Re-read user from local storage
         const currentUserStr = localStorage.getItem("user");
         let currentUser = null;
         try { if (currentUserStr) currentUser = JSON.parse(currentUserStr); } catch (e) {}
 
         if (currentUser && currentUser.id) {
-            // API Check
+            // API Check - Add Timestamp to prevent browser caching
             try {
-                const res = await fetch(`${API_URL}/mylist/check/${drama.bookId}?userId=${currentUser.id}`);
+                const res = await fetch(`${API_URL}/mylist/check/${drama.bookId}?userId=${currentUser.id}&_t=${Date.now()}`);
                 const json = await res.json();
                 toggleUI(json.exists);
             } catch (e) {
@@ -361,9 +361,11 @@ const schema = JSON.stringify({
       // Initial Check
       checkStatus();
 
-      // Sync on Page Show (Back Button Cache)
-      window.addEventListener("pageshow", (event) => {
-          if (event.persisted) checkStatus();
+      // Reliable Sync on Page Show (Back Button, Forward Button, BFCache)
+      // We remove the 'persisted' check to force a re-check on *any* navigation to this page history entry.
+      // This is slightly redundant on fresh loads but ensures 'Back' always works.
+      window.addEventListener("pageshow", () => {
+          checkStatus();
       });
 
       // Sync on Tab Focus
