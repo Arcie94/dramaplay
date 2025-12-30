@@ -272,14 +272,18 @@ const schema = JSON.stringify({
   <span>Link Copied!</span>
 </div>
 
-<script define:vars={{ drama, bookId: id }}>
+<script
+  define:vars={{
+    bookId: id,
+    dramaTitle: drama.judul,
+    dramaCover: drama.cover,
+    dramaEpisodes: drama.total_episode,
+  }}
+>
   const API_URL = "/api";
   document.addEventListener("DOMContentLoaded", () => {
-    // ... (Existing Share and MyList Logic - Preserved)
-    const shareBtn = document.getElementById("share-btn");
+    // Shared Toast Logic
     const toast = document.getElementById("toast");
-    const myListBtn = document.getElementById("mylist-btn");
-
     function showToast(msg) {
       if (toast) {
         const span = toast.querySelector("span");
@@ -291,6 +295,8 @@ const schema = JSON.stringify({
       }
     }
 
+    // Share Button
+    const shareBtn = document.getElementById("share-btn");
     if (shareBtn) {
       shareBtn.addEventListener("click", async () => {
         const shareData = {
@@ -311,19 +317,20 @@ const schema = JSON.stringify({
       });
     }
 
+    // My List Logic
+    const myListBtn = document.getElementById("mylist-btn");
     if (myListBtn) {
       const STORAGE_KEY = "drama_mylist";
-      const userStr = localStorage.getItem("user");
-      let user = null;
-      try {
 
       // Helper: Toggle Button UI
       const toggleUI = (isAdded) => {
         if (isAdded) {
+          myListBtn.setAttribute("data-added", "true");
           myListBtn.innerText = "Added";
           myListBtn.classList.remove("bg-zinc-800", "text-white");
           myListBtn.classList.add("bg-green-600", "text-white");
         } else {
+          myListBtn.setAttribute("data-added", "false");
           myListBtn.innerHTML = `
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                           <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
@@ -336,116 +343,144 @@ const schema = JSON.stringify({
       };
 
       const checkStatus = async () => {
-        // Re-read user from local storage
         const currentUserStr = localStorage.getItem("user");
         let currentUser = null;
-        try { if (currentUserStr) currentUser = JSON.parse(currentUserStr); } catch (e) {}
+        try {
+          if (currentUserStr) currentUser = JSON.parse(currentUserStr);
+        } catch (e) {}
 
         if (currentUser && currentUser.id) {
-            // API Check - Add Timestamp to prevent browser caching
-            try {
-                // Use bookId (from param) directly to match Watch Page URL logic
-                const res = await fetch(`${API_URL}/mylist/check/${bookId}?userId=${currentUser.id}&_t=${Date.now()}`);
-                const json = await res.json();
-                toggleUI(json.exists);
-            } catch (e) {
-                console.error("Check status failed", e);
-            }
+          // API Check
+          try {
+            const res = await fetch(
+              `${API_URL}/mylist/check/${bookId}?userId=${currentUser.id}&_t=${Date.now()}`
+            );
+            const json = await res.json();
+            toggleUI(json.exists);
+          } catch (e) {
+            console.error("Check status failed", e);
+          }
         } else {
-            // LocalStorage Check
-            const list = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-            const exists = list.some((d) => d.id === bookId);
-            toggleUI(exists);
+          // LocalStorage Check
+          const list = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+          const exists = list.some((d) => d.id === bookId);
+          toggleUI(exists);
         }
       };
 
       // Initial Check
       checkStatus();
 
-      // Reliable Sync on Page Show (Back Button, Forward Button, BFCache)
+      // Reliable Sync on Page Show
       window.addEventListener("pageshow", () => {
-          checkStatus();
+        checkStatus();
       });
 
       // Sync on Tab Focus
       document.addEventListener("visibilitychange", () => {
-          if (document.visibilityState === "visible") checkStatus();
+        if (document.visibilityState === "visible") checkStatus();
       });
 
       // Realtime Sync Channel
-      const syncChannel = new BroadcastChannel('dramaplay_sync');
+      const syncChannel = new BroadcastChannel("dramaplay_sync");
       syncChannel.onmessage = (event) => {
-          // Check match against bookId (param)
-          if (event.data.type === 'MYLIST_UPDATE' && event.data.bookId === bookId) {
-              toggleUI(event.data.status);
-          }
+        if (
+          event.data.type === "MYLIST_UPDATE" &&
+          event.data.bookId === bookId
+        ) {
+          toggleUI(event.data.status);
+        }
       };
 
-      myListBtn.addEventListener("click", async () => {
-        // Re-read user to ensure we have latest auth state
+      // Click Handler
+      myListBtn.addEventListener("click", async (e) => {
+        e.preventDefault(); // Prevent accidental form submit or link behavior
+
         const currentUserStr = localStorage.getItem("user");
         let currentUser = null;
-        try { if (currentUserStr) currentUser = JSON.parse(currentUserStr); } catch (e) {}
+        try {
+          if (currentUserStr) currentUser = JSON.parse(currentUserStr);
+        } catch (e) {}
 
-        // Logged In Flow
+        const isAdded = myListBtn.getAttribute("data-added") === "true";
+
         if (currentUser && currentUser.id) {
-            const isAdded = myListBtn.innerText === "Added";
-            
-            if (isAdded) {
-                // Remove (DELETE)
-                try {
-                    const res = await fetch(`${API_URL}/mylist/${bookId}?userId=${currentUser.id}`, { method: 'DELETE' });
-                    if (res.ok) {
-                        toggleUI(false);
-                        const toast = document.getElementById("toast"); // Global access? No, need scope.
-                        // Wait, showToast is scoped above.
-                        // We need to move showToast out or duplicate?
-                        // showToast is in scope.
-                        // showToast("Removed from List");  <-- Need to implement showToast here or use closure
-                        // Wait, logic structure in snippet is cleaner if I replace whole block.
-                        // Checking structure: checkStatus is inside document.addEventListener.
-                        // showToast IS defined above in same scope.
-                    }
-                } catch(e) { console.error(e); }
-            } else {
-                // Add (POST)
-                try {
-                    const res = await fetch(`${API_URL}/mylist`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userId: currentUser.id, bookId: bookId })
-                    });
-                     if (res.ok) {
-                        toggleUI(true);
-                        // showToast("Added to My List");
-                    }
-                } catch(e) { console.error(e); }
+          // Logged In Action
+          if (isAdded) {
+            // Remove
+            try {
+              const res = await fetch(
+                `${API_URL}/mylist/${bookId}?userId=${currentUser.id}`,
+                { method: "DELETE" }
+              );
+              if (res.ok) {
+                toggleUI(false);
+                showToast("Removed from List");
+                syncChannel.postMessage({
+                  type: "MYLIST_UPDATE",
+                  bookId,
+                  status: false,
+                });
+              }
+            } catch (e) {
+              console.error(e);
             }
-            return;
-        }
-
-        // Guest Flow (LocalStorage)
-        let list = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-        const index = list.findIndex((d) => d.id === bookId);
-
-        if (index === -1) {
-          list.push({
-            id: bookId,
-            title: drama.judul,
-            cover: drama.cover,
-            episodes: drama.total_episode,
-          });
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-          toggleUI(true);
+          } else {
+            // Add
+            try {
+              const res = await fetch(`${API_URL}/mylist`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  userId: currentUser.id,
+                  bookId: bookId,
+                }),
+              });
+              if (res.ok) {
+                toggleUI(true);
+                showToast("Added to My List");
+                syncChannel.postMessage({
+                  type: "MYLIST_UPDATE",
+                  bookId,
+                  status: true,
+                });
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          }
         } else {
-          list.splice(index, 1);
+          // Guest Action
+          let list = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+          const index = list.findIndex((d) => d.id === bookId);
+
+          if (index === -1) {
+            list.push({
+              id: bookId,
+              title: dramaTitle,
+              cover: dramaCover,
+              episodes: dramaEpisodes,
+            });
+            toggleUI(true);
+            showToast("Added to My List");
+            syncChannel.postMessage({
+              type: "MYLIST_UPDATE",
+              bookId,
+              status: true,
+            });
+          } else {
+            list.splice(index, 1);
+            toggleUI(false);
+            showToast("Removed from List");
+            syncChannel.postMessage({
+              type: "MYLIST_UPDATE",
+              bookId,
+              status: false,
+            });
+          }
           localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-          toggleUI(false);
         }
       });
     }
-
-    // Post Comment
-    // (Removed: Check Watch Page)
   });
 </script>
