@@ -102,8 +102,11 @@ func main() {
 	app.Post("/api/admin/upload", handlers.UploadFile) // New Upload Route
 
 	// User Admin
-	app.Get("/api/admin/users", handlers.GetAdminUsers)
-	app.Delete("/api/admin/users/:id", handlers.DeleteUser) // New Delete Route
+	// User Admin (Protected)
+	admin.Get("/users", handlers.GetAdminUsers)
+	admin.Delete("/users/:id", handlers.DeleteUser)
+	admin.Get("/users/:id/stats", handlers.GetUserStats)
+	admin.Put("/users/:id/role", handlers.UpdateUserRole)
 
 	// Melolo API Routes (Integrated)
 	// Routes are now handled by the Universal Adapter via standard endpoints (/api/detail, etc.)
