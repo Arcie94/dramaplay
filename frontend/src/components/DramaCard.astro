@@ -45,7 +45,7 @@ if (id.startsWith("melolo:")) {
     alt={title}
     class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
     loading="lazy"
-    onerror="this.closest('a').remove()"
+    onerror="const p=this.closest('.snap-start');if(p){p.remove()}else{this.closest('a').remove()}"
   />
   <div
     class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-100"
