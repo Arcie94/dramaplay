@@ -840,7 +840,7 @@ const {
       }
     }
 
-    // --- My List Logic ---
+    // --- My List Logic (Hybrid: API + LocalStorage) ---
     const myListBtn = document.getElementById("mylist-btn");
     const iconAdd = document.getElementById("icon-add");
     const iconCheck = document.getElementById("icon-check");
@@ -852,6 +852,13 @@ const {
     const dramaTitle = video.dataset.dramaTitle || "Unknown Title";
     const totalEpisodes = video.dataset.totalEpisodes || "?";
     const coverUrl = video.dataset.coverUrl || "";
+
+    // User Check
+    const userStr = localStorage.getItem("user");
+    let user = null;
+    try {
+      if (userStr) user = JSON.parse(userStr);
+    } catch (e) {}
 
     function updateMyListUI(isSaved: boolean) {
       if (isSaved) {
@@ -868,34 +875,95 @@ const {
     }
 
     if (myListBtn) {
-      const savedList = JSON.parse(
-        localStorage.getItem("drama_mylist") || "[]"
-      );
-      const isSaved = savedList.some((d: any) => d.id === bookId);
-      updateMyListUI(isSaved);
+      const STORAGE_KEY = "drama_mylist";
 
-      myListBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const currentList = JSON.parse(
-          localStorage.getItem("drama_mylist") || "[]"
-        );
-        const existingIndex = currentList.findIndex(
-          (d: any) => d.id === bookId
-        );
-
-        if (existingIndex >= 0) {
-          currentList.splice(existingIndex, 1);
-          updateMyListUI(false);
+      const checkStatus = async () => {
+        if (user && user.id) {
+          // API Check
+          try {
+            const res = await fetch(
+              `/api/mylist/check/${bookId}?userId=${user.id}`
+            );
+            const json = await res.json();
+            updateMyListUI(!!json.exists);
+          } catch (e) {
+            console.error("MyList check failed", e);
+          }
         } else {
-          currentList.push({
-            id: bookId,
-            title: dramaTitle,
-            episodes: totalEpisodes,
-            cover: coverUrl,
-          });
-          updateMyListUI(true);
+          // LocalStorage Check
+          const savedList = JSON.parse(
+            localStorage.getItem(STORAGE_KEY) || "[]"
+          );
+          const isSaved = savedList.some((d: any) => d.id === bookId);
+          updateMyListUI(isSaved);
         }
-        localStorage.setItem("drama_mylist", JSON.stringify(currentList));
+      };
+
+      checkStatus();
+
+      myListBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+
+        // Determine current state visually or via check? Visual is faster for toggle.
+        const isAdded = myListBtn.classList.contains("text-red-500");
+
+        if (user && user.id) {
+          // API Action
+          if (isAdded) {
+            // Remove
+            try {
+              const res = await fetch(
+                `/api/mylist/${bookId}?userId=${user.id}`,
+                { method: "DELETE" }
+              );
+              if (res.ok) {
+                updateMyListUI(false);
+                showToast("Removed from My List");
+              }
+            } catch (e) {
+              showToast("Error removing", true);
+            }
+          } else {
+            // Add
+            try {
+              const res = await fetch(`/api/mylist`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId: user.id, bookId }),
+              });
+              if (res.ok) {
+                updateMyListUI(true);
+                showToast("Added to My List");
+              }
+            } catch (e) {
+              showToast("Error adding", true);
+            }
+          }
+        } else {
+          // Guest Action (LocalStorage)
+          const currentList = JSON.parse(
+            localStorage.getItem(STORAGE_KEY) || "[]"
+          );
+          const existingIndex = currentList.findIndex(
+            (d: any) => d.id === bookId
+          );
+
+          if (existingIndex >= 0) {
+            currentList.splice(existingIndex, 1);
+            updateMyListUI(false);
+            showToast("Removed from My List");
+          } else {
+            currentList.push({
+              id: bookId,
+              title: dramaTitle,
+              episodes: totalEpisodes,
+              cover: coverUrl,
+            });
+            updateMyListUI(true);
+            showToast("Added to My List");
+          }
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(currentList));
+        }
       });
     }
 
