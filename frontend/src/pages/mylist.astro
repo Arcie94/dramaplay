@@ -182,7 +182,7 @@ import Layout from "../layouts/Layout.astro";
     const emptyTemplate = document.getElementById("empty-state");
 
     // Helper: Create Card HTML
-    const createCardParams = (drama) => {
+    const createCardParams = (drama: any) => {
       // Handle API vs LocalStorage data structure differences
       // API: drama is nested in .drama, ID is .bookId
       // LocalStorage: Item IS the drama object
@@ -199,7 +199,7 @@ import Layout from "../layouts/Layout.astro";
       return { title, cover, bookId, episodes };
     };
 
-    const renderList = (list) => {
+    const renderList = (list: any[]) => {
       if (!container) return;
       container.innerHTML = "";
 

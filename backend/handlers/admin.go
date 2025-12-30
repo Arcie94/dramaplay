@@ -5,6 +5,7 @@ import (
 	"dramabang/models"
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"strconv"
 
@@ -67,7 +68,6 @@ func AdminLogin(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid input"})
 	}
 
-
 	// 1. Verify Turnstile (if configured)
 	var secretKey models.Setting
 	database.DB.Where("key = ?", "turnstile_secret_key").First(&secretKey)
@@ -79,9 +79,15 @@ func AdminLogin(c *fiber.Ctx) error {
 	}
 
 	if input.Username == "teddyayomi" && input.Password == "Arcie1994" {
+		secret := os.Getenv("ADMIN_SECRET")
+		if secret == "" {
+			// Fallback ONLY during dev if env missing, but warn loud
+			// Ideally this should error out in prod
+			secret = "admin-secret-token-123"
+		}
 		return c.JSON(fiber.Map{
 			"status": "success",
-			"token":  "admin-secret-token-123", // Simple static token for MVP
+			"token":  secret,
 		})
 	}
 

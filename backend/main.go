@@ -5,9 +5,13 @@ import (
 	"dramabang/handlers"
 	"dramabang/models"
 	"log"
+	"os"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/helmet"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/joho/godotenv"
 )
 
@@ -18,6 +22,24 @@ func main() {
 	}
 
 	app := fiber.New()
+
+	// Security Middleware
+	app.Use(helmet.New()) // XSS, Clickjacking, etc.
+
+	// Rate Limiting (100 reqs / min)
+	app.Use(limiter.New(limiter.Config{
+		Max:        100,
+		Expiration: 1 * time.Minute,
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return c.IP() // Limit by IP
+		},
+		LimitReached: func(c *fiber.Ctx) error {
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Too many requests, please try again later.",
+			})
+		},
+	}))
 
 	// CORS
 	app.Use(cors.New(cors.Config{
@@ -83,7 +105,14 @@ func main() {
 	admin.Use(func(c *fiber.Ctx) error {
 		// Get token from header
 		token := c.Get("Authorization")
-		if token != "admin-secret-token-123" {
+		secret := os.Getenv("ADMIN_SECRET")
+		if secret == "" {
+			// Fallback if env not set (Safety net, but should be set)
+			log.Println("WARNING: ADMIN_SECRET not set in env")
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Server Config Error"})
+		}
+
+		if token != secret {
 			return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 		}
 		return c.Next()
