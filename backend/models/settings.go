@@ -10,5 +10,18 @@ type Setting struct {
 
 // MigrateSettings migrates the table
 func MigrateSettings(db *gorm.DB) error {
-	return db.AutoMigrate(&Setting{})
+	err := db.AutoMigrate(&Setting{})
+	if err != nil {
+		return err
+	}
+
+	// Seed Google Client ID if missing
+	var s Setting
+	if db.Where("key = ?", "google_client_id").First(&s).Error != nil {
+		db.Create(&Setting{
+			Key:   "google_client_id",
+			Value: "948421850128-kh10okq8tvc2rnl6vd4d460s1r3r7vir.apps.googleusercontent.com",
+		})
+	}
+	return nil
 }
