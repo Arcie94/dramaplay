@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 type NetshortProvider struct{}
@@ -99,7 +100,10 @@ func (p *NetshortProvider) GetLatest(page int) ([]models.Drama, error) {
 }
 
 func (p *NetshortProvider) Search(query string) ([]models.Drama, error) {
-	url := fmt.Sprintf("%s/search?query=%s", NetshortAPI, url.QueryEscape(query))
+	// Netshort prefers %20 over +
+	encodedQuery := url.QueryEscape(query)
+	encodedQuery = strings.ReplaceAll(encodedQuery, "+", "%20")
+	url := fmt.Sprintf("%s/search?query=%s", NetshortAPI, encodedQuery)
 	body, err := p.fetch(url)
 	if err != nil {
 		return nil, err
