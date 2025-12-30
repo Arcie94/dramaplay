@@ -9,7 +9,11 @@ import Layout from "../layouts/Layout.astro";
       class="sticky top-0 z-30 flex items-center justify-between bg-zinc-950/80 px-4 py-3 backdrop-blur-md border-b border-white/5"
     >
       <div class="flex items-center gap-3">
-        <a href="/" class="text-zinc-400 hover:text-white transition-colors">
+        <a
+          href="/"
+          class="text-zinc-400 hover:text-white transition-colors"
+          aria-label="Back to Home"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -26,7 +30,7 @@ import Layout from "../layouts/Layout.astro";
         </a>
         <h1 class="text-lg font-bold text-white">My List</h1>
       </div>
-      <a href="/search" class="text-zinc-400">
+      <a href="/search" class="text-zinc-400" aria-label="Search">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"

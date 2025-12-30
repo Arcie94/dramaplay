@@ -87,7 +87,7 @@ try {
           >DramaPlay</span
         >
       </div>
-      <a href="/search" class="text-zinc-400">
+      <a href="/search" class="text-zinc-400" aria-label="Search">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -143,13 +143,14 @@ try {
             id="hero-carousel"
             class="flex w-full h-full overflow-x-auto snap-x snap-mandatory no-scrollbar"
           >
-            {heroList.map((item: any) => (
+            {heroList.map((item: any, index: number) => (
               <div class="relative w-full h-full flex-shrink-0 snap-center bg-zinc-950 overflow-hidden">
                 <div class="absolute inset-0">
                   <img
                     src={item.cover}
                     alt="Background"
                     class="h-full w-full object-cover opacity-60 blur-2xl scale-125 select-none"
+                    loading={index === 0 ? "eager" : "lazy"}
                   />
                   <div class="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent" />
                   <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-transparent" />
@@ -240,6 +241,7 @@ try {
                           src={item.cover}
                           alt={item.judul}
                           class="relative h-full w-full object-cover rounded-xl md:rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] border border-white/10 ring-1 ring-white/20"
+                          loading={index === 0 ? "eager" : "lazy"}
                         />
                       </div>
                     </div>
