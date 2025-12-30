@@ -40,7 +40,28 @@ try {
 
 if (!drama || !drama.judul) {
   console.error("Drama not found or empty:", drama);
-  return Astro.redirect("/404");
+  // DEBUG MODE: Show error on page instead of 404
+  return new Response(
+    `
+    <html>
+      <body style="background: #111; color: white; padding: 2rem; font-family: monospace;">
+        <h1>Debug: Detail Fetch Failed</h1>
+        <p>ID: ${id}</p>
+        <p>Is Melolo: ${isMelolo}</p>
+        <p>API_URL: ${API_URL}</p>
+        <p>Fetch URL: ${isMelolo ? `${API_URL}/melolo/detail/${id}` : `${API_URL}/detail?bookId=${id}`}</p>
+        <p>Drama Object: ${JSON.stringify(drama, null, 2)}</p>
+        <p>Episodes Count: ${episodes.length}</p>
+        <hr/>
+        <p>If you see this, please take a screenshot and send it to the developer.</p>
+      </body>
+    </html>
+  `,
+    {
+      headers: { "Content-Type": "text/html" },
+    }
+  );
+  // return Astro.redirect("/404");
 }
 
 // Fetch Settings (Logo)
