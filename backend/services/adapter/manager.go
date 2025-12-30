@@ -5,12 +5,21 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
+
+	"github.com/patrickmn/go-cache"
 )
 
 type Manager struct {
-	providers map[string]Provider
-	// Slice for ordered iteration (e.g. priority)
+	providers    map[string]Provider
 	providerList []Provider
+	cache        *cache.Cache
+}
+
+// Helper for caching detailed response
+type CachedDetail struct {
+	Drama    *models.Drama
+	Episodes []models.Episode
 }
 
 func NewManager() *Manager {
@@ -25,6 +34,7 @@ func NewManager() *Manager {
 			ns.GetID(): ns,
 		},
 		providerList: []Provider{db, ml, ns},
+		cache:        cache.New(30*time.Minute, 60*time.Minute),
 	}
 }
 
@@ -50,6 +60,11 @@ func (m *Manager) resolveProvider(fullID string) (Provider, string, error) {
 }
 
 func (m *Manager) GetTrending() ([]models.Drama, error) {
+	// Check Cache
+	if x, found := m.cache.Get("trending"); found {
+		return x.([]models.Drama), nil
+	}
+
 	var wg sync.WaitGroup
 	results := make([][]models.Drama, len(m.providerList))
 	errors := make([]error, len(m.providerList))
@@ -71,7 +86,6 @@ func (m *Manager) GetTrending() ([]models.Drama, error) {
 	wg.Wait()
 
 	// Merge Round Robin
-	// Loop until all lists are exhausted
 	var merged []models.Drama
 	maxLen := 0
 	for _, res := range results {
@@ -88,10 +102,19 @@ func (m *Manager) GetTrending() ([]models.Drama, error) {
 		}
 	}
 
+	// Set Cache (30 mins)
+	m.cache.Set("trending", merged, 30*time.Minute)
+
 	return merged, nil
 }
 
 func (m *Manager) Search(query string) ([]models.Drama, error) {
+	// Check Cache
+	cacheKey := fmt.Sprintf("search:%s", query)
+	if x, found := m.cache.Get(cacheKey); found {
+		return x.([]models.Drama), nil
+	}
+
 	var wg sync.WaitGroup
 	results := make([][]models.Drama, len(m.providerList))
 
@@ -126,10 +149,19 @@ func (m *Manager) Search(query string) ([]models.Drama, error) {
 		}
 	}
 
+	// Set Cache (10 mins)
+	m.cache.Set(cacheKey, merged, 10*time.Minute)
+
 	return merged, nil
 }
 
 func (m *Manager) GetLatest(page int) ([]models.Drama, error) {
+	// Check Cache
+	cacheKey := fmt.Sprintf("latest:%d", page)
+	if x, found := m.cache.Get(cacheKey); found {
+		return x.([]models.Drama), nil
+	}
+
 	var wg sync.WaitGroup
 	results := make([][]models.Drama, len(m.providerList))
 
@@ -165,15 +197,30 @@ func (m *Manager) GetLatest(page int) ([]models.Drama, error) {
 		}
 	}
 
+	// Set Cache (15 mins)
+	m.cache.Set(cacheKey, merged, 15*time.Minute)
+
 	return merged, nil
 }
 
 func (m *Manager) GetDetail(fullID string) (*models.Drama, []models.Episode, error) {
+	// Check Cache
+	cacheKey := fmt.Sprintf("detail:%s", fullID)
+	if x, found := m.cache.Get(cacheKey); found {
+		cached := x.(CachedDetail)
+		return cached.Drama, cached.Episodes, nil
+	}
+
 	p, rawID, err := m.resolveProvider(fullID)
 	if err != nil {
 		return nil, nil, err
 	}
-	return p.GetDetail(rawID)
+	drama, episodes, err := p.GetDetail(rawID)
+	if err == nil {
+		// Set Cache (60 mins)
+		m.cache.Set(cacheKey, CachedDetail{Drama: drama, Episodes: episodes}, 60*time.Minute)
+	}
+	return drama, episodes, err
 }
 
 func (m *Manager) GetStream(fullID, epIndex string) (*models.StreamData, error) {
