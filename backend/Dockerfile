@@ -14,9 +14,10 @@ RUN go mod download
 COPY . .
 
 # Build binaries
-RUN CGO_ENABLED=1 GOOS=linux go build -o server main.go
-RUN CGO_ENABLED=1 GOOS=linux go build -o ingest cmd/ingest/main.go
-RUN CGO_ENABLED=1 GOOS=linux go build -o dedup cmd/dedup/main.go
+# Build binaries
+RUN CGO_ENABLED=0 GOOS=linux go build -o server main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o ingest cmd/ingest/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o dedup cmd/dedup/main.go
 
 # Runtime Stage
 FROM alpine:latest

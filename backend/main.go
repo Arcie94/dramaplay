@@ -98,13 +98,12 @@ func main() {
 	app.Get("/api/admin/users", handlers.GetAdminUsers)
 	app.Delete("/api/admin/users/:id", handlers.DeleteUser) // New Delete Route
 
-	// Melolo API Routes (New)
-	melolo := api.Group("/melolo")
-	melolo.Get("/latest", handlers.GetMeloloLatest)
-	melolo.Get("/trending", handlers.GetMeloloTrending)
-	melolo.Get("/search", handlers.GetMeloloSearch)
-	melolo.Get("/detail/:book_id", handlers.GetMeloloDetail)
-	melolo.Get("/stream/:video_id", handlers.GetMeloloStream)
+	// Melolo API Routes (Integrated)
+	// Routes are now handled by the Universal Adapter via standard endpoints (/api/detail, etc.)
+	// Legacy routes removed.
 
-	log.Fatal(app.Listen(":3000"))
+	log.Println("Starting server on :3000...")
+	if err := app.Listen(":3000"); err != nil {
+		log.Fatal("Server Listen Error: ", err)
+	}
 }
