@@ -36,8 +36,9 @@ func main() {
 	models.MigrateUsers(database.DB)
 	models.MigrateHistory(database.DB)
 	models.MigrateLogs(database.DB)
-	// Migrate Comments
+	// Migrate Comments & Bookmarks
 	database.DB.AutoMigrate(&models.Comment{})
+	models.MigrateBookmarks(database.DB)
 
 	// Routes
 	api := app.Group("/api")
@@ -56,6 +57,12 @@ func main() {
 	api.Post("/auth/login", handlers.LocalLogin)
 	api.Put("/user/profile", handlers.UpdateUserProfile) // New Profile Update
 	api.Put("/user/password", handlers.UpdatePassword)   // New Password Change
+
+	// My List (Bookmarks)
+	api.Get("/mylist", handlers.GetBookmarks)
+	api.Post("/mylist", handlers.AddBookmark)
+	api.Delete("/mylist/:bookId", handlers.RemoveBookmark)
+	api.Get("/mylist/check/:bookId", handlers.CheckBookmark)
 
 	// Comments
 	api.Get("/comments/:bookId", handlers.GetComments)

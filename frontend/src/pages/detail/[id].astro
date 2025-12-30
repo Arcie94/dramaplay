@@ -313,28 +313,91 @@ const schema = JSON.stringify({
 
     if (myListBtn) {
       const STORAGE_KEY = "drama_mylist";
-      const checkStatus = () => {
-        const list = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-        const exists = list.some((d) => d.id === drama.bookId);
-        if (exists) {
+      const userStr = localStorage.getItem("user");
+      let user = null;
+      try {
+        if (userStr) user = JSON.parse(userStr);
+      } catch (e) {}
+
+      // Helper: Toggle Button UI
+      const toggleUI = (isAdded) => {
+        if (isAdded) {
           myListBtn.innerText = "Added";
           myListBtn.classList.remove("bg-zinc-800", "text-white");
           myListBtn.classList.add("bg-green-600", "text-white");
         } else {
           myListBtn.innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
-                    </svg>
-                    My List
-                 `;
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                      </svg>
+                      My List
+                   `;
           myListBtn.classList.remove("bg-green-600");
           myListBtn.classList.add("bg-zinc-800", "text-white");
         }
       };
 
+      const checkStatus = async () => {
+        if (user && user.id) {
+          // API Check
+          try {
+            const res = await fetch(
+              `${API_URL}/mylist/check/${drama.bookId}?userId=${user.id}`
+            );
+            const json = await res.json();
+            toggleUI(json.exists);
+          } catch (e) {
+            console.error("Check status failed", e);
+          }
+        } else {
+          // LocalStorage Check
+          const list = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+          const exists = list.some((d) => d.id === drama.bookId);
+          toggleUI(exists);
+        }
+      };
+
       checkStatus();
 
-      myListBtn.addEventListener("click", () => {
+      myListBtn.addEventListener("click", async () => {
+        // Logged In Flow
+        if (user && user.id) {
+          const isAdded = myListBtn.innerText === "Added";
+
+          if (isAdded) {
+            // Remove (DELETE)
+            try {
+              const res = await fetch(
+                `${API_URL}/mylist/${drama.bookId}?userId=${user.id}`,
+                { method: "DELETE" }
+              );
+              if (res.ok) {
+                toggleUI(false);
+                showToast("Removed from List");
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          } else {
+            // Add (POST)
+            try {
+              const res = await fetch(`${API_URL}/mylist`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId: user.id, bookId: drama.bookId }),
+              });
+              if (res.ok) {
+                toggleUI(true);
+                showToast("Added to My List");
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          }
+          return;
+        }
+
+        // Guest Flow (LocalStorage)
         let list = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
         const index = list.findIndex((d) => d.id === drama.bookId);
 
@@ -347,12 +410,13 @@ const schema = JSON.stringify({
           });
           localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
           showToast("Added to My List");
+          toggleUI(true);
         } else {
           list.splice(index, 1);
           localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
           showToast("Removed from List");
+          toggleUI(false);
         }
-        checkStatus();
       });
     }
 

@@ -187,7 +187,13 @@ try {
                           </svg>
                           Watch Now
                         </a>
-                        <button class="flex-1 md:flex-none justify-center flex items-center gap-2 px-4 md:px-6 py-3.5 md:py-3.5 rounded-xl font-semibold text-white bg-white/10 border border-white/20 hover:bg-white/20 transition-all backdrop-blur-md text-sm md:text-base shadow-lg">
+                        <button 
+                            class="hero-mylist-btn flex-1 md:flex-none justify-center flex items-center gap-2 px-4 md:px-6 py-3.5 md:py-3.5 rounded-xl font-semibold text-white bg-white/10 border border-white/20 hover:bg-white/20 transition-all backdrop-blur-md text-sm md:text-base shadow-lg"
+                            data-id={item.bookId}
+                            data-title={item.judul}
+                            data-cover={item.cover}
+                            data-episodes={item.total_episode}
+                        >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
@@ -560,6 +566,93 @@ try {
           startAutoSlide();
         };
         setupTrendingCarousel();
+
+        // 4. Hero My List Logic
+        const initHeroMyList = () => {
+             const btns = document.querySelectorAll(".hero-mylist-btn");
+             const STORAGE_KEY = "drama_mylist";
+             const userStr = localStorage.getItem("user");
+             let user = null;
+             try { if(userStr) user = JSON.parse(userStr); } catch(e){}
+
+             btns.forEach(async (btn) => {
+                 const bookId = (btn as HTMLElement).dataset.id;
+                 const title = (btn as HTMLElement).dataset.title;
+                 const cover = (btn as HTMLElement).dataset.cover;
+                 const episodes = (btn as HTMLElement).dataset.episodes;
+
+                 if (!bookId) return;
+
+                 // Check Status
+                 let exists = false;
+                 if (user && user.id) {
+                     try {
+                        const res = await fetch(`/api/mylist/check/${bookId}?userId=${user.id}`);
+                        const json = await res.json();
+                        exists = json.exists;
+                     } catch(e){}
+                 } else {
+                     const list = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+                     exists = list.some((d: any) => d.id === bookId);
+                 }
+
+                 // Update UI
+                 const updateUI = (isAdded: boolean) => {
+                     if (isAdded) {
+                         (btn as HTMLElement).innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                            </svg>
+                            Added
+                         `;
+                     } else {
+                         (btn as HTMLElement).innerHTML = `
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                          </svg>
+                          My List
+                         `;
+                     }
+                 };
+
+                 updateUI(exists);
+
+                 // Click Handler
+                 btn.addEventListener("click", async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation(); // prevent carousel drag if any
+                    
+                    const isAdded = (btn as HTMLElement).innerText.includes("Added");
+
+                    if (user && user.id) {
+                         // API
+                         if (isAdded) {
+                             await fetch(`/api/mylist/${bookId}?userId=${user.id}`, { method: 'DELETE' });
+                             updateUI(false);
+                         } else {
+                             await fetch(`/api/mylist`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ userId: user.id, bookId })
+                             });
+                             updateUI(true);
+                         }
+                    } else {
+                        // LocalStorage
+                        let list = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+                        if (isAdded) {
+                             list = list.filter((d: any) => d.id !== bookId);
+                             updateUI(false);
+                        } else {
+                             list.push({ id: bookId, title, cover, episodes });
+                             updateUI(true);
+                        }
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+                    }
+                 });
+             });
+        };
+        initHeroMyList();
       });
     </script>
 
