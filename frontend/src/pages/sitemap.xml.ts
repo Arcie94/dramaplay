@@ -1,33 +1,31 @@
-export async function GET() {
-  try {
-    const API_URL = import.meta.env.INTERNAL_API_URL || 'http://localhost:3000/api';
-    const response = await fetch(`${API_URL}/sitemap`);
-    const json = await response.json();
-    const dramas = json.data || [];
-    const domain = "https://dramaplay.online";
+import type { APIRoute } from "astro";
 
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+export const GET: APIRoute = async () => {
+  const siteUrl = "https://dramaplay.online";
+  const staticPages = ["", "/trending", "/mylist", "/search", "/history"];
+
+  // Optional: Fetch Dynamic Routes (e.g. Top 10 Trending)
+  // We skip this for now to keep it fast, or we can fetch from internal API?
+  // Let's stick to static for reliability first.
+
+  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  ${staticPages
+    .map((path) => {
+      return `
   <url>
-    <loc>${domain}/</loc>
+    <loc>${siteUrl}${path}</loc>
+    <lastmod>${new Date().toISOString()}</lastmod>
     <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
-  ${dramas.map((drama: any) => `
-  <url>
-    <loc>${domain}/detail/${drama.bookId}</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  `).join('')}
+    <priority>${path === "" ? "1.0" : "0.8"}</priority>
+  </url>`;
+    })
+    .join("")}
 </urlset>`;
 
-    return new Response(xml, {
-      headers: {
-        'Content-Type': 'application/xml',
-      },
-    });
-  } catch (e) {
-    return new Response('Error generating sitemap', { status: 500 });
-  }
-}
+  return new Response(sitemap, {
+    headers: {
+      "Content-Type": "application/xml",
+    },
+  });
+};

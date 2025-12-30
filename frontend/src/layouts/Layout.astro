@@ -60,6 +60,54 @@ try {
                 });
             }
         </script>
+        <!-- Canonical URL -->
+        <link rel="canonical" href={new URL(Astro.url.pathname, "https://dramaplay.online").href} />
+
+        <!-- Open Graph -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={Astro.url.href} />
+        <meta property="og:title" content={title} />
+        <meta property="og:description" content="Nonton Drama Vertikal Sub Indo Gratis Tanpa Iklan. Streaming lancar, hemat kuota." />
+        <meta property="og:image" content={new URL("/icon-512.png", "https://dramaplay.online").href} />
+
+        <!-- JSON-LD Structured Data (For Sitelinks) -->
+        <script type="application/ld+json">
+            {
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "WebSite",
+                  "@id": "https://dramaplay.online/#website",
+                  "url": "https://dramaplay.online/",
+                  "name": "DramaPlay",
+                  "description": "Nonton Drama Vertikal Sub Indo Gratis",
+                  "publisher": {
+                    "@type": "Organization",
+                    "name": "DramaPlay",
+                    "logo": {
+                      "@type": "ImageObject",
+                      "url": "https://dramaplay.online/icon-512.png"
+                    }
+                  }
+                },
+                {
+                  "@type": "SiteNavigationElement",
+                  "name": [
+                    "Home",
+                    "Trending", 
+                    "My List",
+                    "Search"
+                  ],
+                  "url": [
+                    "https://dramaplay.online/",
+                    "https://dramaplay.online/#trending",
+                    "https://dramaplay.online/mylist",
+                    "https://dramaplay.online/search"
+                  ]
+                }
+              ]
+            }
+        </script>
 	</head>
 	<body class="bg-zinc-950 text-white min-h-screen">
 		<slot />
