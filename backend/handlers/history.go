@@ -52,7 +52,7 @@ func GetHistory(c *fiber.Ctx) error {
 
 	var histories []models.UserHistory
 	// Preload Drama to get Title/Cover
-	err := database.DB.Preload("Drama").Where("user_id = ?", userId).Order("updated_at desc").Find(&histories).Error
+	err := database.DB.Preload("Drama").Where("user_id = ?", userId).Order("updated_at desc").Limit(10).Find(&histories).Error
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Database error"})
 	}
