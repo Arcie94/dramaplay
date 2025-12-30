@@ -73,6 +73,7 @@ func main() {
 	// History
 	api.Post("/history", handlers.SaveHistory)
 	api.Get("/history", handlers.GetHistory)
+	api.Get("/history/check", handlers.CheckHistory)
 
 	// Admin Login (Public)
 	api.Post("/admin/login", handlers.AdminLogin)
