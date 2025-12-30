@@ -210,6 +210,25 @@ try {
                     <div class="w-full md:col-span-5 flex justify-center items-center relative z-10 pt-8 md:pt-0">
                       <div class="relative w-[240px] md:w-[300px] aspect-[2/3] transform transition-transform hover:scale-105 duration-500 shadow-2xl">
                         <div class="absolute inset-x-4 top-4 bottom-0 bg-black/50 blur-xl rounded-2xl" />
+                        
+                        <!-- Provider Badge Logic -->
+                        {(() => {
+                            let providerColor = "bg-red-600";
+                            let providerLabel = "DB";
+                            if (item.bookId && item.bookId.startsWith("melolo:")) {
+                                providerColor = "bg-purple-600";
+                                providerLabel = "MELOLO";
+                            } else if (item.bookId && item.bookId.startsWith("netshort:")) {
+                                providerColor = "bg-blue-600";
+                                providerLabel = "NETSHORT";
+                            }
+                            return (
+                                <div class={`absolute top-3 left-3 z-20 px-2 py-1 rounded-md text-[10px] font-bold text-white shadow-lg ${providerColor} border border-white/20`}>
+                                    {providerLabel}
+                                </div>
+                            );
+                        })()}
+
                         <img
                           src={item.cover}
                           alt={item.judul}
