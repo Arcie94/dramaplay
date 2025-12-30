@@ -568,17 +568,8 @@ const {
     updateVolumeUI();
 
     // Play/Pause Interactions
-    if (playOverlay) {
-      playOverlay.addEventListener("click", () => {
-        if (video.paused) {
-          video.play();
-          playIcon!.style.opacity = "0";
-        } else {
-          video.pause();
-          playIcon!.style.opacity = "1";
-        }
-      });
-    }
+    // Play/Pause Interactons (Moved to robust handler below)
+    // Duplicate removed
 
     // Mute Toggle
     if (muteBtn) {
