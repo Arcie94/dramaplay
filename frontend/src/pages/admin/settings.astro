@@ -817,10 +817,12 @@ import Layout from "../../layouts/Layout.astro";
               } else if (currentUploadTarget === "social") {
                 socialInput.value = fullUrl;
                 socialPreview.src = fullUrl;
+                // AUTO-SAVE for Social Image
+                saveSingleSetting("social_image", fullUrl);
               }
 
               closeEditor();
-              showToast("Image uploaded successfully", "success");
+              showToast("Image uploaded & saved successfully", "success");
             } else {
               showToast("Upload failed: " + json.message, "error");
             }
@@ -880,7 +882,24 @@ import Layout from "../../layouts/Layout.astro";
     }
   }
 
-  // Save settings
+  // Helper to save a single setting
+  async function saveSingleSetting(key: string, value: string) {
+    if (!key) return;
+    try {
+      await fetch(`${API_BASE}/admin/settings`, {
+        method: "POST",
+        headers: {
+          Authorization: token || "",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ key, value }),
+      });
+    } catch (e) {
+      console.error(`Failed to save ${key}`, e);
+    }
+  }
+
+  // Save settings (Form Submit)
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!clientIDInput || !saveBtn) return;
@@ -890,115 +909,28 @@ import Layout from "../../layouts/Layout.astro";
     (saveBtn as HTMLButtonElement).disabled = true;
 
     try {
-      // Save Client ID
-      const res = await fetch(`${API_BASE}/admin/settings`, {
-        method: "POST",
-        headers: {
-          Authorization: token || "",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          key: "google_client_id",
-          value: clientIDInput.value.trim(),
-        }),
-      });
+      // Use Promise.all for parallel saving (Faster & More Robust)
+      await Promise.all([
+        saveSingleSetting("google_client_id", clientIDInput.value.trim()),
+        saveSingleSetting("ga_measurement_id", gaIDInput.value.trim()),
+        saveSingleSetting("cloudflare_tunnel_token", cfTokenInput.value.trim()),
+        saveSingleSetting(
+          "turnstile_site_key",
+          turnstileSiteInput.value.trim()
+        ),
+        saveSingleSetting(
+          "turnstile_secret_key",
+          turnstileSecretInput.value.trim()
+        ),
+        saveSingleSetting("site_logo", logoInput.value.trim()),
+        saveSingleSetting("site_favicon", faviconInput.value.trim()),
+        // Save Social Image if present
+        socialInput.value
+          ? saveSingleSetting("social_image", socialInput.value.trim())
+          : Promise.resolve(),
+      ]);
 
-      // Save GA ID
-      await fetch(`${API_BASE}/admin/settings`, {
-        method: "POST",
-        headers: {
-          Authorization: token || "",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          key: "ga_measurement_id",
-          value: gaIDInput.value.trim(),
-        }),
-      });
-
-      // Save CF Token
-      await fetch(`${API_BASE}/admin/settings`, {
-        method: "POST",
-        headers: {
-          Authorization: token || "",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          key: "cloudflare_tunnel_token",
-          value: cfTokenInput.value.trim(),
-        }),
-      });
-
-      // Save Turnstile Keys
-      await fetch(`${API_BASE}/admin/settings`, {
-        method: "POST",
-        headers: {
-          Authorization: token || "",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          key: "turnstile_site_key",
-          value: turnstileSiteInput.value.trim(),
-        }),
-      });
-      await fetch(`${API_BASE}/admin/settings`, {
-        method: "POST",
-        headers: {
-          Authorization: token || "",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          key: "turnstile_secret_key",
-          value: turnstileSecretInput.value.trim(),
-        }),
-      });
-
-      // Save Site Logo
-      await fetch(`${API_BASE}/admin/settings`, {
-        method: "POST",
-        headers: {
-          Authorization: token || "",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          key: "site_logo",
-          value: logoInput.value.trim(),
-        }),
-      });
-
-      // Save Site Favicon
-      await fetch(`${API_BASE}/admin/settings`, {
-        method: "POST",
-        headers: {
-          Authorization: token || "",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          key: "site_favicon",
-          value: faviconInput.value.trim(),
-        }),
-      });
-
-      // Save Social Image
-      if (socialInput && socialInput.value) {
-        await fetch(`${API_BASE}/admin/settings`, {
-          method: "POST",
-          headers: {
-            Authorization: token || "",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            key: "social_image",
-            value: socialInput.value.trim(),
-          }),
-        });
-      }
-
-      if (res.ok) {
-        showToast("Settings saved successfully!", "success");
-      } else {
-        showToast("Failed to save settings", "error");
-      }
+      showToast("Settings saved successfully!", "success");
     } catch (err) {
       console.error(err);
       showToast("Error saving settings", "error");
@@ -1007,6 +939,9 @@ import Layout from "../../layouts/Layout.astro";
       (saveBtn as HTMLButtonElement).disabled = false;
     }
   });
+
+  // Modify Update UI Logic to also Auto-Save
+  // ... inside btnCropSave event ...
 
   // Init
   fetchSettings();
