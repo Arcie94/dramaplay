@@ -8,6 +8,7 @@ const { title } = Astro.props;
 // Fetch Global Settings (GA4 ID, etc)
 let gaMeasurementId = "";
 let siteFavicon = "/favicon.png";
+let socialImage = "/pwa-512x512.png"; // Default fallback
 try {
     const API_URL = process.env.INTERNAL_API_URL || "http://backend:3000/api";
     const res = await fetch(`${API_URL}/settings`);
@@ -15,6 +16,9 @@ try {
         const json = await res.json();
         gaMeasurementId = json.ga_measurement_id || "";
         siteFavicon = json.site_favicon || "/favicon.png";
+        if (json.social_image && json.social_image.trim() !== "") {
+             socialImage = json.social_image;
+        }
     }
 } catch(e) {
     console.error("Failed to fetch settings for layout", e);
@@ -69,8 +73,8 @@ try {
         <meta property="og:title" content={title} />
         <meta property="og:description" content="🔥 Nonton Drama Pendek Viral Sub Indo! Cerita Bikin Nagih, Tanpa Iklan, Gratis Selamanya. Cuma 1 Menit per Episode! 🎬" />
         <meta name="description" content="🔥 Nonton Drama Pendek Viral Sub Indo! Cerita Bikin Nagih, Tanpa Iklan, Gratis Selamanya. Cuma 1 Menit per Episode! 🎬" />
-        <meta property="og:image" content={new URL("/pwa-512x512.png", "https://dramaplay.online").href} />
-        <meta property="og:image:alt" content="DramaPlay Logo" />
+        <meta property="og:image" content={socialImage.startsWith("http") ? socialImage : new URL(socialImage, "https://dramaplay.online").href} />
+        <meta property="og:image:alt" content="DramaPlay Preview" />
 
         <!-- JSON-LD Structured Data (For Sitelinks) -->
         <script type="application/ld+json">

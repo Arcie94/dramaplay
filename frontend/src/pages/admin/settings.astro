@@ -233,54 +233,112 @@ import Layout from "../../layouts/Layout.astro";
               </div>
             </div>
           </div>
+        </form>
 
-          <div>
-            <h2
-              class="text-xl font-semibold mb-4 border-b border-zinc-800 pb-2"
-            >
-              Analytics
-            </h2>
-            <div class="space-y-4">
-              <div>
-                <label
-                  for="ga_measurement_id"
-                  class="block text-sm font-medium text-zinc-400 mb-1"
-                  >Google Analytics Measurement ID</label
+        <!-- Social Share Image -->
+        <div>
+          <h2 class="text-xl font-semibold mb-4 border-b border-zinc-800 pb-2">
+            Social Media Sharing
+          </h2>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-zinc-400 mb-1"
+                >Social Share Image (OG:Image)</label
+              >
+
+              <div class="flex flex-col gap-4">
+                <!-- Preview & Input -->
+                <div
+                  class="flex items-center gap-4 bg-black/30 p-4 rounded-lg border border-zinc-800"
                 >
-                <input
-                  type="text"
-                  id="ga_measurement_id"
-                  name="ga_measurement_id"
-                  class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition-colors"
-                  placeholder="e.g. G-XXXXXXXXXX"
-                />
-                <p class="text-xs text-zinc-500 mt-1">
-                  Found in GA4 Admin > Data Streams.
-                </p>
+                  <div
+                    class="w-40 h-24 bg-zinc-900 rounded-lg flex items-center justify-center overflow-hidden border border-zinc-700"
+                  >
+                    <img
+                      id="social-preview"
+                      src="/pwa-512x512.png"
+                      class="w-full h-full object-cover"
+                      onerror="this.src='/logo-404.png'"
+                    />
+                  </div>
+                  <div class="flex-1">
+                    <input
+                      type="file"
+                      id="social-upload"
+                      accept="image/*"
+                      class="hidden"
+                    />
+                    <div class="flex gap-2">
+                      <button
+                        type="button"
+                        onclick="document.getElementById('social-upload').click()"
+                        class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm text-white font-medium transition-colors border border-zinc-600"
+                      >
+                        Choose Image
+                      </button>
+                      <input
+                        type="text"
+                        id="social_image"
+                        name="social_image"
+                        class="flex-1 bg-transparent border-none text-zinc-500 text-sm focus:ring-0"
+                        placeholder="URL will appear here..."
+                        readonly
+                      />
+                    </div>
+                    <p class="text-xs text-zinc-500 mt-2">
+                      Recommended: 1200x630px (JPG) - Max 300KB
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+        </div>
 
-          <div class="flex justify-end pt-4">
-            <button
-              type="submit"
-              id="btn-save"
-              class="px-6 py-2.5 bg-red-600 hover:bg-red-700 rounded-lg text-white font-bold shadow-lg shadow-red-900/20 transition-all active:scale-95"
-            >
-              Save Changes
-            </button>
+        <div>
+          <h2 class="text-xl font-semibold mb-4 border-b border-zinc-800 pb-2">
+            Analytics
+          </h2>
+          <div class="space-y-4">
+            <div>
+              <label
+                for="ga_measurement_id"
+                class="block text-sm font-medium text-zinc-400 mb-1"
+                >Google Analytics Measurement ID</label
+              >
+              <input
+                type="text"
+                id="ga_measurement_id"
+                name="ga_measurement_id"
+                class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition-colors"
+                placeholder="e.g. G-XXXXXXXXXX"
+              />
+              <p class="text-xs text-zinc-500 mt-1">
+                Found in GA4 Admin > Data Streams.
+              </p>
+            </div>
           </div>
-        </form>
+        </div>
+
+        <div class="flex justify-end pt-4">
+          <button
+            type="submit"
+            id="btn-save"
+            class="px-6 py-2.5 bg-red-600 hover:bg-red-700 rounded-lg text-white font-bold shadow-lg shadow-red-900/20 transition-all active:scale-95"
+          >
+            Save Changes
+          </button>
+        </div>
       </div>
     </div>
   </div>
-  <!-- Toast Container -->
-  <div
-    id="toast-container"
-    class="fixed bottom-6 right-6 z-[60] flex flex-col gap-2 pointer-events-none"
-  >
-  </div>
 </Layout>
+<!-- Toast Container -->
+<div
+  id="toast-container"
+  class="fixed bottom-6 right-6 z-[60] flex flex-col gap-2 pointer-events-none"
+>
+</div>
 
 <!-- CropperJS -->
 <link
@@ -574,6 +632,17 @@ import Layout from "../../layouts/Layout.astro";
     "favicon-upload"
   ) as HTMLInputElement;
 
+  // Social Share Elements
+  const socialInput = document.getElementById(
+    "social_image"
+  ) as HTMLInputElement;
+  const socialPreview = document.getElementById(
+    "social-preview"
+  ) as HTMLImageElement;
+  const socialFileInput = document.getElementById(
+    "social-upload"
+  ) as HTMLInputElement;
+
   const saveBtn = document.getElementById("btn-save");
 
   // Editor Elements
@@ -584,7 +653,7 @@ import Layout from "../../layouts/Layout.astro";
   const btnCloseEditor = document.getElementById("btn-close-editor");
   const btnCropSave = document.getElementById("btn-crop-save");
   let cropper: any = null;
-  let currentUploadTarget = "logo"; // 'logo' or 'favicon'
+  let currentUploadTarget = "logo"; // 'logo', 'favicon', or 'social'
 
   // --- Upload & Editor Logic ---
 
@@ -610,6 +679,9 @@ import Layout from "../../layouts/Layout.astro";
   faviconFileInput?.addEventListener("change", (e) =>
     handleFileSelect(e, "favicon")
   );
+  socialFileInput?.addEventListener("change", (e) =>
+    handleFileSelect(e, "social")
+  );
 
   function openEditor() {
     editorModal?.classList.remove("hidden");
@@ -617,9 +689,17 @@ import Layout from "../../layouts/Layout.astro";
 
     // Init Cropper
     if (cropper) cropper.destroy();
+
+    // Determine Aspect Ratio
+    let aspectRatio = 1; // Square for logo/favicon
+    if (currentUploadTarget === "social") {
+      aspectRatio = 1.91; // 1200x630 for Facebook/WhatsApp
+    }
+
     cropper = new (window as any).Cropper(imageToEdit, {
       viewMode: 1,
       dragMode: "move",
+      aspectRatio: aspectRatio,
       autoCropArea: 0.8,
       restore: false,
       guides: true,
@@ -678,8 +758,21 @@ import Layout from "../../layouts/Layout.astro";
     if (!cropper) return;
 
     // Determine dimensions based on target
-    const width = currentUploadTarget === "favicon" ? 64 : 400;
-    const height = currentUploadTarget === "favicon" ? 64 : 400;
+    let width = 400;
+    let height = 400;
+    let format = "image/png";
+    let filename = "logo.png";
+
+    if (currentUploadTarget === "favicon") {
+      width = 64;
+      height = 64;
+      filename = "favicon.png";
+    } else if (currentUploadTarget === "social") {
+      width = 1200;
+      height = 630;
+      format = "image/jpeg";
+      filename = "social-share.jpg";
+    }
 
     // Get canvas
     cropper
@@ -687,52 +780,61 @@ import Layout from "../../layouts/Layout.astro";
         width: width,
         height: height,
       })
-      .toBlob(async (blob: any) => {
-        // Create FormData
-        const formData = new FormData();
-        const filename =
-          currentUploadTarget === "favicon" ? "favicon.png" : "logo.png";
-        formData.append("file", blob, filename);
+      .toBlob(
+        async (blob: any) => {
+          // Create FormData
+          const formData = new FormData();
+          // Append with timestamp to avoid cache issues
+          const ts = new Date().getTime();
+          const finalFilename = filename.replace(".", `_${ts}.`);
 
-        // Show loading state
-        const originalText = btnCropSave.innerText;
-        btnCropSave.innerText = "Uploading...";
-        (btnCropSave as HTMLButtonElement).disabled = true;
+          formData.append("file", blob, finalFilename);
 
-        try {
-          const res = await fetch(`${API_BASE}/admin/upload`, {
-            method: "POST",
-            headers: { Authorization: token || "" },
-            body: formData,
-          });
+          // Show loading state
+          const originalText = btnCropSave.innerText;
+          btnCropSave.innerText = "Uploading...";
+          (btnCropSave as HTMLButtonElement).disabled = true;
 
-          const json = await res.json();
+          try {
+            const res = await fetch(`${API_BASE}/admin/upload`, {
+              method: "POST",
+              headers: { Authorization: token || "" },
+              body: formData,
+            });
 
-          if (json.status === "success") {
-            // Update UI with absolute URL (relative to domain)
-            const fullUrl = json.url;
+            const json = await res.json();
 
-            if (currentUploadTarget === "logo") {
-              logoInput.value = fullUrl;
-              logoPreview.src = fullUrl;
+            if (json.status === "success") {
+              // Update UI with absolute URL (relative to domain)
+              const fullUrl = json.url;
+
+              if (currentUploadTarget === "logo") {
+                logoInput.value = fullUrl;
+                logoPreview.src = fullUrl;
+              } else if (currentUploadTarget === "favicon") {
+                faviconInput.value = fullUrl;
+                faviconPreview.src = fullUrl;
+              } else if (currentUploadTarget === "social") {
+                socialInput.value = fullUrl;
+                socialPreview.src = fullUrl;
+              }
+
+              closeEditor();
+              showToast("Image uploaded successfully", "success");
             } else {
-              faviconInput.value = fullUrl;
-              faviconPreview.src = fullUrl;
+              showToast("Upload failed: " + json.message, "error");
             }
-
-            closeEditor();
-            showToast("Image uploaded successfully", "success");
-          } else {
-            showToast("Upload failed: " + json.message, "error");
+          } catch (e) {
+            console.error(e);
+            showToast("Error uploading file", "error");
+          } finally {
+            btnCropSave.innerText = originalText;
+            (btnCropSave as HTMLButtonElement).disabled = false;
           }
-        } catch (e) {
-          console.error(e);
-          showToast("Error uploading file", "error");
-        } finally {
-          btnCropSave.innerText = originalText;
-          (btnCropSave as HTMLButtonElement).disabled = false;
-        }
-      }, "image/png");
+        },
+        format,
+        0.9
+      ); // 0.9 quality for JPG
   });
 
   // Fetch current settings
@@ -765,6 +867,10 @@ import Layout from "../../layouts/Layout.astro";
         if (json.data.site_favicon) {
           faviconInput.value = json.data.site_favicon;
           faviconPreview.src = json.data.site_favicon;
+        }
+        if (json.data.social_image) {
+          socialInput.value = json.data.social_image;
+          socialPreview.src = json.data.social_image;
         }
       } else if (res.status === 401) {
         window.location.href = "/admin/login";
@@ -872,6 +978,21 @@ import Layout from "../../layouts/Layout.astro";
           value: faviconInput.value.trim(),
         }),
       });
+
+      // Save Social Image
+      if (socialInput && socialInput.value) {
+        await fetch(`${API_BASE}/admin/settings`, {
+          method: "POST",
+          headers: {
+            Authorization: token || "",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            key: "social_image",
+            value: socialInput.value.trim(),
+          }),
+        });
+      }
 
       if (res.ok) {
         showToast("Settings saved successfully!", "success");
