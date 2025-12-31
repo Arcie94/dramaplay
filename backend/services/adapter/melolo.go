@@ -207,7 +207,7 @@ func (p *MeloloProvider) GetDetail(id string) (*models.Drama, []models.Episode, 
 	for _, v := range videoList {
 		episodes = append(episodes, models.Episode{
 			BookID:       "melolo:" + id,
-			EpisodeIndex: v.VidIndex,
+			EpisodeIndex: v.VidIndex - 1, // Normalize to 0-based
 			EpisodeLabel: fmt.Sprintf("Episode %d", v.VidIndex),
 		})
 	}

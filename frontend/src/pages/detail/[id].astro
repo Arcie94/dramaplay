@@ -181,6 +181,7 @@ const schema = JSON.stringify({
 
         <div class="flex gap-2 w-full">
           <a
+            id="watch-btn"
             href={`/watch/${id}/1`}
             class="flex-1 bg-red-600 text-white font-bold py-3 rounded-full flex items-center justify-center gap-2 shadow-lg shadow-red-900/40 active:scale-95 transition-transform"
           >
@@ -192,7 +193,7 @@ const schema = JSON.stringify({
             >
               <path d="M8 5v14l11-7z"></path>
             </svg>
-            Watch Now
+            <span id="watch-text">Watch Now</span>
           </a>
           <button
             id="mylist-btn"
@@ -282,6 +283,39 @@ const schema = JSON.stringify({
 >
   const API_URL = "/api";
   document.addEventListener("DOMContentLoaded", () => {
+    // History / Continue Watching Logic
+    const initContinueWatching = async () => {
+      const watchBtn = document.getElementById("watch-btn");
+      const watchText = document.getElementById("watch-text");
+      if (!watchBtn || !watchText) return;
+
+      const currentUserStr = localStorage.getItem("user");
+      if (!currentUserStr) return;
+
+      try {
+        const user = JSON.parse(currentUserStr);
+        if (!user.id) return;
+
+        // Fetch History
+        const res = await fetch(
+          `${API_URL}/history/check?userId=${user.id}&bookId=${bookId}&_t=${Date.now()}`
+        );
+        if (res.ok) {
+          const json = await res.json();
+          if (json.exists && typeof json.episodeIdx === "number") {
+            const nextEp = json.episodeIdx + 1; // 0-based to 1-based
+            watchBtn.href = `/watch/${bookId}/${nextEp}`;
+            watchText.innerText = `Continue Ep ${nextEp}`;
+
+            // Optional: Visual Cue (e.g. icon change to Play/Resume) is already Play icon.
+          }
+        }
+      } catch (e) {
+        console.error("Failed to check history", e);
+      }
+    };
+    initContinueWatching();
+
     // Shared Toast Logic
     const toast = document.getElementById("toast");
     function showToast(msg) {
