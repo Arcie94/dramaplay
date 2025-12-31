@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -241,7 +242,11 @@ func (p *DramaboxProvider) GetDetail(id string) (*models.Drama, []models.Episode
 }
 
 func (p *DramaboxProvider) GetStream(id, epIndex string) (*models.StreamData, error) {
-	url := fmt.Sprintf("%s/stream?bookId=%s&episode=%s", DramaboxAPI, id, epIndex)
+	idx, _ := strconv.Atoi(epIndex)
+	// Convert 0-based internal index to 1-based for Dramabox API
+	upstreamIndex := idx + 1
+
+	url := fmt.Sprintf("%s/stream?bookId=%s&episode=%d", DramaboxAPI, id, upstreamIndex)
 	body, err := p.fetch(url)
 	if err != nil {
 		return nil, err

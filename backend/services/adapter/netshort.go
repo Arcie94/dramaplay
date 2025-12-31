@@ -171,9 +171,12 @@ func (p *NetshortProvider) GetStream(id, epIndex string) (*models.StreamData, er
 	}
 
 	idx, _ := strconv.Atoi(epIndex)
+	// Convert 0-based internal index to 1-based for Netshort lookup
+	targetIndex := idx + 1
+
 	var targetUrl string
 	for _, ep := range raw.EpisodeInfos {
-		if ep.EpisodeNo == idx {
+		if ep.EpisodeNo == targetIndex {
 			targetUrl = ep.PlayVoucher
 			break
 		}
