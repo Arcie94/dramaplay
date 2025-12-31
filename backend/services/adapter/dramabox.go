@@ -233,7 +233,7 @@ func (p *DramaboxProvider) GetDetail(id string) (*models.Drama, []models.Episode
 	for _, ch := range detailData.Chapters {
 		episodes = append(episodes, models.Episode{
 			BookID:       "dramabox:" + detailData.Drama.BookID,
-			EpisodeIndex: ch.Index + 1,
+			EpisodeIndex: ch.Index,
 			EpisodeLabel: fmt.Sprintf("Episode %d", ch.Index+1),
 		})
 	}
@@ -243,10 +243,8 @@ func (p *DramaboxProvider) GetDetail(id string) (*models.Drama, []models.Episode
 
 func (p *DramaboxProvider) GetStream(id, epIndex string) (*models.StreamData, error) {
 	idx, _ := strconv.Atoi(epIndex)
-	// Convert 0-based internal index to 1-based for Dramabox API
-	upstreamIndex := idx + 1
-
-	url := fmt.Sprintf("%s/stream?bookId=%s&episode=%d", DramaboxAPI, id, upstreamIndex)
+	// Dramabox API expects 0-based index same as internal
+	url := fmt.Sprintf("%s/stream?bookId=%s&episode=%d", DramaboxAPI, id, idx)
 	body, err := p.fetch(url)
 	if err != nil {
 		return nil, err

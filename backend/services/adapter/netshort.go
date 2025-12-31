@@ -149,7 +149,7 @@ func (p *NetshortProvider) GetDetail(id string) (*models.Drama, []models.Episode
 	for _, ep := range raw.EpisodeInfos {
 		episodes = append(episodes, models.Episode{
 			BookID:       "netshort:" + raw.ShortPlayId,
-			EpisodeIndex: ep.EpisodeNo,
+			EpisodeIndex: ep.EpisodeNo - 1,
 			EpisodeLabel: fmt.Sprintf("Episode %d", ep.EpisodeNo),
 		})
 	}
