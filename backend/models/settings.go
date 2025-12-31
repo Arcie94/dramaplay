@@ -28,7 +28,7 @@ func MigrateSettings(db *gorm.DB) error {
 	if db.Where("key = ?", "site_logo").First(&s).Error != nil {
 		db.Create(&Setting{
 			Key:   "site_logo",
-			Value: "/favicon.png",
+			Value: "/logo-404.png",
 		})
 	}
 	return nil
