@@ -6,671 +6,658 @@ const API_BASE = process.env.INTERNAL_API_URL || "http://backend:3000/api";
 let siteLogo = "/favicon.png";
 let debugMsg = "";
 try {
-    const settingsRes = await fetch(`${API_BASE}/settings?t=${Date.now()}`);
-    if (settingsRes.ok) {
-        const settingsData = await settingsRes.json();
-        if (settingsData.site_logo) {
-            siteLogo = settingsData.site_logo;
-            debugMsg = "Loaded";
-        } else {
-            debugMsg = "No Logo in DB";
-        }
+  const settingsRes = await fetch(`${API_BASE}/settings?t=${Date.now()}`);
+  if (settingsRes.ok) {
+    const settingsData = await settingsRes.json();
+    if (settingsData.site_logo) {
+      siteLogo = settingsData.site_logo;
+      debugMsg = "Loaded";
     } else {
-        debugMsg = `Fetch Status: ${settingsRes.status}`;
+      debugMsg = "No Logo in DB";
     }
+  } else {
+    debugMsg = `Fetch Status: ${settingsRes.status}`;
+  }
 } catch (e) {
-    console.error("Error fetching settings:", e);
-    debugMsg = `Error: ${(e as Error).message}`;
+  console.error("Error fetching settings:", e);
+  debugMsg = `Error: ${(e as Error).message}`;
 }
 ---
 
 <Layout title="DramaPlay - Admin Panel">
-    <div class="min-h-screen bg-zinc-950 text-white p-4 md:p-6 pb-24">
-        <div class="max-w-7xl mx-auto">
-            <header
-                class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4 border-b border-zinc-800 pb-4"
+  <div class="min-h-screen bg-zinc-950 text-white p-4 md:p-6 pb-24">
+    <div class="max-w-7xl mx-auto">
+      <header
+        class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4 border-b border-zinc-800 pb-4"
+      >
+        <div class="flex items-center gap-2">
+          <img
+            src={siteLogo}
+            alt="Logo"
+            class="h-8 w-8 rounded-lg object-cover"
+            onerror="this.src='/favicon.png'"
+          />
+          <div class="flex flex-col">
+            <span class="text-lg font-bold tracking-tight text-white"
+              >DramaPlay</span
             >
-                <div class="flex items-center gap-2">
-                    <img
-                        src={siteLogo}
-                        alt="Logo"
-                        class="h-8 w-8 rounded-lg object-cover"
-                    />
-                    <div class="flex flex-col">
-                        <span
-                            class="text-lg font-bold tracking-tight text-white"
-                            >DramaPlay</span
-                        >
-                    </div>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    <!-- Global Nav Only -->
-                    <a
-                        href="/admin/users"
-                        class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 text-zinc-300 hover:text-white border border-zinc-700 hover:border-zinc-600"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="2"
-                            stroke="currentColor"
-                            class="w-4 h-4"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
-                            ></path>
-                        </svg>
-                        Users
-                    </a>
-                    <a
-                        href="/admin/settings"
-                        class="px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 text-white"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="2"
-                            stroke="currentColor"
-                            class="w-4 h-4"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"
-                            ></path>
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        </svg>
-                        Settings
-                    </a>
-                    <button
-                        id="btn-logout"
-                        class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 text-red-400 hover:text-red-300 border border-zinc-800 hover:border-red-900/30"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="2"
-                            stroke="currentColor"
-                            class="w-4 h-4"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"
-                            ></path>
-                        </svg>
-                        Logout
-                    </button>
-                </div>
-            </header>
-
-            <!-- Actions Bar -->
-            <div class="flex flex-wrap gap-3 mb-8">
-                <button
-                    id="btn-ingest"
-                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="2"
-                        stroke="currentColor"
-                        class="w-4 h-4"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6"
-                        ></path>
-                    </svg>
-                    Trigger Ingest
-                </button>
-                <button
-                    id="btn-dedup"
-                    class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="2"
-                        stroke="currentColor"
-                        class="w-4 h-4"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        ></path>
-                    </svg>
-                    Run Dedup
-                </button>
-            </div>
-
-            <!-- Logs Panel -->
-            <div
-                class="mb-8 animate-in fade-in slide-in-from-top-4 duration-500 delay-150"
-            >
-                <div class="flex items-center justify-between mb-2">
-                    <h3
-                        class="text-zinc-500 text-xs font-bold uppercase tracking-wider flex items-center gap-2"
-                    >
-                        <span
-                            class="w-2 h-2 rounded-full bg-green-500 animate-pulse"
-                        ></span>
-                        System Activity
-                    </h3>
-                    <button
-                        id="btn-refresh-logs"
-                        class="text-xs text-zinc-500 hover:text-white transition-colors flex items-center gap-1"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="1.5"
-                            stroke="currentColor"
-                            class="w-3 h-3"
-                            ><path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
-                            ></path></svg
-                        >
-                        Refresh
-                    </button>
-                </div>
-                <div
-                    class="bg-black/40 border border-zinc-800 rounded-xl p-3 h-32 overflow-y-auto font-mono text-xs shadow-inner"
-                    id="logs-container"
-                >
-                    <div
-                        class="flex items-center justify-center h-full text-zinc-600"
-                    >
-                        <svg
-                            class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            ><circle
-                                class="opacity-25"
-                                cx="12"
-                                cy="12"
-                                r="10"
-                                stroke="currentColor"
-                                stroke-width="4"></circle><path
-                                class="opacity-75"
-                                fill="currentColor"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path></svg
-                        >
-                        Initializing logs...
-                    </div>
-                </div>
-            </div>
-
-            <!-- Stats Mockup -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-8">
-                <div
-                    class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 md:p-5 flex flex-col justify-center"
-                >
-                    <h3
-                        class="text-zinc-500 text-xs md:text-sm font-medium uppercase tracking-wider"
-                    >
-                        Total Dramas
-                    </h3>
-                    <p
-                        id="stat-total"
-                        class="text-2xl md:text-3xl font-bold text-white mt-2"
-                    >
-                        ...
-                    </p>
-                </div>
-                <div
-                    class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 md:p-5 flex flex-col justify-center"
-                >
-                    <h3
-                        class="text-zinc-500 text-xs md:text-sm font-medium uppercase tracking-wider"
-                    >
-                        Server Status
-                    </h3>
-                    <p
-                        class="text-2xl md:text-3xl font-bold text-green-500 mt-2"
-                    >
-                        Online
-                    </p>
-                </div>
-                <div
-                    class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 md:p-5 flex flex-col justify-center"
-                >
-                    <h3
-                        class="text-zinc-500 text-xs md:text-sm font-medium uppercase tracking-wider"
-                    >
-                        Last Scan
-                    </h3>
-                    <p class="text-xl md:text-2xl font-bold text-white mt-2">
-                        Just now
-                    </p>
-                </div>
-            </div>
-
-            <!-- Search & Filter -->
-            <!-- Search & Filter -->
-            <div class="flex flex-col md:flex-row gap-4 mb-6">
-                <input
-                    type="text"
-                    id="admin-search"
-                    placeholder="Search by title..."
-                    class="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-red-600 transition-colors"
-                />
-
-                <input
-                    type="text"
-                    id="filter-genre"
-                    placeholder="Genre..."
-                    class="w-full md:w-48 bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-red-600 transition-colors"
-                />
-
-                <select
-                    id="filter-sort"
-                    class="w-full md:w-40 bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-red-600 transition-colors appearance-none cursor-pointer"
-                >
-                    <option value="">Newest</option>
-                    <option value="oldest">Oldest</option>
-                    <option value="title_asc">Name A-Z</option>
-                    <option value="title_desc">Name Z-A</option>
-                </select>
-
-                <button
-                    id="filter-featured"
-                    class="px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-500 hover:text-white hover:border-yellow-500 hover:bg-yellow-500/10 transition-all flex items-center gap-2 group"
-                    data-active="false"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        class="w-5 h-5 group-hover:text-yellow-500 transition-colors"
-                    >
-                        <path
-                            fill-rule="evenodd"
-                            d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z"
-                            clip-rule="evenodd"></path>
-                    </svg>
-                    <span class="font-medium text-sm">Featured</span>
-                </button>
-
-                <button
-                    id="btn-refresh"
-                    class="p-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-white shrink-0"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        class="w-6 h-6"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
-                        ></path>
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Bulk Action Bar (Hidden by default) -->
-            <div
-                id="bulk-action-bar"
-                class="hidden mb-4 items-center bg-red-900/20 border border-red-900/50 p-3 rounded-lg animate-in fade-in slide-in-from-top-2"
-            >
-                <span class="text-red-200 text-sm font-medium mr-auto pl-2">
-                    <span id="selected-count">0</span> dramas selected
-                </span>
-                <button
-                    id="btn-bulk-delete"
-                    class="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded shadow-lg shadow-red-900/20 transition-all flex items-center gap-2"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="2"
-                        stroke="currentColor"
-                        class="w-4 h-4"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                        ></path>
-                    </svg>
-                    Delete Selected
-                </button>
-            </div>
-
-            <!-- Data Table Container -->
-            <div
-                class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-sm"
-            >
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead
-                            class="bg-zinc-950 text-zinc-400 text-xs uppercase font-semibold border-b border-zinc-800"
-                        >
-                            <tr>
-                                <th class="p-4 w-10 text-center">
-                                    <input
-                                        type="checkbox"
-                                        id="select-all"
-                                        class="rounded bg-zinc-800 border-zinc-700 text-red-600 focus:ring-red-600 focus:ring-offset-zinc-900 cursor-pointer"
-                                    />
-                                </th>
-                                <th class="p-4 w-20 text-center">Cover</th>
-                                <th class="p-4 w-1/3 text-center">Title</th>
-                                <th class="p-4 w-32 text-center">Episodes</th>
-                                <th class="p-4 text-center">Genre</th>
-                                <th class="p-4 text-center">Hero</th>
-                                <th class="p-4 text-center w-32">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody
-                            id="admin-table-body"
-                            class="divide-y divide-zinc-800 text-sm"
-                        >
-                            <!-- Rows injected via JS -->
-                        </tbody>
-                    </table>
-                </div>
-                <!-- Pagination -->
-                <div
-                    class="flex items-center justify-between p-4 border-t border-zinc-800 bg-zinc-900/50"
-                >
-                    <span id="page-info" class="text-zinc-500 text-sm"
-                        >Page 1</span
-                    >
-                    <div class="flex gap-2">
-                        <button
-                            id="btn-prev"
-                            class="px-3 py-1 bg-zinc-800 rounded hover:bg-zinc-700 disabled:opacity-50 text-xs font-medium"
-                            >Prev</button
-                        >
-                        <button
-                            id="btn-next"
-                            class="px-3 py-1 bg-zinc-800 rounded hover:bg-zinc-700 disabled:opacity-50 text-xs font-medium"
-                            >Next</button
-                        >
-                    </div>
-                </div>
-            </div>
+          </div>
         </div>
-    </div>
+        <div class="flex flex-wrap gap-2">
+          <!-- Global Nav Only -->
+          <a
+            href="/admin/users"
+            class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 text-zinc-300 hover:text-white border border-zinc-700 hover:border-zinc-600"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              class="w-4 h-4"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
+              ></path>
+            </svg>
+            Users
+          </a>
+          <a
+            href="/admin/settings"
+            class="px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 text-white"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              class="w-4 h-4"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"
+              ></path>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            Settings
+          </a>
+          <button
+            id="btn-logout"
+            class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 text-red-400 hover:text-red-300 border border-zinc-800 hover:border-red-900/30"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              class="w-4 h-4"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"
+              ></path>
+            </svg>
+            Logout
+          </button>
+        </div>
+      </header>
 
-    <!-- Edit Modal -->
-    <div
-        id="edit-modal"
-        class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 hidden backdrop-blur-sm"
-    >
-        <div
-            class="bg-zinc-900 w-full max-w-lg rounded-xl border border-zinc-800 p-6 shadow-2xl"
+      <!-- Actions Bar -->
+      <div class="flex flex-wrap gap-3 mb-8">
+        <button
+          id="btn-ingest"
+          class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
         >
-            <h2 class="text-xl font-bold text-white mb-4">Edit Drama</h2>
-            <form id="edit-form" class="space-y-4">
-                <input type="hidden" id="edit-id" />
-                <div>
-                    <label class="block text-xs font-medium text-zinc-400 mb-1"
-                        >Title</label
-                    >
-                    <input
-                        type="text"
-                        id="edit-title"
-                        class="w-full bg-black/50 border border-zinc-700 rounded px-3 py-2 text-white focus:border-red-600 focus:outline-none"
-                    />
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-zinc-400 mb-1"
-                        >Cover URL</label
-                    >
-                    <input
-                        type="text"
-                        id="edit-cover"
-                        class="w-full bg-black/50 border border-zinc-700 rounded px-3 py-2 text-white focus:border-red-600 focus:outline-none"
-                    />
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-zinc-400 mb-1"
-                        >Total Episodes</label
-                    >
-                    <input
-                        type="text"
-                        id="edit-episodes"
-                        class="w-full bg-black/50 border border-zinc-700 rounded px-3 py-2 text-white focus:border-red-600 focus:outline-none"
-                    />
-                </div>
-                <div class="flex justify-end gap-3 mt-6">
-                    <button
-                        type="button"
-                        id="btn-cancel-edit"
-                        class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm text-white"
-                        >Cancel</button
-                    >
-                    <button
-                        type="submit"
-                        class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-sm text-white font-bold"
-                        >Save Changes</button
-                    >
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Delete Confirmation Modal -->
-    <div
-        id="delete-modal"
-        class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 hidden backdrop-blur-sm animate-in fade-in duration-200"
-    >
-        <div
-            class="bg-zinc-900 w-full max-w-sm rounded-xl border border-white/10 p-6 shadow-2xl scale-in-95 animate-in duration-200"
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2"
+            stroke="currentColor"
+            class="w-4 h-4"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6"
+            ></path>
+          </svg>
+          Trigger Ingest
+        </button>
+        <button
+          id="btn-dedup"
+          class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
         >
-            <h3 class="text-xl font-bold text-white mb-2" id="delete-title">
-                Delete Drama?
-            </h3>
-            <p class="text-zinc-400 mb-6 text-sm" id="delete-desc">
-                Are you sure you want to delete this drama? This action cannot
-                be undone.
-            </p>
-            <div class="flex justify-end gap-3">
-                <button
-                    type="button"
-                    id="btn-cancel-delete"
-                    class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                    Cancel
-                </button>
-                <button
-                    type="button"
-                    id="btn-confirm-delete"
-                    class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg shadow-lg shadow-red-900/20 transition-all"
-                >
-                    Delete Drama
-                </button>
-            </div>
-        </div>
-    </div>
-    <!-- Action Confirmation Modal -->
-    <div
-        id="action-modal"
-        class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 hidden backdrop-blur-sm animate-in fade-in duration-200"
-    >
-        <div
-            class="bg-zinc-900 w-full max-w-sm rounded-xl border border-zinc-700 p-6 shadow-2xl scale-in-95 animate-in duration-200"
-        >
-            <h3 class="text-xl font-bold text-white mb-2" id="action-title">
-                Confirm Action
-            </h3>
-            <p class="text-zinc-400 mb-6 text-sm" id="action-desc">
-                Are you sure?
-            </p>
-            <div class="flex justify-end gap-3">
-                <button
-                    type="button"
-                    id="btn-cancel-action"
-                    class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                    Cancel
-                </button>
-                <button
-                    type="button"
-                    id="btn-confirm-action"
-                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-lg transition-all"
-                >
-                    Confirm
-                </button>
-            </div>
-        </div>
-    </div>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2"
+            stroke="currentColor"
+            class="w-4 h-4"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
+          </svg>
+          Run Dedup
+        </button>
+      </div>
 
-    <!-- Toast Container -->
-    <div
-        id="toast-container"
-        class="fixed bottom-6 right-6 z-[60] flex flex-col gap-2 pointer-events-none"
-    >
+      <!-- Logs Panel -->
+      <div
+        class="mb-8 animate-in fade-in slide-in-from-top-4 duration-500 delay-150"
+      >
+        <div class="flex items-center justify-between mb-2">
+          <h3
+            class="text-zinc-500 text-xs font-bold uppercase tracking-wider flex items-center gap-2"
+          >
+            <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"
+            ></span>
+            System Activity
+          </h3>
+          <button
+            id="btn-refresh-logs"
+            class="text-xs text-zinc-500 hover:text-white transition-colors flex items-center gap-1"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="w-3 h-3"
+              ><path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+              ></path></svg
+            >
+            Refresh
+          </button>
+        </div>
+        <div
+          class="bg-black/40 border border-zinc-800 rounded-xl p-3 h-32 overflow-y-auto font-mono text-xs shadow-inner"
+          id="logs-container"
+        >
+          <div class="flex items-center justify-center h-full text-zinc-600">
+            <svg
+              class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              ><circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"></circle><path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path></svg
+            >
+            Initializing logs...
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Mockup -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-8">
+        <div
+          class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 md:p-5 flex flex-col justify-center"
+        >
+          <h3
+            class="text-zinc-500 text-xs md:text-sm font-medium uppercase tracking-wider"
+          >
+            Total Dramas
+          </h3>
+          <p
+            id="stat-total"
+            class="text-2xl md:text-3xl font-bold text-white mt-2"
+          >
+            ...
+          </p>
+        </div>
+        <div
+          class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 md:p-5 flex flex-col justify-center"
+        >
+          <h3
+            class="text-zinc-500 text-xs md:text-sm font-medium uppercase tracking-wider"
+          >
+            Server Status
+          </h3>
+          <p class="text-2xl md:text-3xl font-bold text-green-500 mt-2">
+            Online
+          </p>
+        </div>
+        <div
+          class="bg-zinc-900 border border-zinc-800 rounded-xl p-4 md:p-5 flex flex-col justify-center"
+        >
+          <h3
+            class="text-zinc-500 text-xs md:text-sm font-medium uppercase tracking-wider"
+          >
+            Last Scan
+          </h3>
+          <p class="text-xl md:text-2xl font-bold text-white mt-2">Just now</p>
+        </div>
+      </div>
+
+      <!-- Search & Filter -->
+      <!-- Search & Filter -->
+      <div class="flex flex-col md:flex-row gap-4 mb-6">
+        <input
+          type="text"
+          id="admin-search"
+          placeholder="Search by title..."
+          class="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-red-600 transition-colors"
+        />
+
+        <input
+          type="text"
+          id="filter-genre"
+          placeholder="Genre..."
+          class="w-full md:w-48 bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-red-600 transition-colors"
+        />
+
+        <select
+          id="filter-sort"
+          class="w-full md:w-40 bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-red-600 transition-colors appearance-none cursor-pointer"
+        >
+          <option value="">Newest</option>
+          <option value="oldest">Oldest</option>
+          <option value="title_asc">Name A-Z</option>
+          <option value="title_desc">Name Z-A</option>
+        </select>
+
+        <button
+          id="filter-featured"
+          class="px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-500 hover:text-white hover:border-yellow-500 hover:bg-yellow-500/10 transition-all flex items-center gap-2 group"
+          data-active="false"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            class="w-5 h-5 group-hover:text-yellow-500 transition-colors"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z"
+              clip-rule="evenodd"></path>
+          </svg>
+          <span class="font-medium text-sm">Featured</span>
+        </button>
+
+        <button
+          id="btn-refresh"
+          class="p-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-white shrink-0"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-6 h-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+            ></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Bulk Action Bar (Hidden by default) -->
+      <div
+        id="bulk-action-bar"
+        class="hidden mb-4 items-center bg-red-900/20 border border-red-900/50 p-3 rounded-lg animate-in fade-in slide-in-from-top-2"
+      >
+        <span class="text-red-200 text-sm font-medium mr-auto pl-2">
+          <span id="selected-count">0</span> dramas selected
+        </span>
+        <button
+          id="btn-bulk-delete"
+          class="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded shadow-lg shadow-red-900/20 transition-all flex items-center gap-2"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2"
+            stroke="currentColor"
+            class="w-4 h-4"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+            ></path>
+          </svg>
+          Delete Selected
+        </button>
+      </div>
+
+      <!-- Data Table Container -->
+      <div
+        class="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-sm"
+      >
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead
+              class="bg-zinc-950 text-zinc-400 text-xs uppercase font-semibold border-b border-zinc-800"
+            >
+              <tr>
+                <th class="p-4 w-10 text-center">
+                  <input
+                    type="checkbox"
+                    id="select-all"
+                    class="rounded bg-zinc-800 border-zinc-700 text-red-600 focus:ring-red-600 focus:ring-offset-zinc-900 cursor-pointer"
+                  />
+                </th>
+                <th class="p-4 w-20 text-center">Cover</th>
+                <th class="p-4 w-1/3 text-center">Title</th>
+                <th class="p-4 w-32 text-center">Episodes</th>
+                <th class="p-4 text-center">Genre</th>
+                <th class="p-4 text-center">Hero</th>
+                <th class="p-4 text-center w-32">Actions</th>
+              </tr>
+            </thead>
+            <tbody
+              id="admin-table-body"
+              class="divide-y divide-zinc-800 text-sm"
+            >
+              <!-- Rows injected via JS -->
+            </tbody>
+          </table>
+        </div>
+        <!-- Pagination -->
+        <div
+          class="flex items-center justify-between p-4 border-t border-zinc-800 bg-zinc-900/50"
+        >
+          <span id="page-info" class="text-zinc-500 text-sm">Page 1</span>
+          <div class="flex gap-2">
+            <button
+              id="btn-prev"
+              class="px-3 py-1 bg-zinc-800 rounded hover:bg-zinc-700 disabled:opacity-50 text-xs font-medium"
+              >Prev</button
+            >
+            <button
+              id="btn-next"
+              class="px-3 py-1 bg-zinc-800 rounded hover:bg-zinc-700 disabled:opacity-50 text-xs font-medium"
+              >Next</button
+            >
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div
+    id="edit-modal"
+    class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 hidden backdrop-blur-sm"
+  >
+    <div
+      class="bg-zinc-900 w-full max-w-lg rounded-xl border border-zinc-800 p-6 shadow-2xl"
+    >
+      <h2 class="text-xl font-bold text-white mb-4">Edit Drama</h2>
+      <form id="edit-form" class="space-y-4">
+        <input type="hidden" id="edit-id" />
+        <div>
+          <label class="block text-xs font-medium text-zinc-400 mb-1"
+            >Title</label
+          >
+          <input
+            type="text"
+            id="edit-title"
+            class="w-full bg-black/50 border border-zinc-700 rounded px-3 py-2 text-white focus:border-red-600 focus:outline-none"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-zinc-400 mb-1"
+            >Cover URL</label
+          >
+          <input
+            type="text"
+            id="edit-cover"
+            class="w-full bg-black/50 border border-zinc-700 rounded px-3 py-2 text-white focus:border-red-600 focus:outline-none"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-zinc-400 mb-1"
+            >Total Episodes</label
+          >
+          <input
+            type="text"
+            id="edit-episodes"
+            class="w-full bg-black/50 border border-zinc-700 rounded px-3 py-2 text-white focus:border-red-600 focus:outline-none"
+          />
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button
+            type="button"
+            id="btn-cancel-edit"
+            class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm text-white"
+            >Cancel</button
+          >
+          <button
+            type="submit"
+            class="px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-sm text-white font-bold"
+            >Save Changes</button
+          >
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div
+    id="delete-modal"
+    class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 hidden backdrop-blur-sm animate-in fade-in duration-200"
+  >
+    <div
+      class="bg-zinc-900 w-full max-w-sm rounded-xl border border-white/10 p-6 shadow-2xl scale-in-95 animate-in duration-200"
+    >
+      <h3 class="text-xl font-bold text-white mb-2" id="delete-title">
+        Delete Drama?
+      </h3>
+      <p class="text-zinc-400 mb-6 text-sm" id="delete-desc">
+        Are you sure you want to delete this drama? This action cannot be
+        undone.
+      </p>
+      <div class="flex justify-end gap-3">
+        <button
+          type="button"
+          id="btn-cancel-delete"
+          class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          id="btn-confirm-delete"
+          class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg shadow-lg shadow-red-900/20 transition-all"
+        >
+          Delete Drama
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Action Confirmation Modal -->
+  <div
+    id="action-modal"
+    class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 hidden backdrop-blur-sm animate-in fade-in duration-200"
+  >
+    <div
+      class="bg-zinc-900 w-full max-w-sm rounded-xl border border-zinc-700 p-6 shadow-2xl scale-in-95 animate-in duration-200"
+    >
+      <h3 class="text-xl font-bold text-white mb-2" id="action-title">
+        Confirm Action
+      </h3>
+      <p class="text-zinc-400 mb-6 text-sm" id="action-desc">Are you sure?</p>
+      <div class="flex justify-end gap-3">
+        <button
+          type="button"
+          id="btn-cancel-action"
+          class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          id="btn-confirm-action"
+          class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-lg transition-all"
+        >
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div
+    id="toast-container"
+    class="fixed bottom-6 right-6 z-[60] flex flex-col gap-2 pointer-events-none"
+  >
+  </div>
 </Layout>
 
 <script>
-    const API_BASE = "/api";
+  const API_BASE = "/api";
 
-    function debounce(func: Function, wait: number) {
-        let timeout: any;
-        return function (this: any, ...args: any[]) {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(this, args), wait);
-        };
-    }
-
-    // AUTH CHECK
-    const token = localStorage.getItem("admin_token");
-    if (!token) {
-        window.location.href = "/admin/login";
-    }
-
-    let currentPage = 1;
-    let currentLimit = 10;
-    let selectedIds: Set<string> = new Set();
-    let isBulkDelete = false;
-
-    const tableBody = document.getElementById("admin-table-body");
-    const pageInfo = document.getElementById("page-info");
-    const statTotal = document.getElementById("stat-total");
-    const searchInput = document.getElementById(
-        "admin-search",
-    ) as HTMLInputElement;
-    const genreInput = document.getElementById(
-        "filter-genre",
-    ) as HTMLInputElement;
-    const sortInput = document.getElementById(
-        "filter-sort",
-    ) as HTMLSelectElement;
-
-    function getHeaders() {
-        return {
-            Authorization: token || "",
-            "Content-Type": "application/json",
-        };
-    }
-
-    async function fetchData(page = 1) {
-        try {
-            const query = searchInput.value;
-            const genre = genreInput.value;
-            const sort = sortInput.value;
-            const featured =
-                document
-                    .getElementById("filter-featured")
-                    ?.getAttribute("data-active") === "true";
-
-            const res = await fetch(
-                `${API_BASE}/admin/dramas?page=${page}&limit=${currentLimit}&q=${query}&genre=${genre}&sort=${sort}&featured=${featured}`,
-                {
-                    headers: getHeaders(),
-                },
-            );
-
-            if (res.status === 401) {
-                authFailed();
-                return;
-            }
-
-            const json = await res.json();
-
-            if (json.status === "success") {
-                renderTable(json.data);
-                if (statTotal) statTotal.textContent = json.total;
-                if (pageInfo)
-                    pageInfo.textContent = `Page ${json.page} of ${Math.ceil(json.total / json.limit)}`;
-                currentPage = json.page;
-            }
-        } catch (err) {
-            console.error(err);
-            showToast("Error fetching data", "error");
-        }
-    }
-
-    function authFailed() {
-        localStorage.removeItem("admin_token");
-        window.location.href = "/admin/login";
-    }
-
-    // Toggle Feature
-    (window as any).toggleFeature = async (
-        id: string,
-        currentStatus: boolean,
-    ) => {
-        try {
-            // Optimistic update handled by re-fetch
-            const res = await fetch(`${API_BASE}/admin/dramas/${id}/feature`, {
-                method: "PUT",
-                headers: getHeaders(),
-                body: JSON.stringify({ isFeatured: !currentStatus }), // Toggle status
-            });
-
-            if (res.ok) {
-                fetchData(currentPage); // Reload to reflect single-hero rule
-            } else {
-                alert("Failed to update feature status");
-            }
-        } catch (e) {
-            console.error(e);
-            alert("Error updating status");
-        }
+  function debounce(func: Function, wait: number) {
+    let timeout: any;
+    return function (this: any, ...args: any[]) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
     };
+  }
 
-    function renderTable(dramas: any[]) {
-        if (!tableBody) return;
+  // AUTH CHECK
+  const token = localStorage.getItem("admin_token");
+  if (!token) {
+    window.location.href = "/admin/login";
+  }
 
-        // Check if all displayed items are selected to update header checkbox
-        const allSelected =
-            dramas.length > 0 && dramas.every((d) => selectedIds.has(d.bookId));
-        const selectAllCb = document.getElementById(
-            "select-all",
-        ) as HTMLInputElement;
-        if (selectAllCb) selectAllCb.checked = allSelected;
+  let currentPage = 1;
+  let currentLimit = 10;
+  let selectedIds: Set<string> = new Set();
+  let isBulkDelete = false;
 
-        tableBody.innerHTML = dramas
-            .map(
-                (d) => `
+  const tableBody = document.getElementById("admin-table-body");
+  const pageInfo = document.getElementById("page-info");
+  const statTotal = document.getElementById("stat-total");
+  const searchInput = document.getElementById(
+    "admin-search"
+  ) as HTMLInputElement;
+  const genreInput = document.getElementById(
+    "filter-genre"
+  ) as HTMLInputElement;
+  const sortInput = document.getElementById("filter-sort") as HTMLSelectElement;
+
+  function getHeaders() {
+    return {
+      Authorization: token || "",
+      "Content-Type": "application/json",
+    };
+  }
+
+  async function fetchData(page = 1) {
+    try {
+      const query = searchInput.value;
+      const genre = genreInput.value;
+      const sort = sortInput.value;
+      const featured =
+        document
+          .getElementById("filter-featured")
+          ?.getAttribute("data-active") === "true";
+
+      const res = await fetch(
+        `${API_BASE}/admin/dramas?page=${page}&limit=${currentLimit}&q=${query}&genre=${genre}&sort=${sort}&featured=${featured}`,
+        {
+          headers: getHeaders(),
+        }
+      );
+
+      if (res.status === 401) {
+        authFailed();
+        return;
+      }
+
+      const json = await res.json();
+
+      if (json.status === "success") {
+        renderTable(json.data);
+        if (statTotal) statTotal.textContent = json.total;
+        if (pageInfo)
+          pageInfo.textContent = `Page ${json.page} of ${Math.ceil(json.total / json.limit)}`;
+        currentPage = json.page;
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Error fetching data", "error");
+    }
+  }
+
+  function authFailed() {
+    localStorage.removeItem("admin_token");
+    window.location.href = "/admin/login";
+  }
+
+  // Toggle Feature
+  (window as any).toggleFeature = async (
+    id: string,
+    currentStatus: boolean
+  ) => {
+    try {
+      // Optimistic update handled by re-fetch
+      const res = await fetch(`${API_BASE}/admin/dramas/${id}/feature`, {
+        method: "PUT",
+        headers: getHeaders(),
+        body: JSON.stringify({ isFeatured: !currentStatus }), // Toggle status
+      });
+
+      if (res.ok) {
+        fetchData(currentPage); // Reload to reflect single-hero rule
+      } else {
+        alert("Failed to update feature status");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error updating status");
+    }
+  };
+
+  function renderTable(dramas: any[]) {
+    if (!tableBody) return;
+
+    // Check if all displayed items are selected to update header checkbox
+    const allSelected =
+      dramas.length > 0 && dramas.every((d) => selectedIds.has(d.bookId));
+    const selectAllCb = document.getElementById(
+      "select-all"
+    ) as HTMLInputElement;
+    if (selectAllCb) selectAllCb.checked = allSelected;
+
+    tableBody.innerHTML = dramas
+      .map(
+        (d) => `
             <tr class="group hover:bg-zinc-900/50 transition-colors">
                 <td class="p-4 text-center">
                     <input type="checkbox" class="drama-select rounded bg-zinc-800 border-zinc-700 text-red-600 focus:ring-red-600 focus:ring-offset-zinc-900 cursor-pointer" 
@@ -695,403 +682,388 @@ try {
                     <button onclick="window.deleteDrama('${d.bookId}')" class="text-red-500 hover:text-red-400 text-xs font-semibold">Delete</button>
                 </td>
             </tr>
-        `,
-            )
-            .join("");
+        `
+      )
+      .join("");
 
-        // Store data for edit
-        (window as any).currentData = dramas;
+    // Store data for edit
+    (window as any).currentData = dramas;
 
-        // Re-attach checkbox listeners
-        document.querySelectorAll(".drama-select").forEach((cb) => {
-            cb.addEventListener("change", (e: any) => {
-                const id = e.target.value;
-                if (e.target.checked) selectedIds.add(id);
-                else selectedIds.delete(id);
-                updateBulkUI();
-            });
-        });
+    // Re-attach checkbox listeners
+    document.querySelectorAll(".drama-select").forEach((cb) => {
+      cb.addEventListener("change", (e: any) => {
+        const id = e.target.value;
+        if (e.target.checked) selectedIds.add(id);
+        else selectedIds.delete(id);
+        updateBulkUI();
+      });
+    });
+  }
+
+  function updateBulkUI() {
+    const bar = document.getElementById("bulk-action-bar");
+    const count = document.getElementById("selected-count");
+    const selectAllCb = document.getElementById(
+      "select-all"
+    ) as HTMLInputElement;
+
+    if (count) count.textContent = selectedIds.size.toString();
+
+    if (selectedIds.size > 0) {
+      bar?.classList.remove("hidden");
+      bar?.classList.add("flex");
+    } else {
+      bar?.classList.add("hidden");
+      bar?.classList.remove("flex");
+      if (selectAllCb) selectAllCb.checked = false;
+    }
+  }
+
+  document
+    .getElementById("select-all")
+    ?.addEventListener("change", (e: any) => {
+      const checked = e.target.checked;
+      const boxes = document.querySelectorAll(".drama-select");
+      boxes.forEach((cb: any) => {
+        cb.checked = checked;
+        if (checked) selectedIds.add(cb.value);
+        else selectedIds.delete(cb.value);
+      });
+      updateBulkUI();
+    });
+
+  document.getElementById("btn-bulk-delete")?.addEventListener("click", () => {
+    if (selectedIds.size === 0) return;
+    isBulkDelete = true;
+    showDeleteModal(null);
+  });
+
+  // --- Init ---
+  fetchData();
+  fetchLogs(); // Initial load
+
+  // --- Listeners ---
+  document
+    .getElementById("btn-refresh-logs")
+    ?.addEventListener("click", fetchLogs);
+
+  document.getElementById("btn-logout")?.addEventListener("click", () => {
+    authFailed();
+  });
+
+  document.getElementById("btn-prev")?.addEventListener("click", () => {
+    if (currentPage > 1) fetchData(currentPage - 1);
+  });
+
+  document.getElementById("btn-next")?.addEventListener("click", () => {
+    fetchData(currentPage + 1);
+  });
+
+  document.getElementById("btn-refresh")?.addEventListener("click", () => {
+    fetchData(currentPage);
+  });
+
+  const featuredFilter = document.getElementById("filter-featured");
+  featuredFilter?.addEventListener("click", () => {
+    const isActive = featuredFilter.getAttribute("data-active") === "true";
+    featuredFilter.setAttribute("data-active", (!isActive).toString());
+
+    // Update UI
+    if (!isActive) {
+      featuredFilter.classList.add(
+        "text-yellow-400",
+        "border-yellow-500",
+        "bg-yellow-500/10"
+      );
+      featuredFilter.classList.remove("text-zinc-500");
+    } else {
+      featuredFilter.classList.remove(
+        "text-yellow-400",
+        "border-yellow-500",
+        "bg-yellow-500/10"
+      );
+      featuredFilter.classList.add("text-zinc-500");
     }
 
-    function updateBulkUI() {
-        const bar = document.getElementById("bulk-action-bar");
-        const count = document.getElementById("selected-count");
-        const selectAllCb = document.getElementById(
-            "select-all",
-        ) as HTMLInputElement;
+    fetchData(1);
+  });
 
-        if (count) count.textContent = selectedIds.size.toString();
+  searchInput.addEventListener(
+    "input",
+    debounce(() => fetchData(1), 500)
+  );
+  genreInput.addEventListener(
+    "input",
+    debounce(() => fetchData(1), 500)
+  );
+  sortInput.addEventListener("change", () => fetchData(1));
 
-        if (selectedIds.size > 0) {
-            bar?.classList.remove("hidden");
-            bar?.classList.add("flex");
-        } else {
-            bar?.classList.add("hidden");
-            bar?.classList.remove("flex");
-            if (selectAllCb) selectAllCb.checked = false;
-        }
-    }
+  // --- Toast Logic ---
+  function showToast(msg: string, type: "success" | "error" = "success") {
+    const container = document.getElementById("toast-container");
+    if (!container) return;
 
-    document
-        .getElementById("select-all")
-        ?.addEventListener("change", (e: any) => {
-            const checked = e.target.checked;
-            const boxes = document.querySelectorAll(".drama-select");
-            boxes.forEach((cb: any) => {
-                cb.checked = checked;
-                if (checked) selectedIds.add(cb.value);
-                else selectedIds.delete(cb.value);
-            });
-            updateBulkUI();
-        });
-
-    document
-        .getElementById("btn-bulk-delete")
-        ?.addEventListener("click", () => {
-            if (selectedIds.size === 0) return;
-            isBulkDelete = true;
-            showDeleteModal(null);
-        });
-
-    // --- Init ---
-    fetchData();
-    fetchLogs(); // Initial load
-
-    // --- Listeners ---
-    document
-        .getElementById("btn-refresh-logs")
-        ?.addEventListener("click", fetchLogs);
-
-    document.getElementById("btn-logout")?.addEventListener("click", () => {
-        authFailed();
-    });
-
-    document.getElementById("btn-prev")?.addEventListener("click", () => {
-        if (currentPage > 1) fetchData(currentPage - 1);
-    });
-
-    document.getElementById("btn-next")?.addEventListener("click", () => {
-        fetchData(currentPage + 1);
-    });
-
-    document.getElementById("btn-refresh")?.addEventListener("click", () => {
-        fetchData(currentPage);
-    });
-
-    const featuredFilter = document.getElementById("filter-featured");
-    featuredFilter?.addEventListener("click", () => {
-        const isActive = featuredFilter.getAttribute("data-active") === "true";
-        featuredFilter.setAttribute("data-active", (!isActive).toString());
-
-        // Update UI
-        if (!isActive) {
-            featuredFilter.classList.add(
-                "text-yellow-400",
-                "border-yellow-500",
-                "bg-yellow-500/10",
-            );
-            featuredFilter.classList.remove("text-zinc-500");
-        } else {
-            featuredFilter.classList.remove(
-                "text-yellow-400",
-                "border-yellow-500",
-                "bg-yellow-500/10",
-            );
-            featuredFilter.classList.add("text-zinc-500");
-        }
-
-        fetchData(1);
-    });
-
-    searchInput.addEventListener(
-        "input",
-        debounce(() => fetchData(1), 500),
-    );
-    genreInput.addEventListener(
-        "input",
-        debounce(() => fetchData(1), 500),
-    );
-    sortInput.addEventListener("change", () => fetchData(1));
-
-    // --- Toast Logic ---
-    function showToast(msg: string, type: "success" | "error" = "success") {
-        const container = document.getElementById("toast-container");
-        if (!container) return;
-
-        const toast = document.createElement("div");
-        toast.className = `pointer-events-auto px-4 py-3 rounded-lg text-white text-sm font-medium shadow-xl flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-300 ${
-            type === "success" ? "bg-green-600" : "bg-red-600"
-        }`;
-        toast.innerHTML = `
+    const toast = document.createElement("div");
+    toast.className = `pointer-events-auto px-4 py-3 rounded-lg text-white text-sm font-medium shadow-xl flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-300 ${
+      type === "success" ? "bg-green-600" : "bg-red-600"
+    }`;
+    toast.innerHTML = `
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                 ${
-                    type === "success"
-                        ? '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />'
-                        : '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />'
+                  type === "success"
+                    ? '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />'
+                    : '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />'
                 }
             </svg>
             ${msg}
         `;
 
-        container.appendChild(toast);
+    container.appendChild(toast);
 
-        // Remove after 3s
-        setTimeout(() => {
-            toast.classList.add("opacity-0", "translate-y-2", "transition-all");
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
+    // Remove after 3s
+    setTimeout(() => {
+      toast.classList.add("opacity-0", "translate-y-2", "transition-all");
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+
+  // --- Action Modal Logic ---
+  const actionModal = document.getElementById("action-modal");
+  const btnCancelAction = document.getElementById("btn-cancel-action");
+  const btnConfirmAction = document.getElementById("btn-confirm-action");
+  let pendingAction: (() => void) | null = null;
+
+  function confirmAction(
+    title: string,
+    desc: string,
+    action: () => void,
+    confirmColorClass = "bg-blue-600"
+  ) {
+    if (!actionModal) return;
+    const titleEl = document.getElementById("action-title");
+    const descEl = document.getElementById("action-desc");
+    const btn = document.getElementById("btn-confirm-action");
+
+    if (titleEl) titleEl.textContent = title;
+    if (descEl) descEl.textContent = desc;
+
+    if (btn) {
+      btn.className = `px-4 py-2 text-white text-sm font-medium rounded-lg shadow-lg transition-all ${confirmColorClass} hover:opacity-90`;
+      // Remove old listeners to prevent stacking? Actually we trigger pendingAction
     }
 
-    // --- Action Modal Logic ---
-    const actionModal = document.getElementById("action-modal");
-    const btnCancelAction = document.getElementById("btn-cancel-action");
-    const btnConfirmAction = document.getElementById("btn-confirm-action");
-    let pendingAction: (() => void) | null = null;
+    pendingAction = action;
+    actionModal.classList.remove("hidden");
+    actionModal.classList.add("flex");
+  }
 
-    function confirmAction(
-        title: string,
-        desc: string,
-        action: () => void,
-        confirmColorClass = "bg-blue-600",
-    ) {
-        if (!actionModal) return;
-        const titleEl = document.getElementById("action-title");
-        const descEl = document.getElementById("action-desc");
-        const btn = document.getElementById("btn-confirm-action");
+  btnCancelAction?.addEventListener("click", () => {
+    actionModal?.classList.add("hidden");
+    pendingAction = null;
+  });
 
-        if (titleEl) titleEl.textContent = title;
-        if (descEl) descEl.textContent = desc;
+  btnConfirmAction?.addEventListener("click", () => {
+    if (pendingAction) pendingAction();
+    actionModal?.classList.add("hidden");
+    pendingAction = null;
+  });
 
-        if (btn) {
-            btn.className = `px-4 py-2 text-white text-sm font-medium rounded-lg shadow-lg transition-all ${confirmColorClass} hover:opacity-90`;
-            // Remove old listeners to prevent stacking? Actually we trigger pendingAction
-        }
-
-        pendingAction = action;
-        actionModal.classList.remove("hidden");
-        actionModal.classList.add("flex");
-    }
-
-    btnCancelAction?.addEventListener("click", () => {
-        actionModal?.classList.add("hidden");
-        pendingAction = null;
-    });
-
-    btnConfirmAction?.addEventListener("click", () => {
-        if (pendingAction) pendingAction();
-        actionModal?.classList.add("hidden");
-        pendingAction = null;
-    });
-
-    // --- Updated Actions ---
-    document.getElementById("btn-ingest")?.addEventListener("click", () => {
-        confirmAction(
-            "Trigger Ingest?",
-            "This will start the scraping process in the background. It might take a while.",
-            async () => {
-                await fetch(`${API_BASE}/admin/action/ingest`, {
-                    method: "POST",
-                    headers: getHeaders(),
-                });
-                showToast("Ingest process started in background", "success");
-            },
-            "bg-blue-600",
-        );
-    });
-
-    document.getElementById("btn-dedup")?.addEventListener("click", () => {
-        confirmAction(
-            "Run Deduplication?",
-            "This will scan and remove duplicate dramas based on titles.",
-            async () => {
-                await fetch(`${API_BASE}/admin/action/dedup`, {
-                    method: "POST",
-                    headers: getHeaders(),
-                });
-                showToast("Deduplication started", "success");
-            },
-            "bg-purple-600",
-        );
-    });
-
-    // --- Edit Logic ---
-    const editModal = document.getElementById("edit-modal");
-    const editForm = document.getElementById("edit-form");
-    const titleInput = document.getElementById(
-        "edit-title",
-    ) as HTMLInputElement;
-    const coverInput = document.getElementById(
-        "edit-cover",
-    ) as HTMLInputElement;
-    const epsInput = document.getElementById(
-        "edit-episodes",
-    ) as HTMLInputElement;
-    const idInput = document.getElementById("edit-id") as HTMLInputElement;
-
-    (window as any).openEdit = (id: string) => {
-        const drama = (window as any).currentData.find(
-            (d: any) => d.bookId === id,
-        );
-        if (!drama) return;
-
-        idInput.value = drama.bookId;
-        titleInput.value = drama.judul;
-        coverInput.value = drama.cover;
-        epsInput.value = drama.total_episode;
-
-        editModal?.classList.remove("hidden");
-    };
-
-    document
-        .getElementById("btn-cancel-edit")
-        ?.addEventListener("click", () => {
-            editModal?.classList.add("hidden");
+  // --- Updated Actions ---
+  document.getElementById("btn-ingest")?.addEventListener("click", () => {
+    confirmAction(
+      "Trigger Ingest?",
+      "This will start the scraping process in the background. It might take a while.",
+      async () => {
+        await fetch(`${API_BASE}/admin/action/ingest`, {
+          method: "POST",
+          headers: getHeaders(),
         });
+        showToast("Ingest process started in background", "success");
+      },
+      "bg-blue-600"
+    );
+  });
 
-    editForm?.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const id = idInput.value;
-
-        await fetch(`${API_BASE}/admin/dramas/${id}`, {
-            method: "PUT",
-            headers: getHeaders(),
-            body: JSON.stringify({
-                judul: titleInput.value,
-                cover: coverInput.value,
-                total_episode: epsInput.value,
-            }),
+  document.getElementById("btn-dedup")?.addEventListener("click", () => {
+    confirmAction(
+      "Run Deduplication?",
+      "This will scan and remove duplicate dramas based on titles.",
+      async () => {
+        await fetch(`${API_BASE}/admin/action/dedup`, {
+          method: "POST",
+          headers: getHeaders(),
         });
+        showToast("Deduplication started", "success");
+      },
+      "bg-purple-600"
+    );
+  });
 
-        editModal?.classList.add("hidden");
-        fetchData(currentPage);
+  // --- Edit Logic ---
+  const editModal = document.getElementById("edit-modal");
+  const editForm = document.getElementById("edit-form");
+  const titleInput = document.getElementById("edit-title") as HTMLInputElement;
+  const coverInput = document.getElementById("edit-cover") as HTMLInputElement;
+  const epsInput = document.getElementById("edit-episodes") as HTMLInputElement;
+  const idInput = document.getElementById("edit-id") as HTMLInputElement;
+
+  (window as any).openEdit = (id: string) => {
+    const drama = (window as any).currentData.find((d: any) => d.bookId === id);
+    if (!drama) return;
+
+    idInput.value = drama.bookId;
+    titleInput.value = drama.judul;
+    coverInput.value = drama.cover;
+    epsInput.value = drama.total_episode;
+
+    editModal?.classList.remove("hidden");
+  };
+
+  document.getElementById("btn-cancel-edit")?.addEventListener("click", () => {
+    editModal?.classList.add("hidden");
+  });
+
+  editForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const id = idInput.value;
+
+    await fetch(`${API_BASE}/admin/dramas/${id}`, {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify({
+        judul: titleInput.value,
+        cover: coverInput.value,
+        total_episode: epsInput.value,
+      }),
     });
 
-    // --- Delete Logic ---
-    const deleteModal = document.getElementById("delete-modal");
-    const btnCancelDelete = document.getElementById("btn-cancel-delete");
-    const btnConfirmDelete = document.getElementById("btn-confirm-delete");
-    let dramaToDeleteId: string | null = null;
+    editModal?.classList.add("hidden");
+    fetchData(currentPage);
+  });
 
-    function showDeleteModal(id: string | null) {
-        dramaToDeleteId = id;
+  // --- Delete Logic ---
+  const deleteModal = document.getElementById("delete-modal");
+  const btnCancelDelete = document.getElementById("btn-cancel-delete");
+  const btnConfirmDelete = document.getElementById("btn-confirm-delete");
+  let dramaToDeleteId: string | null = null;
 
-        const Title = document.getElementById("delete-title");
-        const Desc = document.getElementById("delete-desc");
+  function showDeleteModal(id: string | null) {
+    dramaToDeleteId = id;
 
-        if (deleteModal) {
-            if (Title && Desc) {
-                if (isBulkDelete) {
-                    Title.textContent = `Delete ${selectedIds.size} Dramas?`;
-                    Desc.textContent = `Are you sure you want to delete ${selectedIds.size} dramas? This action cannot be undone.`;
-                } else {
-                    Title.textContent = "Delete Drama?";
-                    Desc.textContent =
-                        "Are you sure you want to delete this drama? This action cannot be undone.";
-                }
-            }
+    const Title = document.getElementById("delete-title");
+    const Desc = document.getElementById("delete-desc");
 
-            deleteModal.classList.remove("hidden");
-            deleteModal.classList.add("flex");
-        }
-    }
-
-    function hideDeleteModal() {
-        dramaToDeleteId = null;
-        isBulkDelete = false; // Reset mode
-        if (deleteModal) {
-            deleteModal.classList.add("hidden");
-            deleteModal.classList.remove("flex");
-        }
-    }
-
-    if (btnCancelDelete) {
-        btnCancelDelete.addEventListener("click", hideDeleteModal);
-    }
-
-    // Explicitly handle outside click for Delete Modal too
     if (deleteModal) {
-        deleteModal.addEventListener("click", (e) => {
-            if (e.target === deleteModal) hideDeleteModal();
-        });
+      if (Title && Desc) {
+        if (isBulkDelete) {
+          Title.textContent = `Delete ${selectedIds.size} Dramas?`;
+          Desc.textContent = `Are you sure you want to delete ${selectedIds.size} dramas? This action cannot be undone.`;
+        } else {
+          Title.textContent = "Delete Drama?";
+          Desc.textContent =
+            "Are you sure you want to delete this drama? This action cannot be undone.";
+        }
+      }
+
+      deleteModal.classList.remove("hidden");
+      deleteModal.classList.add("flex");
     }
+  }
 
-    if (btnConfirmDelete) {
-        btnConfirmDelete.addEventListener("click", async () => {
-            // Bulk Delete
-            if (isBulkDelete && selectedIds.size > 0) {
-                const ids = Array.from(selectedIds);
-                // Execute deletes sequentially to avoid overwhelming server (or use Promise.all)
-                await Promise.all(
-                    ids.map((id) =>
-                        fetch(`${API_BASE}/admin/dramas/${id}`, {
-                            method: "DELETE",
-                            headers: getHeaders(),
-                        }),
-                    ),
-                );
-
-                selectedIds.clear();
-                updateBulkUI();
-                fetchData(currentPage);
-                hideDeleteModal();
-                return;
-            }
-
-            // Single Delete
-            if (!dramaToDeleteId) return;
-
-            await fetch(`${API_BASE}/admin/dramas/${dramaToDeleteId}`, {
-                method: "DELETE",
-                headers: getHeaders(),
-            });
-            fetchData(currentPage);
-            hideDeleteModal();
-        });
+  function hideDeleteModal() {
+    dramaToDeleteId = null;
+    isBulkDelete = false; // Reset mode
+    if (deleteModal) {
+      deleteModal.classList.add("hidden");
+      deleteModal.classList.remove("flex");
     }
+  }
 
-    (window as any).deleteDrama = (id: string) => {
-        isBulkDelete = false;
-        showDeleteModal(id);
-    };
-    // --- Logs Logic ---
-    async function fetchLogs() {
-        const container = document.getElementById("logs-container");
-        try {
-            const res = await fetch(`${API_BASE}/admin/logs`, {
-                headers: getHeaders(),
-            });
-            const json = await res.json();
-            if (json.status === "success") {
-                if (json.data.length === 0) {
-                    if (container)
-                        container.innerHTML =
-                            '<p class="text-zinc-600">No logs yet.</p>';
-                    return;
-                }
-                const html = json.data
-                    .map((l: any) => {
-                        const time = new Date(
-                            l.created_at,
-                        ).toLocaleTimeString();
-                        const color =
-                            l.level === "ERROR"
-                                ? "text-red-500"
-                                : l.level === "SUCCESS"
-                                  ? "text-green-500"
-                                  : "text-blue-500";
-                        return `
+  if (btnCancelDelete) {
+    btnCancelDelete.addEventListener("click", hideDeleteModal);
+  }
+
+  // Explicitly handle outside click for Delete Modal too
+  if (deleteModal) {
+    deleteModal.addEventListener("click", (e) => {
+      if (e.target === deleteModal) hideDeleteModal();
+    });
+  }
+
+  if (btnConfirmDelete) {
+    btnConfirmDelete.addEventListener("click", async () => {
+      // Bulk Delete
+      if (isBulkDelete && selectedIds.size > 0) {
+        const ids = Array.from(selectedIds);
+        // Execute deletes sequentially to avoid overwhelming server (or use Promise.all)
+        await Promise.all(
+          ids.map((id) =>
+            fetch(`${API_BASE}/admin/dramas/${id}`, {
+              method: "DELETE",
+              headers: getHeaders(),
+            })
+          )
+        );
+
+        selectedIds.clear();
+        updateBulkUI();
+        fetchData(currentPage);
+        hideDeleteModal();
+        return;
+      }
+
+      // Single Delete
+      if (!dramaToDeleteId) return;
+
+      await fetch(`${API_BASE}/admin/dramas/${dramaToDeleteId}`, {
+        method: "DELETE",
+        headers: getHeaders(),
+      });
+      fetchData(currentPage);
+      hideDeleteModal();
+    });
+  }
+
+  (window as any).deleteDrama = (id: string) => {
+    isBulkDelete = false;
+    showDeleteModal(id);
+  };
+  // --- Logs Logic ---
+  async function fetchLogs() {
+    const container = document.getElementById("logs-container");
+    try {
+      const res = await fetch(`${API_BASE}/admin/logs`, {
+        headers: getHeaders(),
+      });
+      const json = await res.json();
+      if (json.status === "success") {
+        if (json.data.length === 0) {
+          if (container)
+            container.innerHTML = '<p class="text-zinc-600">No logs yet.</p>';
+          return;
+        }
+        const html = json.data
+          .map((l: any) => {
+            const time = new Date(l.created_at).toLocaleTimeString();
+            const color =
+              l.level === "ERROR"
+                ? "text-red-500"
+                : l.level === "SUCCESS"
+                  ? "text-green-500"
+                  : "text-blue-500";
+            return `
                         <div class="flex gap-3 border-b border-white/5 pb-1 mb-1 last:border-0">
                             <span class="text-zinc-600 select-none">${time}</span>
                             <span class="${color} font-bold w-16">[${l.level}]</span>
                             <span class="text-zinc-300 flex-1 break-all">${l.message}</span>
                         </div>
                     `;
-                    })
-                    .join("");
-                if (container) container.innerHTML = html;
-            }
-        } catch (e) {
-            console.error(e);
-        }
+          })
+          .join("");
+        if (container) container.innerHTML = html;
+      }
+    } catch (e) {
+      console.error(e);
     }
+  }
 </script>

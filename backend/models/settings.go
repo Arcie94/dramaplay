@@ -23,5 +23,13 @@ func MigrateSettings(db *gorm.DB) error {
 			Value: "948421850128-kh10okq8tvc2rnl6vd4d460s1r3r7vir.apps.googleusercontent.com",
 		})
 	}
+
+	// Seed Site Logo if missing
+	if db.Where("key = ?", "site_logo").First(&s).Error != nil {
+		db.Create(&Setting{
+			Key:   "site_logo",
+			Value: "/favicon.png",
+		})
+	}
 	return nil
 }
