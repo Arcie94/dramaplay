@@ -8,7 +8,7 @@ const { title } = Astro.props;
 // Fetch Global Settings (GA4 ID, etc)
 let gaMeasurementId = "";
 let siteFavicon = "/favicon.png";
-let socialImage = "/pwa-512x512.png"; // Default fallback
+let socialImage = "/banner_dramaplay.jpg"; // Default fallback
 try {
     const API_URL = process.env.INTERNAL_API_URL || "http://backend:3000/api";
     const res = await fetch(`${API_URL}/settings`);
