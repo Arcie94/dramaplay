@@ -216,14 +216,13 @@ func (p *MeloloProvider) GetDetail(id string) (*models.Drama, []models.Episode, 
 }
 
 func (p *MeloloProvider) GetStream(id, epIndex string) (*models.StreamData, error) {
-	// 1. Need Detail to map Index -> VID
-	// Note: Ideally cache this mapping, but for now fetch again.
-	// Reuse GetDetail? GetDetail returns models, we need internal videoList.
-	// So duplicate fetch logic or refactor. Duplicating is safer for isolation.
+	fmt.Printf("[Melolo] GetStream Called. ID: %s, Index: %s\n", id, epIndex)
 
+	// 1. Need Detail to map Index -> VID
 	urlDetail := fmt.Sprintf("%s/detail?bookId=%s", MeloloAPI, id)
 	bodyDetail, err := p.fetch(urlDetail)
 	if err != nil {
+		fmt.Printf("[Melolo] Detail fetch failed: %v\n", err)
 		return nil, err
 	}
 	var rawDetail mDetailResponse
@@ -244,25 +243,34 @@ func (p *MeloloProvider) GetStream(id, epIndex string) (*models.StreamData, erro
 			break
 		}
 	}
+
+	fmt.Printf("[Melolo] Looking for Index %d. Found VID: %s\n", idx, targetVid)
+
 	if targetVid == "" {
 		// Fallback
 		if idx > 0 && idx <= len(videoList) {
 			targetVid = videoList[idx-1].Vid
+			fmt.Printf("[Melolo] Fallback to Index-based. VID: %s\n", targetVid)
 		} else {
+			fmt.Printf("[Melolo] Episode not found for index %d\n", idx)
 			return nil, fmt.Errorf("episode not found")
 		}
 	}
 
 	// 2. Fetch Stream
 	urlStream := fmt.Sprintf("%s/stream?videoId=%s", MeloloAPI, targetVid)
+	fmt.Printf("[Melolo] Fetching stream from: %s\n", urlStream)
+
 	bodyStream, err := p.fetch(urlStream)
 	if err != nil {
+		fmt.Printf("[Melolo] Stream fetch failed: %v\n", err)
 		return nil, err
 	}
 	var rawStream mStreamResponse
 	json.Unmarshal(bodyStream, &rawStream)
 
 	if rawStream.Data.MainURL == "" {
+		fmt.Printf("[Melolo] Stream URL empty in response: %s\n", string(bodyStream))
 		return nil, fmt.Errorf("stream url empty")
 	}
 
