@@ -102,8 +102,10 @@ func (m *Manager) GetTrending() ([]models.Drama, error) {
 		}
 	}
 
-	// Set Cache (30 mins)
-	m.cache.Set("trending", merged, 30*time.Minute)
+	// Set Cache (30 mins) ONLY if not empty
+	if len(merged) > 0 {
+		m.cache.Set("trending", merged, 30*time.Minute)
+	}
 
 	return merged, nil
 }
@@ -150,7 +152,9 @@ func (m *Manager) Search(query string) ([]models.Drama, error) {
 	}
 
 	// Set Cache (10 mins)
-	m.cache.Set(cacheKey, merged, 10*time.Minute)
+	if len(merged) > 0 {
+		m.cache.Set(cacheKey, merged, 10*time.Minute)
+	}
 
 	return merged, nil
 }
@@ -198,7 +202,9 @@ func (m *Manager) GetLatest(page int) ([]models.Drama, error) {
 	}
 
 	// Set Cache (15 mins)
-	m.cache.Set(cacheKey, merged, 15*time.Minute)
+	if len(merged) > 0 {
+		m.cache.Set(cacheKey, merged, 15*time.Minute)
+	}
 
 	return merged, nil
 }
