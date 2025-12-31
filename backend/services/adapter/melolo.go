@@ -216,13 +216,10 @@ func (p *MeloloProvider) GetDetail(id string) (*models.Drama, []models.Episode, 
 }
 
 func (p *MeloloProvider) GetStream(id, epIndex string) (*models.StreamData, error) {
-	fmt.Printf("[Melolo] GetStream Called. ID: %s, Index: %s\n", id, epIndex)
-
 	// 1. Need Detail to map Index -> VID
 	urlDetail := fmt.Sprintf("%s/detail?bookId=%s", MeloloAPI, id)
 	bodyDetail, err := p.fetch(urlDetail)
 	if err != nil {
-		fmt.Printf("[Melolo] Detail fetch failed: %v\n", err)
 		return nil, err
 	}
 	var rawDetail mDetailResponse
@@ -249,34 +246,26 @@ func (p *MeloloProvider) GetStream(id, epIndex string) (*models.StreamData, erro
 		}
 	}
 
-	fmt.Printf("[Melolo] Looking for Index %d (VidIndex %d). Found VID: %s\n", idx, targetVidIndex, targetVid)
-
 	if targetVid == "" {
 		// Fallback: Use array index directly if within bounds
 		// This handles cases where VidIndex might be missing or non-sequential
 		if idx >= 0 && idx < len(videoList) {
 			targetVid = videoList[idx].Vid
-			fmt.Printf("[Melolo] Fallback to Array Index [%d]. VID: %s\n", idx, targetVid)
 		} else {
-			fmt.Printf("[Melolo] Episode not found for index %d\n", idx)
 			return nil, fmt.Errorf("episode not found")
 		}
 	}
 
 	// 2. Fetch Stream
 	urlStream := fmt.Sprintf("%s/stream?videoId=%s", MeloloAPI, targetVid)
-	fmt.Printf("[Melolo] Fetching stream from: %s\n", urlStream)
-
 	bodyStream, err := p.fetch(urlStream)
 	if err != nil {
-		fmt.Printf("[Melolo] Stream fetch failed: %v\n", err)
 		return nil, err
 	}
 	var rawStream mStreamResponse
 	json.Unmarshal(bodyStream, &rawStream)
 
 	if rawStream.Data.MainURL == "" {
-		fmt.Printf("[Melolo] Stream URL empty in response: %s\n", string(bodyStream))
 		return nil, fmt.Errorf("stream url empty")
 	}
 

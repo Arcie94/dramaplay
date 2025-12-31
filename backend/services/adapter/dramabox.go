@@ -243,28 +243,16 @@ func (p *DramaboxProvider) GetDetail(id string) (*models.Drama, []models.Episode
 
 func (p *DramaboxProvider) GetStream(id, epIndex string) (*models.StreamData, error) {
 	idx, _ := strconv.Atoi(epIndex)
-	fmt.Printf("[Dramabox] GetStream Called. ID: %s, EpIndex: %s (Int: %d)\n", id, epIndex, idx)
-
 	// Dramabox API expects 0-based index same as internal
 	url := fmt.Sprintf("%s/stream?bookId=%s&episode=%d", DramaboxAPI, id, idx)
-	fmt.Printf("[Dramabox] Fetching: %s\n", url)
-
 	body, err := p.fetch(url)
 	if err != nil {
-		fmt.Printf("[Dramabox] Fetch Error: %v\n", err)
 		return nil, err
 	}
 
 	var streamResp dbStreamResponse
 	if err := json.Unmarshal(body, &streamResp); err != nil {
-		fmt.Printf("[Dramabox] Unmarshal Error: %v. Body: %s\n", err, string(body))
 		return nil, err
-	}
-
-	if streamResp.Data.Chapter.Video.Mp4 == "" {
-		fmt.Printf("[Dramabox] Empty MP4 in response: %s\n", string(body))
-	} else {
-		fmt.Printf("[Dramabox] Found MP4: %s...\n", streamResp.Data.Chapter.Video.Mp4[:30])
 	}
 
 	// Just return standard StreamData
