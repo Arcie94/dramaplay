@@ -276,6 +276,7 @@ try {
       const fetchAndRender = async (url, containerId, isCarousel = false) => {
         try {
           const res = await fetch(`/api${url}`);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const json = await res.json();
           const data = json.data || [];
           const container = document.getElementById(containerId);
@@ -288,12 +289,6 @@ try {
           }
 
           if (containerId === "hero-section") {
-            // Hero Logic (simplified for brevity, usually involves complex HTML)
-            // We will just render the First item as Hero for now to keep it blazing fast
-            // Or reuse existing Hero HTML structure logic? It's complex.
-            // Let's defer Hero to a separate function or keep strictly static if possible?
-            // No, user wants fast.
-            // For Hero, let's keep it simple: Render the first item of Hero List.
             renderHero(data);
           } else {
             container.innerHTML = data
@@ -301,10 +296,15 @@ try {
                 createCardHTML(item, isCarousel ? idx + 1 : null)
               )
               .join("");
-            if (isCarousel) container.classList.remove("animate-pulse"); // Remove pulse from container
+            if (isCarousel) container.classList.remove("animate-pulse");
           }
         } catch (e) {
           console.error("Fetch failed", url, e);
+          const container = document.getElementById(containerId);
+          if (container) {
+            container.classList.remove("animate-pulse");
+            container.innerHTML = `<div class="col-span-full text-center text-red-500 text-xs py-4">Failed to load. <button onclick="location.reload()" class="underline">Retry</button></div>`;
+          }
         }
       };
 

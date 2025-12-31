@@ -43,7 +43,7 @@ func main() {
 
 	// CORS
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:3000,http://localhost:4321,https://dramaplay.online,https://www.dramaplay.online",
+		AllowOrigins: "http://localhost:3000,http://localhost:4321,https://dramaplay.online,https://www.dramaplay.online,http://dramaplay.online,http://www.dramaplay.online",
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 	}))
 
