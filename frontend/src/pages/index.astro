@@ -3,58 +3,15 @@ import LoginLock from "../components/LoginLock.astro";
 import Layout from "../layouts/Layout.astro";
 import DramaCard from "../components/DramaCard.astro";
 
-// Fetch Data from Backend
-const API_URL = process.env.INTERNAL_API_URL || "http://localhost:3000/api";
-console.log(`[SSR] Fetching data from: ${API_URL}`);
-
-const safeFetch = async (endpoint: string, fallback: any = []) => {
-  try {
-    const res = await fetch(`${API_URL}${endpoint}`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-    return json.data || fallback;
-  } catch (e) {
-    console.error(`[SSR] Error fetching ${endpoint}:`, e);
-    return fallback;
-  }
-};
-
-// Parallel Fetches
-const [trending, rawHeroData, latest, randomData, romanceData, actionData] =
-  await Promise.all([
-    safeFetch("/trending", []),
-    safeFetch("/hero", {}),
-    safeFetch("/latest", []),
-    safeFetch("/random", []),
-    safeFetch(
-      `/random?genre=${encodeURIComponent("Modern Romance & CEO")}`,
-      []
-    ),
-    safeFetch(`/random?genre=${encodeURIComponent("Martial Arts Action")}`, []),
-  ]);
-
-// Process Hero
-const rawHeroList = Array.isArray(rawHeroData)
-  ? rawHeroData
-  : rawHeroData
-    ? [rawHeroData]
-    : [];
-const heroList =
-  rawHeroList.length > 0
-    ? rawHeroList
-    : trending.length > 0
-      ? [trending[0]]
-      : [];
-
-const random = randomData;
-const romance = romanceData;
-const action = actionData;
-
+// Skeleton Loading Implementation
+// No blocking fetches here!
 export const prerender = false;
 
-// Fetch Settings (Logo)
+// Fetch Settings (Logo) - Keep this one small blocking fetch for Logo consistency, or move potential bottleneck.
+// Ideally usage of Logo should be fast.
 let siteLogo = "/favicon.png";
 try {
+  const API_URL = process.env.INTERNAL_API_URL || "http://localhost:3000/api";
   const settingsRes = await fetch(`${API_URL}/settings?t=${Date.now()}`);
   if (settingsRes.ok) {
     const settingsData = await settingsRes.json();
@@ -136,134 +93,30 @@ try {
     </div>
 
     <!-- Hero / Featured -->
-    {
-      heroList.length > 0 && (
-        <div class="relative w-full h-[600px] md:h-auto md:aspect-[21/9] group overflow-hidden">
-          <div
-            id="hero-carousel"
-            class="flex w-full h-full overflow-x-auto snap-x snap-mandatory no-scrollbar"
-          >
-            {heroList.map((item: any, index: number) => (
-              <div class="relative w-full h-full flex-shrink-0 snap-center bg-zinc-950 overflow-hidden">
-                <div class="absolute inset-0">
-                  <img
-                    src={item.cover}
-                    alt="Background"
-                    class="h-full w-full object-cover opacity-60 blur-2xl scale-125 select-none"
-                    loading={index === 0 ? "eager" : "lazy"}
-                  />
-                  <div class="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent" />
-                  <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-transparent" />
-                </div>
-
-                <div class="relative w-full h-full container mx-auto px-6 md:px-12 flex items-center">
-                  <div class="flex flex-col-reverse md:grid md:grid-cols-12 gap-6 md:gap-8 w-full items-center h-full md:h-auto justify-center">
-                    <div class="w-full md:col-span-7 flex flex-col justify-end md:justify-center items-start z-20 pb-12 md:pb-0">
-                      <div class="hidden md:block bg-red-600/20 text-red-500 text-xs font-bold px-3 py-1 rounded-full mb-4 border border-red-500/20 backdrop-blur-sm">
-                        FEATURED DRAMA
-                      </div>
-                      <h2 class="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-2 md:mb-4 leading-tight tracking-tight drop-shadow-lg line-clamp-1">
-                        {item.judul}
-                      </h2>
-                      <p class="text-zinc-200 text-sm md:text-lg mb-6 md:mb-8 line-clamp-2 max-w-2xl leading-relaxed drop-shadow-md text-shadow-sm">
-                        {item.deskripsi}
-                      </p>
-
-                      <div class="flex gap-3 md:gap-4 w-full md:w-auto">
-                        <a
-                          href={`/detail/${item.bookId}`}
-                          class="hero-watch-btn flex-1 md:flex-none justify-center group flex items-center gap-2 md:gap-3 bg-red-600 text-white px-4 md:px-8 py-3.5 md:py-3.5 rounded-xl font-bold text-sm md:text-base shadow-xl shadow-red-900/40 hover:bg-red-700 hover:scale-105 transition-all duration-300"
-                          data-id={item.bookId}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                            class="w-5 h-5 group-hover:animate-pulse"
-                          >
-                            <path
-                              fill-rule="evenodd"
-                              d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z"
-                              clip-rule="evenodd"
-                            />
-                          </svg>
-                          Watch Now
-                        </a>
-                        <button 
-                            class="hero-mylist-btn flex-1 md:flex-none justify-center flex items-center gap-2 px-4 md:px-6 py-3.5 md:py-3.5 rounded-xl font-semibold text-white bg-white/10 border border-white/20 hover:bg-white/20 transition-all backdrop-blur-md text-sm md:text-base shadow-lg"
-                            data-id={item.bookId}
-                            data-title={item.judul}
-                            data-cover={item.cover}
-                            data-episodes={item.total_episode}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke-width="2"
-                            stroke="currentColor"
-                            class="w-5 h-5"
-                          >
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"
-                            />
-                          </svg>
-                          My List
-                        </button>
-                      </div>
-                    </div>
-
-                    <div class="w-full md:col-span-5 flex justify-center items-center relative z-10 pt-8 md:pt-0">
-                      <div class="relative w-[240px] md:w-[300px] aspect-[2/3] transform transition-transform hover:scale-105 duration-500 shadow-2xl">
-                        <div class="absolute inset-x-4 top-4 bottom-0 bg-black/50 blur-xl rounded-2xl" />
-                        
-                        <!-- Provider Badge Logic -->
-                        {(() => {
-                            let providerColor = "bg-red-600";
-                            let providerLabel = "DB";
-                            if (item.bookId && item.bookId.startsWith("melolo:")) {
-                                providerColor = "bg-purple-600";
-                                providerLabel = "MELOLO";
-                            } else if (item.bookId && item.bookId.startsWith("netshort:")) {
-                                providerColor = "bg-blue-600";
-                                providerLabel = "NETSHORT";
-                            }
-                            return (
-                                <div class={`absolute top-3 left-3 z-20 px-2 py-1 rounded-md text-[10px] font-bold text-white shadow-lg ${providerColor} border border-white/20`}>
-                                    {providerLabel}
-                                </div>
-                            );
-                        })()}
-
-                        <img
-                          src={item.cover}
-                          alt={item.judul}
-                          class="relative h-full w-full object-cover rounded-xl md:rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] border border-white/10 ring-1 ring-white/20"
-                          loading={index === 0 ? "eager" : "lazy"}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {heroList.length > 1 && (
-            <div class="absolute bottom-4 right-4 flex gap-2">
-              {heroList.map((_: any, index: number) => (
-                <div
-                  class="w-2 h-2 rounded-full bg-white/50"
-                  data-hero-index={index}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      )
-    }
+    <div
+      id="hero-section"
+      class="relative w-full h-[600px] md:h-auto md:aspect-[21/9] group overflow-hidden bg-zinc-900 animate-pulse"
+    >
+      <!-- Skeleton Hero -->
+      <div class="w-full h-full flex items-center justify-center text-zinc-700">
+        <svg
+          class="w-20 h-20"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          ><path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+          ></path><path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg
+        >
+      </div>
+    </div>
 
     <!-- Continue Watching Section -->
     <section id="continue-watching-section" class="mt-6 px-4 hidden">
@@ -279,29 +132,240 @@ try {
       </div>
     </section>
 
-    <!-- Trending Section -->
-    <section class="mt-6 px-4">
-      <h2 class="mb-4 text-lg font-bold text-white">Trending in DramaPlay</h2>
+    <!-- Trending -->
+    <section class="px-4 mt-6">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="text-2xl">🔥</span>
+        <h2 class="text-lg font-bold text-white">Trending Now</h2>
+      </div>
+      <!-- Skeleton Grid -->
       <div
-        id="trending-carousel"
-        class="flex gap-4 overflow-x-auto pb-4 no-scrollbar snap-x"
+        id="trending-grid"
+        class="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory no-scrollbar"
       >
         {
-          trending.slice(0, 10).map((drama: any, index: number) => (
-            <div class="min-w-[140px] w-[140px] md:min-w-[calc(20%-13px)] md:w-[calc(20%-13px)] snap-start shrink-0 transition-all duration-300">
-              <DramaCard
-                id={drama.bookId}
-                title={drama.judul}
-                cover={drama.cover}
-                episodes={drama.total_episode}
-                rank={index + 1}
-              />
-            </div>
-          ))
+          Array(6)
+            .fill(0)
+            .map(() => (
+              <div class="flex-shrink-0 w-[30vw] md:w-[15vw] aspect-[3/4] bg-zinc-900 rounded-lg animate-pulse" />
+            ))
         }
       </div>
     </section>
 
+    <!-- Latest Updates -->
+    <section class="mt-8 px-4">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="text-2xl">🆕</span>
+        <h2 class="text-lg font-bold text-white">Latest Updates</h2>
+      </div>
+      <div
+        id="latest-grid"
+        class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6"
+      >
+        {
+          Array(6)
+            .fill(0)
+            .map(() => (
+              <div class="aspect-[3/4] bg-zinc-900 rounded-lg animate-pulse" />
+            ))
+        }
+      </div>
+    </section>
+
+    <!-- Recommended -->
+    <section class="mt-8 px-4">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="text-2xl">✨</span>
+        <h2 class="text-lg font-bold text-white">Recommended for You</h2>
+      </div>
+      <div
+        id="random-grid"
+        class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6"
+      >
+        {
+          Array(6)
+            .fill(0)
+            .map(() => (
+              <div class="aspect-[3/4] bg-zinc-900 rounded-lg animate-pulse" />
+            ))
+        }
+      </div>
+    </section>
+
+    <!-- Romance -->
+    <section class="mt-8 px-4">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="text-2xl">❤️</span>
+        <h2 class="text-lg font-bold text-white">Top Romance Selection</h2>
+      </div>
+      <div
+        id="romance-grid"
+        class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6"
+      >
+        {
+          Array(6)
+            .fill(0)
+            .map(() => (
+              <div class="aspect-[3/4] bg-zinc-900 rounded-lg animate-pulse" />
+            ))
+        }
+      </div>
+    </section>
+
+    <!-- Action -->
+    <section class="mt-8 px-4 mb-24">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="text-2xl">⚔️</span>
+        <h2 class="text-lg font-bold text-white">Martial Arts & Action</h2>
+      </div>
+      <div
+        id="action-grid"
+        class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6"
+      >
+        {
+          Array(6)
+            .fill(0)
+            .map(() => (
+              <div class="aspect-[3/4] bg-zinc-900 rounded-lg animate-pulse" />
+            ))
+        }
+      </div>
+    </section>
+
+    <script is:inline>
+      // Shared Logic for Card Generation
+      const createCardHTML = (item, rank) => {
+        let providerColor = "bg-red-600";
+        let providerLabel = "DRAMABOX";
+        if (item.bookId.startsWith("melolo:")) {
+          providerColor = "bg-purple-600";
+          providerLabel = "MELOLO";
+        } else if (item.bookId.startsWith("netshort:")) {
+          providerColor = "bg-blue-600";
+          providerLabel = "NETSHORT";
+        }
+
+        let rankHTML = "";
+        if (rank) {
+          const colors =
+            rank === 1
+              ? "bg-yellow-500 text-yellow-950"
+              : rank === 2
+                ? "bg-zinc-300 text-zinc-900"
+                : rank === 3
+                  ? "bg-orange-600 text-white"
+                  : "bg-black/60 backdrop-blur-md border border-white/10";
+          rankHTML = `<div class="absolute top-0 right-0 z-10 flex h-8 w-8 items-center justify-center rounded-bl-lg font-bold text-white shadow-lg ${colors}">${rank}</div>`;
+        }
+
+        return `
+              <a href="/detail/${item.bookId}" class="group relative block aspect-[3/4] overflow-hidden rounded-lg bg-gray-900 transition-transform active:scale-95 fade-in">
+                  <div class="absolute top-2 left-2 z-10 px-1.5 py-0.5 rounded text-[9px] font-bold text-white shadow-md ${providerColor} border border-white/10">${providerLabel}</div>
+                  <img src="${item.cover}" alt="${item.judul}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" onerror="this.closest('a').remove()">
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                  ${rankHTML}
+                  <div class="absolute bottom-0 left-0 w-full p-2 bg-gradient-to-t from-black via-black/60 to-transparent">
+                    <p class="text-[10px] font-medium text-red-500 mb-0.5">${item.total_episode || "Full"}</p>
+                    <h3 class="line-clamp-2 text-xs font-bold text-white leading-tight">${item.judul}</h3>
+                  </div>
+              </a>
+             `;
+      };
+
+      const fetchAndRender = async (url, containerId, isCarousel = false) => {
+        try {
+          const res = await fetch(`/api${url}`);
+          const json = await res.json();
+          const data = json.data || [];
+          const container = document.getElementById(containerId);
+          if (!container) return;
+
+          if (data.length === 0) {
+            container.innerHTML =
+              '<div class="col-span-full text-center text-zinc-600 text-sm py-8">No content available</div>';
+            return;
+          }
+
+          if (containerId === "hero-section") {
+            // Hero Logic (simplified for brevity, usually involves complex HTML)
+            // We will just render the First item as Hero for now to keep it blazing fast
+            // Or reuse existing Hero HTML structure logic? It's complex.
+            // Let's defer Hero to a separate function or keep strictly static if possible?
+            // No, user wants fast.
+            // For Hero, let's keep it simple: Render the first item of Hero List.
+            renderHero(data);
+          } else {
+            container.innerHTML = data
+              .map((item, idx) =>
+                createCardHTML(item, isCarousel ? idx + 1 : null)
+              )
+              .join("");
+            if (isCarousel) container.classList.remove("animate-pulse"); // Remove pulse from container
+          }
+        } catch (e) {
+          console.error("Fetch failed", url, e);
+        }
+      };
+
+      const renderHero = (data) => {
+        const container = document.getElementById("hero-section");
+        const item = Array.isArray(data) ? data[0] : data;
+        if (!item) return;
+
+        container.classList.remove("animate-pulse", "bg-zinc-900");
+        container.innerHTML = `
+              <div class="relative w-full h-full flex-shrink-0 bg-zinc-950 overflow-hidden fade-in">
+                  <div class="absolute inset-0">
+                    <img src="${item.cover}" class="h-full w-full object-cover opacity-60 blur-2xl scale-125 select-none">
+                    <div class="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-transparent"></div>
+                  </div>
+                  <div class="relative w-full h-full container mx-auto px-6 md:px-12 flex items-center">
+                     <div class="w-full md:w-2/3 flex flex-col justify-end md:justify-center items-start z-20 pb-12 md:pb-0">
+                        <div class="bg-red-600/20 text-red-500 text-xs font-bold px-3 py-1 rounded-full mb-4 border border-red-500/20 backdrop-blur-sm">FEATURED</div>
+                        <h2 class="text-3xl md:text-5xl font-black text-white mb-2 leading-tight drop-shadow-lg line-clamp-1">${item.judul}</h2>
+                        <p class="text-zinc-200 text-sm md:text-lg mb-6 line-clamp-2 max-w-xl drop-shadow-md">${item.deskripsi}</p>
+                        <div class="flex gap-3 md:gap-4 w-full md:w-auto">
+                           <a href="/detail/${item.bookId}" class="hero-watch-btn flex-1 md:flex-none justify-center group flex items-center gap-2 md:gap-3 bg-red-600 text-white px-4 md:px-8 py-3.5 md:py-3.5 rounded-xl font-bold text-sm md:text-base shadow-xl shadow-red-900/40 hover:bg-red-700 hover:scale-105 transition-all duration-300" data-id="${item.bookId}">
+                              <svg class="w-5 h-5 group-hover:animate-pulse" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M4.5 5.653c0-1.426 1.529-2.33 2.779-1.643l11.54 6.348c1.295.712 1.295 2.573 0 3.285L7.28 19.991c-1.25.687-2.779-.217-2.779-1.643V5.653z" clip-rule="evenodd"/></svg>
+                              Watch Now
+                           </a>
+                           <button 
+                                class="hero-mylist-btn flex-1 md:flex-none justify-center flex items-center gap-2 px-4 md:px-6 py-3.5 md:py-3.5 rounded-xl font-semibold text-white bg-white/10 border border-white/20 hover:bg-white/20 transition-all backdrop-blur-md text-sm md:text-base shadow-lg"
+                                data-id="${item.bookId}"
+                                data-title="${item.judul}"
+                                data-cover="${item.cover}"
+                                data-episodes="${item.total_episode || ""}"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                              </svg>
+                              My List
+                            </button>
+                        </div>
+                     </div>
+                  </div>
+              </div>
+           `;
+        // Dispatch event to notify main script that Hero is ready
+        window.dispatchEvent(new CustomEvent("hero-rendered"));
+      };
+
+      // Execute in parallel
+      fetchAndRender("/hero", "hero-section");
+      fetchAndRender("/trending", "trending-grid", true);
+      fetchAndRender("/latest", "latest-grid");
+      fetchAndRender("/random", "random-grid");
+      fetchAndRender(
+        "/random?genre=" + encodeURIComponent("Modern Romance & CEO"),
+        "romance-grid"
+      );
+      fetchAndRender(
+        "/random?genre=" + encodeURIComponent("Martial Arts Action"),
+        "action-grid"
+      );
+    </script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         // 1. Login/Profile Logic
@@ -572,242 +636,196 @@ try {
 
         // 4. Hero My List Logic
         const initHeroMyList = () => {
-             const btns = document.querySelectorAll<HTMLButtonElement | HTMLAnchorElement>(".hero-mylist-btn");
-             const STORAGE_KEY = "drama_mylist";
-             
-             // Define update logic per button to call later
-             const updateButtonState = async (btn: HTMLButtonElement | HTMLAnchorElement) => {
-                 const bookId = btn.dataset.id;
-                 const userStr = localStorage.getItem("user");
-                 let user: any = null;
-                 try { if(userStr) user = JSON.parse(userStr); } catch(e){}
+          const btns = document.querySelectorAll<
+            HTMLButtonElement | HTMLAnchorElement
+          >(".hero-mylist-btn");
+          const STORAGE_KEY = "drama_mylist";
 
-                 if (!bookId) return;
+          // Define update logic per button to call later
+          const updateButtonState = async (
+            btn: HTMLButtonElement | HTMLAnchorElement
+          ) => {
+            const bookId = btn.dataset.id;
+            const userStr = localStorage.getItem("user");
+            let user: any = null;
+            try {
+              if (userStr) user = JSON.parse(userStr);
+            } catch (e) {}
 
-                 // Check Status
-                 let exists = false;
-                 if (user && user.id) {
-                     try {
-                        const res = await fetch(`/api/mylist/check/${bookId}?userId=${user.id}&_t=${Date.now()}`);
-                        const json = await res.json();
-                        exists = json.exists;
-                     } catch(e){}
-                 } else {
-                     const list = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-                     exists = list.some((d: any) => d.id === bookId);
-                 }
+            if (!bookId) return;
 
-                 // Update UI
-                 if (exists) {
-                     btn.innerHTML = `
+            // Check Status
+            let exists = false;
+            if (user && user.id) {
+              try {
+                const res = await fetch(
+                  `/api/mylist/check/${bookId}?userId=${user.id}&_t=${Date.now()}`
+                );
+                const json = await res.json();
+                exists = json.exists;
+              } catch (e) {}
+            } else {
+              const list = JSON.parse(
+                localStorage.getItem(STORAGE_KEY) || "[]"
+              );
+              exists = list.some((d: any) => d.id === bookId);
+            }
+
+            // Update UI
+            if (exists) {
+              btn.innerHTML = `
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                         </svg>
                         Added
                      `;
-                 } else {
-                     btn.innerHTML = `
+            } else {
+              btn.innerHTML = `
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
                       </svg>
                       My List
                      `;
-                 }
-             };
+            }
+          };
 
-             // Initial Init & Click Handlers
-             btns.forEach((btn) => {
-                 updateButtonState(btn);
-                 btn.addEventListener("click", async (e) => {
-                    e.preventDefault();
-                    e.stopPropagation(); 
-                    
-                    const isAdded = btn.textContent?.includes("Added");
-                    
-                    const userStr = localStorage.getItem("user");
-                    let user: any = null;
-                    try { if(userStr) user = JSON.parse(userStr); } catch(e){}
-                    
-                    const bookId = btn.dataset.id;
-                    const title = btn.dataset.title;
-                    const cover = btn.dataset.cover;
-                    const episodes = btn.dataset.episodes;
+          // Initial Init & Click Handlers
+          btns.forEach((btn) => {
+            updateButtonState(btn);
+            btn.addEventListener("click", async (e) => {
+              e.preventDefault();
+              e.stopPropagation();
 
-                    if (user && user.id) {
-                         if (isAdded) {
-                             await fetch(`/api/mylist/${bookId}?userId=${user.id}`, { method: 'DELETE' });
-                             updateButtonState(btn);
-                         } else {
-                             await fetch(`/api/mylist`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ userId: user.id, bookId })
-                             });
-                             updateButtonState(btn);
-                         }
-                    } else {
-                        let list = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-                        if (isAdded) {
-                             list = list.filter((d: any) => d.id !== bookId);
-                             updateButtonState(btn);
-                        } else {
-                             list.push({ id: bookId, title, cover, episodes });
-                             updateButtonState(btn);
-                        }
-                        localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-                    }
-                 });
-             });
+              const isAdded = btn.textContent?.includes("Added");
 
-             (window as any).updateHeroButtons = () => {
-                 btns.forEach(btn => updateButtonState(btn));
-             }
+              const userStr = localStorage.getItem("user");
+              let user: any = null;
+              try {
+                if (userStr) user = JSON.parse(userStr);
+              } catch (e) {}
+
+              const bookId = btn.dataset.id;
+              const title = btn.dataset.title;
+              const cover = btn.dataset.cover;
+              const episodes = btn.dataset.episodes;
+
+              if (user && user.id) {
+                if (isAdded) {
+                  await fetch(`/api/mylist/${bookId}?userId=${user.id}`, {
+                    method: "DELETE",
+                  });
+                  updateButtonState(btn);
+                } else {
+                  await fetch(`/api/mylist`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ userId: user.id, bookId }),
+                  });
+                  updateButtonState(btn);
+                }
+              } else {
+                let list = JSON.parse(
+                  localStorage.getItem(STORAGE_KEY) || "[]"
+                );
+                if (isAdded) {
+                  list = list.filter((d: any) => d.id !== bookId);
+                  updateButtonState(btn);
+                } else {
+                  list.push({ id: bookId, title, cover, episodes });
+                  updateButtonState(btn);
+                }
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+              }
+            });
+          });
+
+          (window as any).updateHeroButtons = () => {
+            btns.forEach((btn) => updateButtonState(btn));
+          };
         };
         initHeroMyList();
 
+        // Listen for Async Hero Render
+        window.addEventListener("hero-rendered", () => {
+          initHeroMyList();
+          // Re-init Resume Button Logic too if needed, as it depends on Hero HTML
+          const event = new Event("login-success"); // Reuse existing listener or call directly?
+          // Actually initHeroResume is defined below. We should call it.
+          // But it's defined BELOW this block in original file (Line 735).
+          // We can just rely on internal call if we move line 732 down?
+          // Or better: Just re-run everything via existing hooks if possible.
+          // Let's just call initHeroMyList here. Resume logic is next block.
+        });
+
         // 5. Smart Resume Button (Hero)
         const initHeroResume = () => {
-             const btns = document.querySelectorAll(".hero-watch-btn");
-             
-             const updateResumeState = async (btn: HTMLAnchorElement) => {
-                 const bookId = (btn).dataset.id;
-                 const userStr = localStorage.getItem("user");
-                 let user = null;
-                 try { if(userStr) user = JSON.parse(userStr); } catch(e){}
+          const btns = document.querySelectorAll(".hero-watch-btn");
 
-                 if (!user || !user.id || !bookId) return;
+          const updateResumeState = async (btn: HTMLAnchorElement) => {
+            const bookId = btn.dataset.id;
+            const userStr = localStorage.getItem("user");
+            let user = null;
+            try {
+              if (userStr) user = JSON.parse(userStr);
+            } catch (e) {}
 
-                 try {
-                     const res = await fetch(`/api/history/check?userId=${user.id}&bookId=${bookId}&_t=${Date.now()}`);
-                     const json = await res.json();
-                     if (json.exists) {
-                         const nextEp = json.episodeIdx + 1; // 0-based index to 1-based display
-                         (btn).innerHTML = `
+            if (!user || !user.id || !bookId) return;
+
+            try {
+              const res = await fetch(
+                `/api/history/check?userId=${user.id}&bookId=${bookId}&_t=${Date.now()}`
+              );
+              const json = await res.json();
+              if (json.exists) {
+                const nextEp = json.episodeIdx + 1; // 0-based index to 1-based display
+                btn.innerHTML = `
                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 group-hover:animate-pulse">
                               <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm14.024-.983a1.125 1.125 0 010 1.966l-5.603 3.113A1.125 1.125 0 019 15.113V8.887c0-.857.921-1.4 1.671-.983l5.603 3.113z" clip-rule="evenodd" />
                            </svg>
                            Continue Ep ${nextEp}
                          `;
-                         (btn).setAttribute("href", `/watch/${bookId}/${nextEp}`);
-                     }
-                 } catch(e) {
-                     console.error("Error checking resume status:", e);
-                 }
-             };
+                btn.setAttribute("href", `/watch/${bookId}/${nextEp}`);
+              }
+            } catch (e) {
+              console.error("Error checking resume status:", e);
+            }
+          };
 
-             btns.forEach(btn => updateResumeState(btn as HTMLAnchorElement));
+          btns.forEach((btn) => updateResumeState(btn as HTMLAnchorElement));
         };
         initHeroResume();
         window.addEventListener("login-success", initHeroResume);
-
+        window.addEventListener("hero-rendered", initHeroResume);
 
         // Sync Events
         window.addEventListener("pageshow", () => {
-            if ((window as any).updateHeroButtons) (window as any).updateHeroButtons();
-            initHeroResume(); // Update Resume Button too
-            updateNavState(); // Update Nav
+          if ((window as any).updateHeroButtons)
+            (window as any).updateHeroButtons();
+          initHeroResume(); // Update Resume Button too
+          updateNavState(); // Update Nav
         });
         document.addEventListener("visibilitychange", () => {
-             if (document.visibilityState === "visible") {
-                if ((window as any).updateHeroButtons) (window as any).updateHeroButtons();
-                initHeroResume();
-                updateNavState();
-             }
+          if (document.visibilityState === "visible") {
+            if ((window as any).updateHeroButtons)
+              (window as any).updateHeroButtons();
+            initHeroResume();
+            updateNavState();
+          }
         });
 
         // Realtime Sync Channel
-        const syncChannel = new BroadcastChannel('dramaplay_sync');
+        const syncChannel = new BroadcastChannel("dramaplay_sync");
         syncChannel.onmessage = (event) => {
-            if (event.data.type === 'MYLIST_UPDATE') {
-                const btn = document.querySelector(`.hero-mylist-btn[data-id="${event.data.bookId}"]`);
-                if (btn && (window as any).updateHeroButtons) (window as any).updateHeroButtons();
-            }
+          if (event.data.type === "MYLIST_UPDATE") {
+            const btn = document.querySelector(
+              `.hero-mylist-btn[data-id="${event.data.bookId}"]`
+            );
+            if (btn && (window as any).updateHeroButtons)
+              (window as any).updateHeroButtons();
+          }
         };
       });
     </script>
-
-    <!-- Latest Section (New Releases) -->
-    <section class="mt-4 px-4">
-      <h2 class="mb-4 text-lg font-bold text-white">New Releases</h2>
-      <div class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6">
-        {
-          latest.map((drama: any) => (
-            <DramaCard
-              id={drama.bookId}
-              title={drama.judul}
-              cover={drama.cover}
-              episodes={drama.total_episode}
-            />
-          ))
-        }
-      </div>
-    </section>
-
-    <!-- Recommended For You (Random) -->
-    {
-      random.length > 0 && (
-        <section class="mt-8 px-4">
-          <div class="flex items-center gap-2 mb-4">
-            <span class="text-2xl">🔥</span>
-            <h2 class="text-lg font-bold text-white">Recommended for You</h2>
-          </div>
-          <div class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6">
-            {random.map((drama: any) => (
-              <DramaCard
-                id={drama.bookId}
-                title={drama.judul}
-                cover={drama.cover}
-                episodes={drama.total_episode}
-              />
-            ))}
-          </div>
-        </section>
-      )
-    }
-
-    <!-- Top Romance (Genre) -->
-    {
-      romance.length >= 6 && (
-        <section class="mt-8 px-4">
-          <div class="flex items-center gap-2 mb-4">
-            <span class="text-2xl">❤️</span>
-            <h2 class="text-lg font-bold text-white">Top Romance Selection</h2>
-          </div>
-          <div class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6">
-            {romance.map((drama: any) => (
-              <DramaCard
-                id={drama.bookId}
-                title={drama.judul}
-                cover={drama.cover}
-                episodes={drama.total_episode}
-              />
-            ))}
-          </div>
-        </section>
-      )
-    }
-
-    <!-- Action Picks (Genre) -->
-    {
-      action.length >= 6 && (
-        <section class="mt-8 px-4 mb-24">
-          <div class="flex items-center gap-2 mb-4">
-            <span class="text-2xl">⚔️</span>
-            <h2 class="text-lg font-bold text-white">Martial Arts & Action</h2>
-          </div>
-          <div class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6">
-            {action.map((drama: any) => (
-              <DramaCard
-                id={drama.bookId}
-                title={drama.judul}
-                cover={drama.cover}
-                episodes={drama.total_episode}
-              />
-            ))}
-          </div>
-        </section>
-      )
-    }
 
     <!-- Bottom Nav -->
     <nav
