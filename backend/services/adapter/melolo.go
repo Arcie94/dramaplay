@@ -237,20 +237,26 @@ func (p *MeloloProvider) GetStream(id, epIndex string) (*models.StreamData, erro
 
 	idx, _ := strconv.Atoi(epIndex)
 	var targetVid string
+
+	// Melolo VidIndex is 1-based (usually)
+	// We receive 0-based index from frontend
+	targetVidIndex := idx + 1
+
 	for _, ep := range videoList {
-		if ep.VidIndex == idx {
+		if ep.VidIndex == targetVidIndex {
 			targetVid = ep.Vid
 			break
 		}
 	}
 
-	fmt.Printf("[Melolo] Looking for Index %d. Found VID: %s\n", idx, targetVid)
+	fmt.Printf("[Melolo] Looking for Index %d (VidIndex %d). Found VID: %s\n", idx, targetVidIndex, targetVid)
 
 	if targetVid == "" {
-		// Fallback
-		if idx > 0 && idx <= len(videoList) {
-			targetVid = videoList[idx-1].Vid
-			fmt.Printf("[Melolo] Fallback to Index-based. VID: %s\n", targetVid)
+		// Fallback: Use array index directly if within bounds
+		// This handles cases where VidIndex might be missing or non-sequential
+		if idx >= 0 && idx < len(videoList) {
+			targetVid = videoList[idx].Vid
+			fmt.Printf("[Melolo] Fallback to Array Index [%d]. VID: %s\n", idx, targetVid)
 		} else {
 			fmt.Printf("[Melolo] Episode not found for index %d\n", idx)
 			return nil, fmt.Errorf("episode not found")
