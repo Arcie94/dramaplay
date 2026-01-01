@@ -62,10 +62,25 @@ func main() {
 	database.DB.AutoMigrate(&models.Comment{})
 	models.MigrateBookmarks(database.DB)
 
+	// FORCE MANUAL MIGRATION as Fallback
+	// Ensure table exists for postgres (since AutoMigrate is sometimes flaky on new tables in live envs)
+	database.DB.Exec(`
+		CREATE TABLE IF NOT EXISTS password_reset_tokens (
+			id SERIAL PRIMARY KEY,
+			email TEXT NOT NULL,
+			token TEXT NOT NULL,
+			expires_at TIMESTAMPTZ NOT NULL,
+			created_at TIMESTAMPTZ
+		);
+		CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_email ON password_reset_tokens(email);
+		CREATE UNIQUE INDEX IF NOT EXISTS idx_password_reset_tokens_token ON password_reset_tokens(token);
+	`)
+
+	log.Println("Starting server on :3000...")
+
 	// Routes
 	api := app.Group("/api")
 
-	// User endpoints
 	api.Get("/trending", handlers.GetTrending)
 	api.Get("/latest", handlers.GetLatest)
 	api.Get("/search", handlers.GetSearch)
