@@ -794,6 +794,17 @@ try {
   document.addEventListener("DOMContentLoaded", () => {
     // --- Templates ---
     const renderDramaCard = (drama, cls = "") => {
+      // Provider Logic
+      let providerColor = "bg-red-600";
+      let providerLabel = "DB";
+      if (drama.bookId && drama.bookId.startsWith("melolo:")) {
+        providerColor = "bg-purple-600";
+        providerLabel = "MELOLO";
+      } else if (drama.bookId && drama.bookId.startsWith("netshort:")) {
+        providerColor = "bg-blue-600";
+        providerLabel = "NETSHORT";
+      }
+
       return `
             <div class="${cls}">
                 <a href="/detail/${drama.bookId}" class="group relative block w-full aspect-[2/3] rounded-lg overflow-hidden bg-zinc-900 shadow-md">
@@ -802,8 +813,15 @@ try {
                         alt="${drama.judul}" 
                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         loading="lazy"
+                        onerror="this.closest('.group').style.display='none'"
                     />
                     <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity"></div>
+                    
+                    <!-- Provider Badge -->
+                    <div class="absolute top-2 left-2 z-10 px-1.5 py-0.5 rounded text-[9px] font-bold text-white shadow-md ${providerColor} border border-white/10">
+                        ${providerLabel}
+                    </div>
+
                     <div class="absolute top-2 right-2 px-1.5 py-0.5 bg-black/60 rounded text-[10px] font-bold text-white border border-white/10 backdrop-blur-sm">
                         ${drama.total_episode} Eps
                     </div>
