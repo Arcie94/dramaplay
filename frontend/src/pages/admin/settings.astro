@@ -606,11 +606,6 @@ import Layout from "../../layouts/Layout.astro";
 
   // Define global function for button click
   window.handleSaveSettings = async function () {
-    console.log("Save button clicked (Inline Function)");
-
-    // CONFIRMATION ALERT (Debug)
-    alert("Proses Save Aktif! Klik OK untuk lanjut.");
-
     const clientIDInput = document.getElementById("google_client_id");
     const gaIDInput = document.getElementById("ga_measurement_id");
     const cfTokenInput = document.getElementById("cloudflare_tunnel_token");
@@ -625,7 +620,7 @@ import Layout from "../../layouts/Layout.astro";
     const saveBtn = document.getElementById("btn-save");
 
     if (!clientIDInput || !saveBtn) {
-      alert("Error: Elemen Form tidak ditemukan!");
+      showToast("Error: Form elements not found", "error");
       return;
     }
 
@@ -648,8 +643,6 @@ import Layout from "../../layouts/Layout.astro";
         payload.social_image = socialInput.value.trim();
       }
 
-      console.log("Sending payload:", payload);
-
       const res = await fetch(`${API_BASE}/admin/settings/batch`, {
         method: "POST",
         headers: {
@@ -664,12 +657,9 @@ import Layout from "../../layouts/Layout.astro";
       }
 
       const json = await res.json();
-      console.log("Response:", json);
-
       showToast("Settings saved successfully!", "success");
     } catch (err) {
       console.error(err);
-      alert("Error Save: " + err);
       showToast("Error saving settings", "error");
     } finally {
       saveBtn.innerText = originalText;

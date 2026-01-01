@@ -3,7 +3,6 @@ package handlers
 import (
 	"dramabang/database"
 	"dramabang/models"
-	"fmt"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
@@ -64,11 +63,8 @@ func UpdateSettings(c *fiber.Ctx) error {
 func UpdateSettingsBatch(c *fiber.Ctx) error {
 	var input map[string]string
 	if err := c.BodyParser(&input); err != nil {
-		fmt.Println("Batch Update Error: Invalid Body")
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid input"})
 	}
-
-	fmt.Printf("DEBUG: Received Batch Update: %v\n", input)
 
 	tx := database.DB.Begin()
 
@@ -79,7 +75,6 @@ func UpdateSettingsBatch(c *fiber.Ctx) error {
 			setting = models.Setting{Key: k, Value: v}
 			if err := tx.Create(&setting).Error; err != nil {
 				tx.Rollback()
-				fmt.Printf("DEBUG: Create Failed for %s: %v\n", k, err)
 				return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to create " + k})
 			}
 		} else {
@@ -87,7 +82,6 @@ func UpdateSettingsBatch(c *fiber.Ctx) error {
 			setting.Value = v
 			if err := tx.Save(&setting).Error; err != nil {
 				tx.Rollback()
-				fmt.Printf("DEBUG: Save Failed for %s: %v\n", k, err)
 				return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to update " + k})
 			}
 		}
