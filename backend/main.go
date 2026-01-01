@@ -147,6 +147,7 @@ func main() {
 	// Settings
 	admin.Get("/settings", handlers.GetSettings)
 	admin.Post("/settings", handlers.UpdateSettings)
+	admin.Post("/settings/batch", handlers.UpdateSettingsBatch)
 	admin.Post("/upload", handlers.UploadFile) // Secured under /admin group
 
 	// User Admin

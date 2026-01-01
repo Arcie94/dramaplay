@@ -899,6 +899,24 @@ import Layout from "../../layouts/Layout.astro";
     }
   }
 
+  // Save Batch Settings
+  async function saveBatchSettings(data: Record<string, string>) {
+    const res = await fetch(`${API_BASE}/admin/settings/batch`, {
+      method: "POST",
+      headers: {
+        Authorization: token || "",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to save settings: ${res.statusText}`);
+    }
+
+    return await res.json();
+  }
+
   // Save settings (Form Submit)
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -909,26 +927,21 @@ import Layout from "../../layouts/Layout.astro";
     (saveBtn as HTMLButtonElement).disabled = true;
 
     try {
-      // Use Promise.all for parallel saving (Faster & More Robust)
-      await Promise.all([
-        saveSingleSetting("google_client_id", clientIDInput.value.trim()),
-        saveSingleSetting("ga_measurement_id", gaIDInput.value.trim()),
-        saveSingleSetting("cloudflare_tunnel_token", cfTokenInput.value.trim()),
-        saveSingleSetting(
-          "turnstile_site_key",
-          turnstileSiteInput.value.trim()
-        ),
-        saveSingleSetting(
-          "turnstile_secret_key",
-          turnstileSecretInput.value.trim()
-        ),
-        saveSingleSetting("site_logo", logoInput.value.trim()),
-        saveSingleSetting("site_favicon", faviconInput.value.trim()),
-        // Save Social Image if present
-        socialInput.value
-          ? saveSingleSetting("social_image", socialInput.value.trim())
-          : Promise.resolve(),
-      ]);
+      const payload: Record<string, string> = {
+        google_client_id: clientIDInput.value.trim(),
+        ga_measurement_id: gaIDInput.value.trim(),
+        cloudflare_tunnel_token: cfTokenInput.value.trim(),
+        turnstile_site_key: turnstileSiteInput.value.trim(),
+        turnstile_secret_key: turnstileSecretInput.value.trim(),
+        site_logo: logoInput.value.trim(),
+        site_favicon: faviconInput.value.trim(),
+      };
+
+      if (socialInput.value) {
+        payload.social_image = socialInput.value.trim();
+      }
+
+      await saveBatchSettings(payload);
 
       showToast("Settings saved successfully!", "success");
     } catch (err) {
