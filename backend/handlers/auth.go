@@ -28,8 +28,8 @@ func isValidEmail(email string) bool {
 // isLegacyUser checks if user registered before Verification Feature (Jan 1, 2026)
 func isLegacyUser(createdAt time.Time) bool {
 	// Feature rolled out approx Jan 1, 2026.
-	// Users created BEFORE this date without verification should be trusted.
-	cutoffDate := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+	// Users created BEFORE Jan 2, 2026 without verification should be trusted (covers rollout day).
+	cutoffDate := time.Date(2026, 1, 2, 0, 0, 0, 0, time.UTC)
 	return createdAt.Before(cutoffDate)
 }
 
