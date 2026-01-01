@@ -1,6 +1,7 @@
 ---
 import VideoPlayer from "../../../components/VideoPlayer.astro";
 import Layout from "../../../layouts/Layout.astro";
+import LoginLock from "../../../components/LoginLock.astro";
 
 const { id, idx } = Astro.params;
 if (!id) return Astro.redirect("/404");
@@ -94,6 +95,8 @@ const prevUrl =
     dramaTitle={dramaTitle}
     totalEpisodes={detailJson.total_episode}
   />
+
+  <LoginLock />
 
   <!-- Toast Notification -->
   <div
