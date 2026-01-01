@@ -279,6 +279,7 @@ func ForgotPassword(c *fiber.Ctx) error {
 	}
 
 	if err := database.DB.Create(&resetToken).Error; err != nil {
+		fmt.Println("Forgot Password DB Error:", err) // Log error for debugging
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Database error"})
 	}
 
