@@ -77,6 +77,7 @@ func main() {
 	api.Get("/sitemap", handlers.GetSitemapData)
 	api.Post("/auth/google", handlers.VerifyGoogleToken)
 	api.Post("/auth/login", handlers.LocalLogin)
+	api.Get("/auth/verify", handlers.VerifyEmail)        // New Verification Endpoint
 	api.Put("/user/profile", handlers.UpdateUserProfile) // New Profile Update
 	api.Put("/user/password", handlers.UpdatePassword)   // New Password Change
 	api.Post("/forgot-password", handlers.ForgotPassword)
