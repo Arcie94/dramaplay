@@ -230,9 +230,20 @@ func (m *Manager) GetDetail(fullID string) (*models.Drama, []models.Episode, err
 }
 
 func (m *Manager) GetStream(fullID, epIndex string) (*models.StreamData, error) {
+	// Check Cache
+	cacheKey := fmt.Sprintf("stream:%s:%s", fullID, epIndex)
+	if x, found := m.cache.Get(cacheKey); found {
+		return x.(*models.StreamData), nil
+	}
+
 	p, rawID, err := m.resolveProvider(fullID)
 	if err != nil {
 		return nil, err
 	}
-	return p.GetStream(rawID, epIndex)
+	data, err := p.GetStream(rawID, epIndex)
+	if err == nil {
+		// Cache successful stream for 30 mins
+		m.cache.Set(cacheKey, data, 30*time.Minute)
+	}
+	return data, err
 }

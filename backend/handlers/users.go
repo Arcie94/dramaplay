@@ -3,8 +3,10 @@ package handlers
 import (
 	"dramabang/database"
 	"dramabang/models"
+	"dramabang/utils"
 	"math"
 	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
@@ -103,6 +105,18 @@ func DeleteUser(c *fiber.Ctx) error {
 
 // UpdateUserProfile allows users to update their own profile (Name, Avatar)
 func UpdateUserProfile(c *fiber.Ctx) error {
+	// 1. Verify Authentication
+	authHeader := c.Get("Authorization")
+	if authHeader == "" {
+		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
+	}
+
+	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+	claims, err := utils.ValidateToken(tokenString)
+	if err != nil {
+		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Invalid token"})
+	}
+
 	type UpdateRequest struct {
 		ID     uint   `json:"id"`
 		Name   string `json:"name"`
@@ -112,6 +126,12 @@ func UpdateUserProfile(c *fiber.Ctx) error {
 	var req UpdateRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid input"})
+	}
+
+	// 2. Authorization Check (Token ID must match Request ID)
+	tokenUserID := uint(claims["sub"].(float64)) // JWT numbers are float64 by default
+	if tokenUserID != req.ID {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Forbidden action"})
 	}
 
 	var user models.User

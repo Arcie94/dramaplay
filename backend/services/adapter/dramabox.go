@@ -9,14 +9,21 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
-type DramaboxProvider struct{}
+type DramaboxProvider struct {
+	client *http.Client
+}
 
 const DramaboxAPI = "https://dramabox-api-rho.vercel.app/api"
 
 func NewDramaboxProvider() *DramaboxProvider {
-	return &DramaboxProvider{}
+	return &DramaboxProvider{
+		client: &http.Client{
+			Timeout: 30 * time.Second,
+		},
+	}
 }
 
 func (p *DramaboxProvider) GetID() string {
@@ -24,24 +31,30 @@ func (p *DramaboxProvider) GetID() string {
 }
 
 func (p *DramaboxProvider) IsCompatibleID(id string) bool {
-	// IDs from this provider should be prefixed with "dramabox:" in the app
-	// But this method might be used to check raw IDs if needed.
-	// Primary routing is done by checking the prefix in the Manager.
-	// Here we can check if it looks like a Dramabox ID (usually UUID or numeric string < 15 chars)
-	// For robust routing, we rely on the Manager's prefix check.
 	return true
 }
 
 func (p *DramaboxProvider) fetch(url string) ([]byte, error) {
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
+	// Retry logic (3 times)
+	var lastErr error
+	for i := 0; i < 3; i++ {
+		resp, err := p.client.Get(url)
+		if err != nil {
+			lastErr = err
+			time.Sleep(time.Duration(i+1) * 500 * time.Millisecond) // Backoff
+			continue
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != 200 {
+			lastErr = fmt.Errorf("status %d", resp.StatusCode)
+			time.Sleep(time.Duration(i+1) * 500 * time.Millisecond)
+			continue
+		}
+
+		return io.ReadAll(resp.Body)
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("status %d", resp.StatusCode)
-	}
-	return io.ReadAll(resp.Body)
+	return nil, lastErr
 }
 
 // --- Ext Models (internal to this provider) ---

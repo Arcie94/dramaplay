@@ -102,9 +102,14 @@ func VerifyGoogleToken(c *fiber.Ctx) error {
 	}
 
 	// 3. Return Session
+	token, err := utils.GenerateToken(user.ID, user.Email, user.Role)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to generate token"})
+	}
+
 	return c.JSON(fiber.Map{
 		"status": "success",
-		"token":  "session-token-" + time.Now().String(),
+		"token":  token,
 		"user": fiber.Map{
 			"id":     user.ID,
 			"email":  user.Email,
@@ -236,9 +241,15 @@ func LocalLogin(c *fiber.Ctx) error {
 		database.DB.Save(&user)
 	}
 
+	// Generate JWT
+	token, err := utils.GenerateToken(user.ID, user.Email, user.Role)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to generate token"})
+	}
+
 	return c.JSON(fiber.Map{
 		"status": "success",
-		"token":  "session-token-" + time.Now().String(),
+		"token":  token,
 		"user": fiber.Map{
 			"id":     user.ID,
 			"email":  user.Email,

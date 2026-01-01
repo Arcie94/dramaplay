@@ -146,8 +146,8 @@ func main() {
 
 	// Settings
 	admin.Get("/settings", handlers.GetSettings)
-	admin.Post("/settings", handlers.UpdateSettings)   // Secured under /admin group
-	app.Post("/api/admin/upload", handlers.UploadFile) // New Upload Route
+	admin.Post("/settings", handlers.UpdateSettings)
+	admin.Post("/upload", handlers.UploadFile) // Secured under /admin group
 
 	// User Admin
 	// User Admin (Protected)

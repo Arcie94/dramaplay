@@ -1589,10 +1589,12 @@ import Layout from "../layouts/Layout.astro";
 
           // 3. Sync with Backend
           try {
+            const token = localStorage.getItem("token");
             await fetch(`${API_BASE}/user/profile`, {
               method: "PUT",
               headers: {
                 "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
               },
               body: JSON.stringify({
                 id: user.id || 0, // Ensure ID is sent
