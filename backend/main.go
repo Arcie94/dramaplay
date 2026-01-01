@@ -79,6 +79,8 @@ func main() {
 	api.Post("/auth/login", handlers.LocalLogin)
 	api.Put("/user/profile", handlers.UpdateUserProfile) // New Profile Update
 	api.Put("/user/password", handlers.UpdatePassword)   // New Password Change
+	api.Post("/forgot-password", handlers.ForgotPassword)
+	api.Post("/reset-password/:token", handlers.ResetPassword)
 
 	// My List (Bookmarks)
 	api.Get("/mylist", handlers.GetBookmarks)

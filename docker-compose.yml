@@ -16,6 +16,11 @@ services:
       - DB_NAME=dramabang
       - DB_PORT=5432
       - TZ=Asia/Jakarta
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USER=cs.dramaplay@gmail.com
+      - SMTP_PASS=vhitxtasgonysxdp
+      - SMTP_SENDER=DramaPlay <cs.dramaplay@gmail.com>
     volumes:
       - ./data:/app/data
       - ./uploads:/app/public/uploads

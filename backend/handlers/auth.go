@@ -3,6 +3,7 @@ package handlers
 import (
 	"dramabang/database"
 	"dramabang/models"
+	"dramabang/utils"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -224,5 +226,100 @@ func LocalLogin(c *fiber.Ctx) error {
 			"name":   user.Name,
 			"avatar": user.Avatar,
 		},
+	})
+}
+
+// ForgotPassword handles generation of reset token and sending email
+func ForgotPassword(c *fiber.Ctx) error {
+	var input struct {
+		Email string `json:"email"`
+	}
+
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid input"})
+	}
+
+	var user models.User
+	if err := database.DB.Where("email = ?", input.Email).First(&user).Error; err != nil {
+		// Do not reveal if email exists or not for security, but for UX we usually say "If email exists..."
+		// For this app, simply returning success is safest, OR specific error if preferred by Client
+		// Let's return success to avoid enumeration
+		return c.JSON(fiber.Map{"status": "success", "message": "If your email is registered, you will receive a reset link."})
+	}
+
+	// Generate Token
+	token := uuid.New().String()
+	expiry := time.Now().Add(1 * time.Hour)
+
+	// Create Reset Record
+	resetToken := models.PasswordResetToken{
+		Email:     user.Email,
+		Token:     token,
+		ExpiresAt: expiry,
+		CreatedAt: time.Now(),
+	}
+
+	if err := database.DB.Create(&resetToken).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Database error"})
+	}
+
+	// Send Email
+	resetLink := fmt.Sprintf("https://dramaplay.online/reset-password/%s", token)
+	emailBody := fmt.Sprintf(`
+		<h3>Password Reset Request</h3>
+		<p>Hi %s,</p>
+		<p>You requested to reset your password. Click the link below to verify:</p>
+		<p><a href="%s" style="padding: 10px 20px; background-color: #d90429; color: white; text-decoration: none; border-radius: 5px;">Reset Password</a></p>
+		<p>Link expires in 1 hour.</p>
+		<p>If you did not request this, please ignore this email.</p>
+	`, user.Name, resetLink)
+
+	// Send in Goroutine to not block response
+	go func() {
+		if err := utils.SendEmail([]string{user.Email}, "Reset Your Password - DramaPlay", emailBody); err != nil {
+			fmt.Println("Failed to send email:", err)
+		}
+	}()
+
+	return c.JSON(fiber.Map{
+		"status":  "success",
+		"message": "Reset link sent to your email.",
+	})
+}
+
+// ResetPassword handles the actual password update
+func ResetPassword(c *fiber.Ctx) error {
+	token := c.Params("token")
+	var input struct {
+		Password string `json:"password"`
+	}
+
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid input"})
+	}
+
+	if len(input.Password) < 6 {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Password must be at least 6 characters"})
+	}
+
+	// Verify Token
+	var resetToken models.PasswordResetToken
+	if err := database.DB.Where("token = ? AND expires_at > ?", token, time.Now()).First(&resetToken).Error; err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid or expired token"})
+	}
+
+	// Update User Password
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+
+	if err := database.DB.Model(&models.User{}).Where("email = ?", resetToken.Email).Update("password", string(hashedPassword)).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to update password"})
+	}
+
+	// Delete used token (and all other tokens for this email to be clean)
+	database.DB.Where("email = ?", resetToken.Email).Delete(&models.PasswordResetToken{})
+
+	return c.JSON(fiber.Map{
+		"status":  "success",
+		"message": "Password updated successfully. You can now login.",
 	})
 }

@@ -52,7 +52,7 @@ func Connect() {
 	log.Println("Connected to Database successfully")
 
 	log.Println("Running Auto Migrations...")
-	db.AutoMigrate(&models.Drama{}, &models.Episode{}, &models.Setting{}, &models.User{}, &models.UserHistory{})
+	db.AutoMigrate(&models.Drama{}, &models.Episode{}, &models.Setting{}, &models.User{}, &models.UserHistory{}, &models.Bookmark{}, &models.PasswordResetToken{})
 
 	DB = db
 }
