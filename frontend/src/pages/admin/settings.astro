@@ -563,399 +563,408 @@ import Layout from "../../layouts/Layout.astro";
 </div>
 
 <script>
-  const API_BASE = "/api";
-  const token = localStorage.getItem("admin_token");
+  document.addEventListener("DOMContentLoaded", () => {
+    const API_BASE = "/api";
+    const token = localStorage.getItem("admin_token");
 
-  // --- Toast Logic ---
-  function showToast(msg: string, type: "success" | "error" = "success") {
-    const container = document.getElementById("toast-container");
-    if (!container) return;
+    // --- Toast Logic ---
+    function showToast(msg: string, type: "success" | "error" = "success") {
+      const container = document.getElementById("toast-container");
+      if (!container) return;
 
-    const toast = document.createElement("div");
-    toast.className = `pointer-events-auto px-4 py-3 rounded-lg text-white text-sm font-medium shadow-xl flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-300 ${
-      type === "success" ? "bg-green-600" : "bg-red-600"
-    }`;
-    toast.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-                ${
-                  type === "success"
-                    ? '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />'
-                    : '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />'
-                }
-            </svg>
-            ${msg}
-        `;
+      const toast = document.createElement("div");
+      toast.className = `pointer-events-auto px-4 py-3 rounded-lg text-white text-sm font-medium shadow-xl flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-300 ${
+        type === "success" ? "bg-green-600" : "bg-red-600"
+      }`;
+      toast.innerHTML = `
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                  ${
+                    type === "success"
+                      ? '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />'
+                      : '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />'
+                  }
+              </svg>
+              ${msg}
+          `;
 
-    container.appendChild(toast);
+      container.appendChild(toast);
 
-    // Remove after 3s
-    setTimeout(() => {
-      toast.classList.add("opacity-0", "translate-y-2", "transition-all");
-      setTimeout(() => toast.remove(), 300);
-    }, 3000);
-  }
-
-  if (!token) {
-    window.location.href = "/admin/login";
-  }
-
-  const form = document.getElementById("settings-form");
-  const clientIDInput = document.getElementById(
-    "google_client_id"
-  ) as HTMLInputElement;
-  const gaIDInput = document.getElementById(
-    "ga_measurement_id"
-  ) as HTMLInputElement;
-  const cfTokenInput = document.getElementById(
-    "cloudflare_tunnel_token"
-  ) as HTMLInputElement;
-  const turnstileSiteInput = document.getElementById(
-    "turnstile_site_key"
-  ) as HTMLInputElement;
-  const turnstileSecretInput = document.getElementById(
-    "turnstile_secret_key"
-  ) as HTMLInputElement;
-  const logoInput = document.getElementById("site_logo") as HTMLInputElement;
-  const logoPreview = document.getElementById(
-    "logo-preview"
-  ) as HTMLImageElement;
-  const fileInput = document.getElementById("logo-upload") as HTMLInputElement;
-
-  // Favicon Elements
-  const faviconInput = document.getElementById(
-    "site_favicon"
-  ) as HTMLInputElement;
-  const faviconPreview = document.getElementById(
-    "favicon-preview"
-  ) as HTMLImageElement;
-  const faviconFileInput = document.getElementById(
-    "favicon-upload"
-  ) as HTMLInputElement;
-
-  // Social Share Elements
-  const socialInput = document.getElementById(
-    "social_image"
-  ) as HTMLInputElement;
-  const socialPreview = document.getElementById(
-    "social-preview"
-  ) as HTMLImageElement;
-  const socialFileInput = document.getElementById(
-    "social-upload"
-  ) as HTMLInputElement;
-
-  const saveBtn = document.getElementById("btn-save");
-
-  // Editor Elements
-  const editorModal = document.getElementById("editor-modal");
-  const imageToEdit = document.getElementById(
-    "image-to-edit"
-  ) as HTMLImageElement;
-  const btnCloseEditor = document.getElementById("btn-close-editor");
-  const btnCropSave = document.getElementById("btn-crop-save");
-  let cropper: any = null;
-  let currentUploadTarget = "logo"; // 'logo', 'favicon', or 'social'
-
-  // --- Upload & Editor Logic ---
-
-  // 1. File Selection
-  function handleFileSelect(e: any, target: string) {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    currentUploadTarget = target; // Set target
-
-    const reader = new FileReader();
-    reader.onload = (ev: any) => {
-      imageToEdit.src = ev.target.result;
-      openEditor();
-    };
-    reader.readAsDataURL(file);
-
-    // Reset input
-    e.target.value = "";
-  }
-
-  fileInput?.addEventListener("change", (e) => handleFileSelect(e, "logo"));
-  faviconFileInput?.addEventListener("change", (e) =>
-    handleFileSelect(e, "favicon")
-  );
-  socialFileInput?.addEventListener("change", (e) =>
-    handleFileSelect(e, "social")
-  );
-
-  function openEditor() {
-    editorModal?.classList.remove("hidden");
-    editorModal?.classList.add("flex");
-
-    // Init Cropper
-    if (cropper) cropper.destroy();
-
-    // Determine Aspect Ratio
-    let aspectRatio = 1; // Square for logo/favicon
-    if (currentUploadTarget === "social") {
-      aspectRatio = 1.91; // 1200x630 for Facebook/WhatsApp
+      // Remove after 3s
+      setTimeout(() => {
+        toast.classList.add("opacity-0", "translate-y-2", "transition-all");
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
     }
 
-    cropper = new (window as any).Cropper(imageToEdit, {
-      viewMode: 1,
-      dragMode: "move",
-      aspectRatio: aspectRatio,
-      autoCropArea: 0.8,
-      restore: false,
-      guides: true,
-      center: true,
-      highlight: false,
-      cropBoxMovable: true,
-      cropBoxResizable: true,
-      toggleDragModeOnDblclick: false,
-    });
-  }
-
-  function closeEditor() {
-    editorModal?.classList.add("hidden");
-    editorModal?.classList.remove("flex");
-    if (cropper) {
-      cropper.destroy();
-      cropper = null;
+    if (!token) {
+      window.location.href = "/admin/login";
     }
-  }
 
-  btnCloseEditor?.addEventListener("click", closeEditor);
+    const form = document.getElementById("settings-form");
+    const clientIDInput = document.getElementById(
+      "google_client_id"
+    ) as HTMLInputElement;
+    const gaIDInput = document.getElementById(
+      "ga_measurement_id"
+    ) as HTMLInputElement;
+    const cfTokenInput = document.getElementById(
+      "cloudflare_tunnel_token"
+    ) as HTMLInputElement;
+    const turnstileSiteInput = document.getElementById(
+      "turnstile_site_key"
+    ) as HTMLInputElement;
+    const turnstileSecretInput = document.getElementById(
+      "turnstile_secret_key"
+    ) as HTMLInputElement;
+    const logoInput = document.getElementById("site_logo") as HTMLInputElement;
+    const logoPreview = document.getElementById(
+      "logo-preview"
+    ) as HTMLImageElement;
+    const fileInput = document.getElementById(
+      "logo-upload"
+    ) as HTMLInputElement;
 
-  // Toolbar Actions
-  document.querySelectorAll("[data-action]").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      if (!cropper) return;
-      const action = (e.currentTarget as HTMLElement).getAttribute(
-        "data-action"
-      );
+    // Favicon Elements
+    const faviconInput = document.getElementById(
+      "site_favicon"
+    ) as HTMLInputElement;
+    const faviconPreview = document.getElementById(
+      "favicon-preview"
+    ) as HTMLImageElement;
+    const faviconFileInput = document.getElementById(
+      "favicon-upload"
+    ) as HTMLInputElement;
 
-      switch (action) {
-        case "zoom-in":
-          cropper.zoom(0.1);
-          break;
-        case "zoom-out":
-          cropper.zoom(-0.1);
-          break;
-        case "rotate-left":
-          cropper.rotate(-90);
-          break;
-        case "rotate-right":
-          cropper.rotate(90);
-          break;
-        case "flip-h":
-          cropper.scaleX(cropper.getData().scaleX * -1);
-          break;
-        case "flip-v":
-          cropper.scaleY(cropper.getData().scaleY * -1);
-          break;
+    // Social Share Elements
+    const socialInput = document.getElementById(
+      "social_image"
+    ) as HTMLInputElement;
+    const socialPreview = document.getElementById(
+      "social-preview"
+    ) as HTMLImageElement;
+    const socialFileInput = document.getElementById(
+      "social-upload"
+    ) as HTMLInputElement;
+
+    const saveBtn = document.getElementById("btn-save");
+
+    // Editor Elements
+    const editorModal = document.getElementById("editor-modal");
+    const imageToEdit = document.getElementById(
+      "image-to-edit"
+    ) as HTMLImageElement;
+    const btnCloseEditor = document.getElementById("btn-close-editor");
+    const btnCropSave = document.getElementById("btn-crop-save");
+    let cropper: any = null;
+    let currentUploadTarget = "logo"; // 'logo', 'favicon', or 'social'
+
+    // --- Upload & Editor Logic ---
+
+    // 1. File Selection
+    function handleFileSelect(e: any, target: string) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      currentUploadTarget = target; // Set target
+
+      const reader = new FileReader();
+      reader.onload = (ev: any) => {
+        imageToEdit.src = ev.target.result;
+        openEditor();
+      };
+      reader.readAsDataURL(file);
+
+      // Reset input
+      e.target.value = "";
+    }
+
+    fileInput?.addEventListener("change", (e) => handleFileSelect(e, "logo"));
+    faviconFileInput?.addEventListener("change", (e) =>
+      handleFileSelect(e, "favicon")
+    );
+    socialFileInput?.addEventListener("change", (e) =>
+      handleFileSelect(e, "social")
+    );
+
+    function openEditor() {
+      editorModal?.classList.remove("hidden");
+      editorModal?.classList.add("flex");
+
+      // Init Cropper
+      if (cropper) cropper.destroy();
+
+      // Determine Aspect Ratio
+      let aspectRatio = 1; // Square for logo/favicon
+      if (currentUploadTarget === "social") {
+        aspectRatio = 1.91; // 1200x630 for Facebook/WhatsApp
       }
-    });
-  });
 
-  // Save & Upload
-  btnCropSave?.addEventListener("click", () => {
-    if (!cropper) return;
-
-    // Determine dimensions based on target
-    let width = 400;
-    let height = 400;
-    let format = "image/png";
-    let filename = "logo.png";
-
-    if (currentUploadTarget === "favicon") {
-      width = 64;
-      height = 64;
-      filename = "favicon.png";
-    } else if (currentUploadTarget === "social") {
-      width = 1200;
-      height = 630;
-      format = "image/jpeg";
-      filename = "social-share.jpg";
-    }
-
-    // Get canvas
-    cropper
-      .getCroppedCanvas({
-        width: width,
-        height: height,
-      })
-      .toBlob(
-        async (blob: any) => {
-          // Create FormData
-          const formData = new FormData();
-          // Append with timestamp to avoid cache issues
-          const ts = new Date().getTime();
-          const finalFilename = filename.replace(".", `_${ts}.`);
-
-          formData.append("file", blob, finalFilename);
-
-          // Show loading state
-          const originalText = btnCropSave.innerText;
-          btnCropSave.innerText = "Uploading...";
-          (btnCropSave as HTMLButtonElement).disabled = true;
-
-          try {
-            const res = await fetch(`${API_BASE}/admin/upload`, {
-              method: "POST",
-              headers: { Authorization: token || "" },
-              body: formData,
-            });
-
-            const json = await res.json();
-
-            if (json.status === "success") {
-              // Update UI with absolute URL (relative to domain)
-              const fullUrl = json.url;
-
-              if (currentUploadTarget === "logo") {
-                logoInput.value = fullUrl;
-                logoPreview.src = fullUrl;
-              } else if (currentUploadTarget === "favicon") {
-                faviconInput.value = fullUrl;
-                faviconPreview.src = fullUrl;
-              } else if (currentUploadTarget === "social") {
-                socialInput.value = fullUrl;
-                socialPreview.src = fullUrl;
-                // AUTO-SAVE for Social Image
-                saveSingleSetting("social_image", fullUrl);
-              }
-
-              closeEditor();
-              showToast("Image uploaded & saved successfully", "success");
-            } else {
-              showToast("Upload failed: " + json.message, "error");
-            }
-          } catch (e) {
-            console.error(e);
-            showToast("Error uploading file", "error");
-          } finally {
-            btnCropSave.innerText = originalText;
-            (btnCropSave as HTMLButtonElement).disabled = false;
-          }
-        },
-        format,
-        0.9
-      ); // 0.9 quality for JPG
-  });
-
-  // Fetch current settings
-  async function fetchSettings() {
-    try {
-      const res = await fetch(`${API_BASE}/admin/settings`, {
-        headers: { Authorization: token || "" },
+      cropper = new (window as any).Cropper(imageToEdit, {
+        viewMode: 1,
+        dragMode: "move",
+        aspectRatio: aspectRatio,
+        autoCropArea: 0.8,
+        restore: false,
+        guides: true,
+        center: true,
+        highlight: false,
+        cropBoxMovable: true,
+        cropBoxResizable: true,
+        toggleDragModeOnDblclick: false,
       });
-      const json = await res.json();
-      if (json.status === "success" && json.data) {
-        if (json.data.google_client_id) {
-          clientIDInput.value = json.data.google_client_id;
-        }
-        if (json.data.ga_measurement_id) {
-          gaIDInput.value = json.data.ga_measurement_id;
-        }
-        if (json.data.cloudflare_tunnel_token) {
-          cfTokenInput.value = json.data.cloudflare_tunnel_token;
-        }
-        if (json.data.turnstile_site_key) {
-          turnstileSiteInput.value = json.data.turnstile_site_key;
-        }
-        if (json.data.turnstile_secret_key) {
-          turnstileSecretInput.value = json.data.turnstile_secret_key;
-        }
-        if (json.data.site_logo) {
-          logoInput.value = json.data.site_logo;
-          logoPreview.src = json.data.site_logo; // Update preview
-        }
-        if (json.data.site_favicon) {
-          faviconInput.value = json.data.site_favicon;
-          faviconPreview.src = json.data.site_favicon;
-        }
-        if (json.data.social_image) {
-          socialInput.value = json.data.social_image;
-          socialPreview.src = json.data.social_image;
-        }
-      } else if (res.status === 401) {
-        window.location.href = "/admin/login";
-      }
-    } catch (err) {
-      console.error("Failed to load settings:", err);
     }
-  }
 
-  // Helper to save a single setting
-  async function saveSingleSetting(key: string, value: string) {
-    if (!key) return;
-    try {
-      await fetch(`${API_BASE}/admin/settings`, {
+    function closeEditor() {
+      editorModal?.classList.add("hidden");
+      editorModal?.classList.remove("flex");
+      if (cropper) {
+        cropper.destroy();
+        cropper = null;
+      }
+    }
+
+    btnCloseEditor?.addEventListener("click", closeEditor);
+
+    // Toolbar Actions
+    document.querySelectorAll("[data-action]").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        if (!cropper) return;
+        const action = (e.currentTarget as HTMLElement).getAttribute(
+          "data-action"
+        );
+
+        switch (action) {
+          case "zoom-in":
+            cropper.zoom(0.1);
+            break;
+          case "zoom-out":
+            cropper.zoom(-0.1);
+            break;
+          case "rotate-left":
+            cropper.rotate(-90);
+            break;
+          case "rotate-right":
+            cropper.rotate(90);
+            break;
+          case "flip-h":
+            cropper.scaleX(cropper.getData().scaleX * -1);
+            break;
+          case "flip-v":
+            cropper.scaleY(cropper.getData().scaleY * -1);
+            break;
+        }
+      });
+    });
+
+    // Save & Upload
+    btnCropSave?.addEventListener("click", () => {
+      if (!cropper) return;
+
+      // Determine dimensions based on target
+      let width = 400;
+      let height = 400;
+      let format = "image/png";
+      let filename = "logo.png";
+
+      if (currentUploadTarget === "favicon") {
+        width = 64;
+        height = 64;
+        filename = "favicon.png";
+      } else if (currentUploadTarget === "social") {
+        width = 1200;
+        height = 630;
+        format = "image/jpeg";
+        filename = "social-share.jpg";
+      }
+
+      // Get canvas
+      cropper
+        .getCroppedCanvas({
+          width: width,
+          height: height,
+        })
+        .toBlob(
+          async (blob: any) => {
+            // Create FormData
+            const formData = new FormData();
+            // Append with timestamp to avoid cache issues
+            const ts = new Date().getTime();
+            const finalFilename = filename.replace(".", `_${ts}.`);
+
+            formData.append("file", blob, finalFilename);
+
+            // Show loading state
+            const originalText = btnCropSave.innerText;
+            btnCropSave.innerText = "Uploading...";
+            (btnCropSave as HTMLButtonElement).disabled = true;
+
+            try {
+              const res = await fetch(`${API_BASE}/admin/upload`, {
+                method: "POST",
+                headers: { Authorization: token || "" },
+                body: formData,
+              });
+
+              const json = await res.json();
+
+              if (json.status === "success") {
+                // Update UI with absolute URL (relative to domain)
+                const fullUrl = json.url;
+
+                if (currentUploadTarget === "logo") {
+                  logoInput.value = fullUrl;
+                  logoPreview.src = fullUrl;
+                } else if (currentUploadTarget === "favicon") {
+                  faviconInput.value = fullUrl;
+                  faviconPreview.src = fullUrl;
+                } else if (currentUploadTarget === "social") {
+                  socialInput.value = fullUrl;
+                  socialPreview.src = fullUrl;
+                  // AUTO-SAVE for Social Image
+                  saveSingleSetting("social_image", fullUrl);
+                }
+
+                closeEditor();
+                showToast("Image uploaded & saved successfully", "success");
+              } else {
+                showToast("Upload failed: " + json.message, "error");
+              }
+            } catch (e) {
+              console.error(e);
+              showToast("Error uploading file", "error");
+            } finally {
+              btnCropSave.innerText = originalText;
+              (btnCropSave as HTMLButtonElement).disabled = false;
+            }
+          },
+          format,
+          0.9
+        ); // 0.9 quality for JPG
+    });
+
+    // Fetch current settings
+    async function fetchSettings() {
+      try {
+        const res = await fetch(`${API_BASE}/admin/settings`, {
+          headers: { Authorization: token || "" },
+        });
+        const json = await res.json();
+        if (json.status === "success" && json.data) {
+          if (json.data.google_client_id) {
+            clientIDInput.value = json.data.google_client_id;
+          }
+          if (json.data.ga_measurement_id) {
+            gaIDInput.value = json.data.ga_measurement_id;
+          }
+          if (json.data.cloudflare_tunnel_token) {
+            cfTokenInput.value = json.data.cloudflare_tunnel_token;
+          }
+          if (json.data.turnstile_site_key) {
+            turnstileSiteInput.value = json.data.turnstile_site_key;
+          }
+          if (json.data.turnstile_secret_key) {
+            turnstileSecretInput.value = json.data.turnstile_secret_key;
+          }
+          if (json.data.site_logo) {
+            logoInput.value = json.data.site_logo;
+            logoPreview.src = json.data.site_logo; // Update preview
+          }
+          if (json.data.site_favicon) {
+            faviconInput.value = json.data.site_favicon;
+            faviconPreview.src = json.data.site_favicon;
+          }
+          if (json.data.social_image) {
+            socialInput.value = json.data.social_image;
+            socialPreview.src = json.data.social_image;
+          }
+        } else if (res.status === 401) {
+          window.location.href = "/admin/login";
+        }
+      } catch (err) {
+        console.error("Failed to load settings:", err);
+      }
+    }
+
+    // Helper to save a single setting (Fallback)
+    async function saveSingleSetting(key: string, value: string) {
+      if (!key) return;
+      try {
+        await fetch(`${API_BASE}/admin/settings`, {
+          method: "POST",
+          headers: {
+            Authorization: token || "",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ key, value }),
+        });
+      } catch (e) {
+        console.error(`Failed to save ${key}`, e);
+      }
+    }
+
+    // Save Batch Settings (Revising for Sync)
+    async function saveBatchSettings(data: Record<string, string>) {
+      const res = await fetch(`${API_BASE}/admin/settings/batch`, {
         method: "POST",
         headers: {
           Authorization: token || "",
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ key, value }),
+        body: JSON.stringify(data),
       });
-    } catch (e) {
-      console.error(`Failed to save ${key}`, e);
-    }
-  }
 
-  // Save Batch Settings (Revising for Sync)
-  async function saveBatchSettings(data: Record<string, string>) {
-    const res = await fetch(`${API_BASE}/admin/settings/batch`, {
-      method: "POST",
-      headers: {
-        Authorization: token || "",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to save settings: ${res.statusText}`);
-    }
-
-    return await res.json();
-  }
-
-  // Save settings (Form Submit)
-  form?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (!clientIDInput || !saveBtn) return;
-
-    const originalText = saveBtn.innerText;
-    saveBtn.innerText = "Saving...";
-    (saveBtn as HTMLButtonElement).disabled = true;
-
-    try {
-      const payload: Record<string, string> = {
-        google_client_id: clientIDInput.value.trim(),
-        ga_measurement_id: gaIDInput.value.trim(),
-        cloudflare_tunnel_token: cfTokenInput.value.trim(),
-        turnstile_site_key: turnstileSiteInput.value.trim(),
-        turnstile_secret_key: turnstileSecretInput.value.trim(),
-        site_logo: logoInput.value.trim(),
-        site_favicon: faviconInput.value.trim(),
-      };
-
-      if (socialInput.value) {
-        payload.social_image = socialInput.value.trim();
+      if (!res.ok) {
+        throw new Error(`Failed to save settings: ${res.statusText}`);
       }
 
-      await saveBatchSettings(payload);
-
-      showToast("Settings saved successfully!", "success");
-    } catch (err) {
-      console.error(err);
-      showToast("Error saving settings", "error");
-    } finally {
-      saveBtn.innerText = originalText;
-      (saveBtn as HTMLButtonElement).disabled = false;
+      return await res.json();
     }
+
+    // Save settings (Form Submit)
+    form?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      // DEBUG: Trigger Alert To Confirm Click
+      alert("Memulai Proses Menyimpan... (Klik OK untuk lanjut)");
+
+      if (!clientIDInput || !saveBtn) {
+        alert("Fatal Error: Form Element Not Found!");
+        return;
+      }
+
+      const originalText = saveBtn.innerText;
+      saveBtn.innerText = "Saving...";
+      (saveBtn as HTMLButtonElement).disabled = true;
+
+      try {
+        const payload: Record<string, string> = {
+          google_client_id: clientIDInput.value.trim(),
+          ga_measurement_id: gaIDInput.value.trim(),
+          cloudflare_tunnel_token: cfTokenInput.value.trim(),
+          turnstile_site_key: turnstileSiteInput.value.trim(),
+          turnstile_secret_key: turnstileSecretInput.value.trim(),
+          site_logo: logoInput.value.trim(),
+          site_favicon: faviconInput.value.trim(),
+        };
+
+        if (socialInput.value) {
+          payload.social_image = socialInput.value.trim();
+        }
+
+        await saveBatchSettings(payload);
+
+        showToast("Settings saved successfully!", "success");
+      } catch (err) {
+        console.error(err);
+        alert("Error During Save: " + err);
+        showToast("Error saving settings", "error");
+      } finally {
+        saveBtn.innerText = originalText;
+        (saveBtn as HTMLButtonElement).disabled = false;
+      }
+    });
+
+    // Init
+    fetchSettings();
   });
-
-  // Modify Update UI Logic to also Auto-Save
-  // ... inside btnCropSave event ...
-
-  // Init
-  fetchSettings();
 </script>
