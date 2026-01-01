@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -15,6 +16,22 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
+
+// isValidEmail validates email format
+func isValidEmail(email string) bool {
+	// Simple Regex for Email
+	regex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	re := regexp.MustCompile(regex)
+	return re.MatchString(email)
+}
+
+// isLegacyUser checks if user registered before Verification Feature (Jan 1, 2026)
+func isLegacyUser(createdAt time.Time) bool {
+	// Feature rolled out approx Jan 1, 2026.
+	// Users created BEFORE this date without verification should be trusted.
+	cutoffDate := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+	return createdAt.Before(cutoffDate)
+}
 
 // VerifyGoogleToken receives the credential from frontend and validates it
 func VerifyGoogleToken(c *fiber.Ctx) error {
@@ -112,6 +129,11 @@ func LocalLogin(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid input"})
 	}
 
+	// Validate Email Format
+	if !isValidEmail(input.Email) {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid email address format"})
+	}
+
 	// 1. Verify Turnstile (if configured) - Snipped for brevity, same as before
 
 	// Find User
@@ -194,9 +216,10 @@ func LocalLogin(c *fiber.Ctx) error {
 
 		// CHECK VERIFICATION
 		if !user.IsVerified {
-			// LEGACY USER FIX: If VerificationToken is empty && IsVerified is false,
-			// it means they are an old user from before this feature. Auto-verify them.
-			if user.VerificationToken == "" {
+			// LEGACY USER FIX:
+			// Only auto-verify if they are TRULY a legacy user (Created < Jan 1 2026)
+			// AND have no verification token (meaning they never went through new flow)
+			if user.VerificationToken == "" && isLegacyUser(user.CreatedAt) {
 				user.IsVerified = true
 				database.DB.Save(&user)
 			} else {
