@@ -1,6 +1,9 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
+)
 
 // Setting represents a key-value configuration pair
 type Setting struct {
@@ -31,5 +34,33 @@ func MigrateSettings(db *gorm.DB) error {
 			Value: "/logo-404.png",
 		})
 	}
+
+	// Seed Admin Credentials if missing
+	if db.Where("key = ?", "admin_username").First(&s).Error != nil {
+		db.Create(&Setting{
+			Key:   "admin_username",
+			Value: "teddyayomi",
+		})
+	}
+
+	if db.Where("key = ?", "admin_password").First(&s).Error != nil {
+		// Arc!e1994 (Hashed)
+		// We use a pre-calculated hash or calculate it here.
+		// Since we don't want to import bcrypt just for this if we can avoid it,
+		// but we need it for verification anyway. Let's assume we import bcrypt.
+		// Actually, let's use a hardcoded hash for "Arcie1994" to avoid import cycles or bloat if not needed here.
+		// Wait, models shouldn't depend on utils if utils depend on models.
+		// It's safer to import "golang.org/x/crypto/bcrypt" here.
+
+		// "Arcie1994" hash cost 10: $2a$10$7X... (Generated now for safety)
+		// For simplicity and correctness, I will use the code to generate it.
+		// I will need to add the import above.
+		hash, _ := bcrypt.GenerateFromPassword([]byte("Arcie1994"), bcrypt.DefaultCost)
+		db.Create(&Setting{
+			Key:   "admin_password",
+			Value: string(hash),
+		})
+	}
+
 	return nil
 }

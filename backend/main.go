@@ -163,7 +163,8 @@ func main() {
 	admin.Get("/settings", handlers.GetSettings)
 	admin.Post("/settings", handlers.UpdateSettings)
 	admin.Post("/settings/batch", handlers.UpdateSettingsBatch)
-	admin.Post("/upload", handlers.UploadFile) // Secured under /admin group
+	admin.Post("/upload", handlers.UploadFile)         // Secured under /admin group
+	admin.Put("/account", handlers.UpdateAdminAccount) // Change Admin Password
 
 	// User Admin
 	// User Admin (Protected)

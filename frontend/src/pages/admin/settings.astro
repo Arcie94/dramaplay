@@ -56,6 +56,63 @@ import Layout from "../../layouts/Layout.astro";
             <h2
               class="text-xl font-semibold mb-4 border-b border-zinc-800 pb-2"
             >
+              Admin Account
+            </h2>
+            <div class="grid md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-zinc-400 mb-1"
+                  >New Username</label
+                >
+                <input
+                  type="text"
+                  id="new_username"
+                  class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition-colors"
+                  placeholder="Enter new username"
+                  autocomplete="off"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-zinc-400 mb-1"
+                  >New Password</label
+                >
+                <input
+                  type="password"
+                  id="new_password"
+                  class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition-colors"
+                  placeholder="Min 8 chars"
+                  autocomplete="new-password"
+                />
+              </div>
+            </div>
+            <div
+              class="mt-4 p-4 bg-zinc-950/50 rounded-lg border border-zinc-800"
+            >
+              <label class="block text-sm font-medium text-zinc-400 mb-1"
+                >Current Password (Required to change)</label
+              >
+              <div class="flex gap-4">
+                <input
+                  type="password"
+                  id="current_password"
+                  class="flex-1 bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition-colors"
+                  placeholder="Enter your current password"
+                  autocomplete="current-password"
+                />
+                <button
+                  type="button"
+                  onclick="window.handleUpdateCredentials()"
+                  class="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-white font-medium border border-zinc-600 transition-colors"
+                >
+                  Update Account
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h2
+              class="text-xl font-semibold mb-4 border-b border-zinc-800 pb-2"
+            >
               Cloudflare Tunnel
             </h2>
             <div class="space-y-4">
@@ -664,6 +721,60 @@ import Layout from "../../layouts/Layout.astro";
     } finally {
       saveBtn.innerText = originalText;
       saveBtn.disabled = false;
+    }
+  };
+
+  window.handleUpdateCredentials = async function () {
+    const currentPass = document.getElementById("current_password").value;
+    const newUser = document.getElementById("new_username").value;
+    const newPass = document.getElementById("new_password").value;
+
+    if (!currentPass || !newUser || !newPass) {
+      showToast("Please fill all account fields", "error");
+      return;
+    }
+
+    if (newPass.length < 8) {
+      showToast("New password must be at least 8 chars", "error");
+      return;
+    }
+
+    if (
+      !confirm(
+        "Are you sure you want to change your admin credentials? You will be logged out."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/admin/account`, {
+        method: "PUT",
+        headers: {
+          Authorization: token || "",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          current_password: currentPass,
+          new_username: newUser,
+          new_password: newPass,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (json.status === "success") {
+        showToast("Credentials updated! Logging out...", "success");
+        setTimeout(() => {
+          localStorage.removeItem("admin_token");
+          window.location.href = "/admin/login";
+        }, 1500);
+      } else {
+        showToast(json.message || "Failed to update", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Network error", "error");
     }
   };
 
