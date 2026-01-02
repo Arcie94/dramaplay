@@ -117,5 +117,6 @@ func GetPublicSettings(c *fiber.Ctx) error {
 		"site_favicon":       sMap["site_favicon"],
 		"turnstile_site_key": sMap["turnstile_site_key"],
 		"social_image":       sMap["social_image"],
+		"app_version":        sMap["app_version"],
 	})
 }

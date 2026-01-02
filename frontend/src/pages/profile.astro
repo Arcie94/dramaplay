@@ -397,8 +397,11 @@ import Layout from "../layouts/Layout.astro";
         >
           Sign Out
         </button>
-        <p class="text-center text-[10px] text-zinc-700 mt-6 font-mono">
-          v1.2.0-beta
+        <p
+          id="app-version-display"
+          class="text-center text-[10px] text-zinc-700 mt-6 font-mono"
+        >
+          ...
         </p>
       </div>
     </div>
@@ -1765,6 +1768,16 @@ import Layout from "../layouts/Layout.astro";
         btnSavePassword.textContent = "Update Password";
       }
     });
+    // Fetch App Version
+    fetch("/api/settings/public")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.app_version) {
+          const el = document.getElementById("app-version-display");
+          if (el) el.innerText = data.app_version;
+        }
+      })
+      .catch(console.error);
   </script>
 
   <style>

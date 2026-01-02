@@ -62,5 +62,13 @@ func MigrateSettings(db *gorm.DB) error {
 		})
 	}
 
+	// Seed App Version if missing
+	if db.Where("key = ?", "app_version").First(&s).Error != nil {
+		db.Create(&Setting{
+			Key:   "app_version",
+			Value: "v1.2.0-beta",
+		})
+	}
+
 	return nil
 }

@@ -128,6 +128,24 @@ import Layout from "../../layouts/Layout.astro";
             </h2>
             <div class="space-y-4">
               <div>
+                <label
+                  for="app_version"
+                  class="block text-sm font-medium text-zinc-400 mb-1"
+                  >App Version</label
+                >
+                <input
+                  type="text"
+                  id="app_version"
+                  name="app_version"
+                  class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition-colors"
+                  placeholder="e.g. v1.2.0-beta"
+                />
+                <p class="text-xs text-zinc-500 mt-1">
+                  Shown in Profile page footer.
+                </p>
+              </div>
+
+              <div>
                 <label class="block text-sm font-medium text-zinc-400 mb-1"
                   >Site Logo</label
                 >
@@ -608,6 +626,7 @@ import Layout from "../../layouts/Layout.astro";
   window.handleSaveSettings = async function () {
     const clientIDInput = document.getElementById("google_client_id");
     const gaIDInput = document.getElementById("ga_measurement_id");
+    const appVersionInput = document.getElementById("app_version");
     const cfTokenInput = document.getElementById("cloudflare_tunnel_token");
     const turnstileSiteInput = document.getElementById("turnstile_site_key");
     const turnstileSecretInput = document.getElementById(
@@ -632,6 +651,7 @@ import Layout from "../../layouts/Layout.astro";
       const payload = {
         google_client_id: clientIDInput.value.trim(),
         ga_measurement_id: gaIDInput.value.trim(),
+        app_version: appVersionInput.value.trim(),
         cloudflare_tunnel_token: cfTokenInput.value.trim(),
         turnstile_site_key: turnstileSiteInput.value.trim(),
         turnstile_secret_key: turnstileSecretInput.value.trim(),
