@@ -622,6 +622,51 @@ import Layout from "../../layouts/Layout.astro";
     window.location.href = "/admin/login";
   }
 
+  if (!token) {
+    window.location.href = "/admin/login";
+  } else {
+    // Load Settings on Initialize
+    loadSettings();
+  }
+
+  async function loadSettings() {
+    try {
+      const res = await fetch(`${API_BASE}/admin/settings`, {
+        headers: { Authorization: token || "" },
+      });
+      const json = await res.json();
+      if (json.status === "success") {
+        const data = json.data;
+        // Map data to inputs
+        const setVal = (id, key) => {
+          const el = document.getElementById(id);
+          if (el && data[key]) el.value = data[key];
+        };
+
+        setVal("google_client_id", "google_client_id");
+        setVal("site_logo", "site_logo");
+        setVal("site_favicon", "site_favicon");
+        setVal("cloudflare_tunnel_token", "cloudflare_tunnel_token");
+        setVal("turnstile_site_key", "turnstile_site_key");
+        setVal("turnstile_secret_key", "turnstile_secret_key");
+        setVal("ga_measurement_id", "ga_measurement_id");
+        setVal("social_image", "social_image");
+        setVal("app_version", "app_version");
+
+        // Trigger previews if images exist
+        if (data.site_logo)
+          document.getElementById("logo-preview").src = data.site_logo;
+        if (data.site_favicon)
+          document.getElementById("favicon-preview").src = data.site_favicon;
+        if (data.social_image)
+          document.getElementById("social-preview").src = data.social_image;
+      }
+    } catch (err) {
+      console.error("Failed to load settings:", err);
+      showToast("Failed to load current settings", "error");
+    }
+  }
+
   // Define global function for button click
   window.handleSaveSettings = async function () {
     const clientIDInput = document.getElementById("google_client_id");
