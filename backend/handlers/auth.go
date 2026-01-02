@@ -148,7 +148,13 @@ func LocalLogin(c *fiber.Ctx) error {
 	// --- SIGNUP MODE ---
 	if input.Mode == "signup" {
 		if result.Error == nil {
+			models.LogSecurity(database.DB, fmt.Sprintf("[IP: %s] Signup Failed: Email Exists (%s)", c.IP(), input.Email))
 			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Email already registered. Please login."})
+		}
+
+		// Validate Password Strength
+		if err := validatePasswordStrength(input.Password); err != nil {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
 		}
 
 		// (Soft Delete Check omitted for brevity, logic remains same but add IsVerified reset if needed)
@@ -180,6 +186,8 @@ func LocalLogin(c *fiber.Ctx) error {
 			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to create user: " + err.Error()})
 		}
 
+		models.LogSecurity(database.DB, fmt.Sprintf("[IP: %s] New Signup: %s", c.IP(), user.Email))
+
 		// Send Verification Email
 		verifyLink := fmt.Sprintf("https://dramaplay.online/verify-email?token=%s", verificationToken)
 		emailBody := fmt.Sprintf(`
@@ -206,6 +214,7 @@ func LocalLogin(c *fiber.Ctx) error {
 	} else {
 		// --- LOGIN MODE (Default) ---
 		if result.Error != nil {
+			// Don't log normal "user not found" as security risk unless frequent (rate limit handles frequent)
 			return c.Status(404).JSON(fiber.Map{"status": "error", "message": "User not found. Please sign up."})
 		}
 
@@ -216,6 +225,7 @@ func LocalLogin(c *fiber.Ctx) error {
 
 		// Verify Password
 		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
+			models.LogSecurity(database.DB, fmt.Sprintf("[IP: %s] Failed Login: Wrong Password (%s)", c.IP(), input.Email))
 			return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Invalid password"})
 		}
 
@@ -341,6 +351,32 @@ func ForgotPassword(c *fiber.Ctx) error {
 	})
 }
 
+// validatePasswordStrength checks complexity requirements
+func validatePasswordStrength(password string) error {
+	if len(password) < 8 {
+		return fmt.Errorf("password must be at least 8 characters")
+	}
+	hasUpper := false
+	hasLower := false
+	hasNumberOrSymbol := false
+
+	for _, char := range password {
+		switch {
+		case 'A' <= char && char <= 'Z':
+			hasUpper = true
+		case 'a' <= char && char <= 'z':
+			hasLower = true
+		case ('0' <= char && char <= '9') || strings.ContainsRune("!@#$%^&*()-_=+,.?/:;{}[]`~", char):
+			hasNumberOrSymbol = true
+		}
+	}
+
+	if !hasUpper || !hasLower || !hasNumberOrSymbol {
+		return fmt.Errorf("password must contain at least 1 uppercase, 1 lowercase, and 1 number/symbol")
+	}
+	return nil
+}
+
 // ResetPassword handles the actual password update
 func ResetPassword(c *fiber.Ctx) error {
 	token := c.Params("token")
@@ -352,13 +388,15 @@ func ResetPassword(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid input"})
 	}
 
-	if len(input.Password) < 6 {
-		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Password must be at least 6 characters"})
+	// Validate Strength
+	if err := validatePasswordStrength(input.Password); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
 
 	// Verify Token
 	var resetToken models.PasswordResetToken
 	if err := database.DB.Where("token = ? AND expires_at > ?", token, time.Now()).First(&resetToken).Error; err != nil {
+		models.LogSecurity(database.DB, fmt.Sprintf("[IP: %s] Failed Reset Attempt: Invalid Token", c.IP()))
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid or expired token"})
 	}
 
@@ -371,6 +409,8 @@ func ResetPassword(c *fiber.Ctx) error {
 
 	// Delete used token (and all other tokens for this email to be clean)
 	database.DB.Where("email = ?", resetToken.Email).Delete(&models.PasswordResetToken{})
+
+	models.LogSecurity(database.DB, fmt.Sprintf("[IP: %s] Password Reset Successful for %s", c.IP(), resetToken.Email))
 
 	return c.JSON(fiber.Map{
 		"status":  "success",

@@ -95,7 +95,22 @@ func main() {
 	api.Get("/auth/verify", handlers.VerifyEmail)        // New Verification Endpoint
 	api.Put("/user/profile", handlers.UpdateUserProfile) // New Profile Update
 	api.Put("/user/password", handlers.UpdatePassword)   // New Password Change
-	api.Post("/forgot-password", handlers.ForgotPassword)
+
+	// Forgot Password Rate Limiter (3 per hour)
+	forgotLimiter := limiter.New(limiter.Config{
+		Max:        3,
+		Expiration: 1 * time.Hour,
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return c.IP()
+		},
+		LimitReached: func(c *fiber.Ctx) error {
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Too many reset attempts. Please try again in an hour.",
+			})
+		},
+	})
+	api.Post("/forgot-password", forgotLimiter, handlers.ForgotPassword)
 	api.Post("/reset-password/:token", handlers.ResetPassword)
 
 	// My List (Bookmarks)

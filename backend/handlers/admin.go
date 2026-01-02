@@ -74,6 +74,7 @@ func AdminLogin(c *fiber.Ctx) error {
 
 	if secretKey.Value != "" {
 		if !verifyTurnstile(input.CFTurnstileResponse, secretKey.Value) {
+			models.LogSecurity(database.DB, fmt.Sprintf("[IP: %s] Admin Login Blocked: Captcha Failed (%s)", c.IP(), input.Username))
 			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Captcha validation failed"})
 		}
 	}
@@ -85,11 +86,16 @@ func AdminLogin(c *fiber.Ctx) error {
 			// Ideally this should error out in prod
 			secret = "admin-secret-token-123"
 		}
+
+		models.LogSecurity(database.DB, fmt.Sprintf("[IP: %s] Admin Login Success: %s", c.IP(), input.Username))
+
 		return c.JSON(fiber.Map{
 			"status": "success",
 			"token":  secret,
 		})
 	}
+
+	models.LogSecurity(database.DB, fmt.Sprintf("[IP: %s] Admin Login Failed: Invalid Credentials (%s)", c.IP(), input.Username))
 
 	return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Invalid credentials"})
 }
