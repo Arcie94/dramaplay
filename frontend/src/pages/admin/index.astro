@@ -90,6 +90,27 @@ try {
             Settings
           </a>
           <button
+            id="btn-change-password-trigger"
+            class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 text-zinc-300 hover:text-white border border-zinc-700 hover:border-zinc-600"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              class="w-4 h-4"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
+              ></path>
+            </svg>
+            Password
+          </button>
+
+          <button
             id="btn-logout"
             class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 text-red-400 hover:text-red-300 border border-zinc-800 hover:border-red-900/30"
           >
@@ -499,6 +520,91 @@ try {
       </div>
     </div>
   </div>
+  <!-- Change Password Modal -->
+  <div
+    id="modal-change-password"
+    class="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 animate-in fade-in duration-300"
+  >
+    <div
+      class="w-full max-w-md bg-zinc-900 rounded-2xl border border-white/10 shadow-2xl overflow-hidden"
+    >
+      <div
+        class="flex items-center justify-between p-6 border-b border-white/5 bg-zinc-900/50"
+      >
+        <h2 class="text-xl font-bold text-white">Change Password</h2>
+        <button
+          id="close-change-password"
+          class="p-2 -mr-2 text-zinc-400 hover:text-white bg-white/5 rounded-full hover:bg-white/10 transition-all"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-5 h-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-zinc-500 uppercase mb-2"
+            >Old Password</label
+          >
+          <div class="relative">
+            <input
+              type="password"
+              id="input-old-password"
+              class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 pr-10 text-white focus:outline-none focus:border-red-600 transition-colors"
+              placeholder="Enter current password"
+            />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-zinc-500 uppercase mb-2"
+            >New Username</label
+          >
+          <div class="relative">
+            <input
+              type="text"
+              id="input-new-username"
+              class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 pr-10 text-white focus:outline-none focus:border-red-600 transition-colors"
+              placeholder="Enter new username"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-zinc-500 uppercase mb-2"
+            >New Password</label
+          >
+          <div class="relative">
+            <input
+              type="password"
+              id="input-new-password"
+              class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 pr-10 text-white focus:outline-none focus:border-red-600 transition-colors"
+              placeholder="Enter new password"
+            />
+          </div>
+        </div>
+
+        <div class="pt-4 flex gap-3">
+          <button
+            id="btn-save-password"
+            class="w-full bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 shadow-lg shadow-red-900/20 transition-all"
+            >Update Password</button
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Action Confirmation Modal -->
   <div
     id="action-modal"
@@ -1029,6 +1135,80 @@ try {
     isBulkDelete = false;
     showDeleteModal(id);
   };
+  // --- Change Password Logic ---
+  const passwordModal = document.getElementById("modal-change-password");
+  const closePasswordBtn = document.getElementById("close-change-password");
+  const savePasswordBtn = document.getElementById("btn-save-password");
+
+  document
+    .getElementById("btn-change-password-trigger")
+    ?.addEventListener("click", () => {
+      if (passwordModal) passwordModal.classList.remove("hidden");
+    });
+
+  closePasswordBtn?.addEventListener("click", () => {
+    if (passwordModal) passwordModal.classList.add("hidden");
+  });
+
+  savePasswordBtn?.addEventListener("click", async () => {
+    const currentPass = (
+      document.getElementById("input-old-password") as HTMLInputElement
+    ).value;
+    const newUser = (
+      document.getElementById("input-new-username") as HTMLInputElement
+    ).value;
+    const newPass = (
+      document.getElementById("input-new-password") as HTMLInputElement
+    ).value;
+
+    if (!currentPass || !newUser || !newPass) {
+      showToast("Please fill all fields", "error");
+      return;
+    }
+
+    if (newPass.length < 8) {
+      showToast("New password must be at least 8 chars", "error");
+      return;
+    }
+
+    if (!confirm("Update credentials? You will be logged out.")) return;
+
+    const originalText = savePasswordBtn.innerText;
+    savePasswordBtn.innerText = "Updating...";
+    (savePasswordBtn as HTMLButtonElement).disabled = true;
+
+    try {
+      const res = await fetch(`${API_BASE}/admin/account`, {
+        method: "PUT",
+        headers: getHeaders(),
+        body: JSON.stringify({
+          current_password: currentPass,
+          new_username: newUser,
+          new_password: newPass,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (json.status === "success") {
+        showToast("Credentials updated! Logging out...", "success");
+        setTimeout(() => {
+          localStorage.removeItem("admin_token");
+          window.location.href = "/admin/login";
+        }, 1500);
+      } else {
+        showToast(json.message || "Failed to update", "error");
+        savePasswordBtn.innerText = originalText;
+        (savePasswordBtn as HTMLButtonElement).disabled = false;
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Network error", "error");
+      savePasswordBtn.innerText = originalText;
+      (savePasswordBtn as HTMLButtonElement).disabled = false;
+    }
+  });
+
   // --- Logs Logic ---
   async function fetchLogs() {
     const container = document.getElementById("logs-container");
