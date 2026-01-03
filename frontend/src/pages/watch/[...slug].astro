@@ -178,9 +178,9 @@ const isMovie = id.startsWith("movie:");
 >
   const API_URL = "/api";
 
-  // ========== GUEST EPISODE LIMIT LOGIC ==========
-  const EPISODE_LIMIT = 5; // Free episodes for guests
-  const WARNING_THRESHOLD = 4; // Show warning starting at episode 4
+  // ========== GUEST EPISODE LIMIT LOGIC (STRATEGY A: Episode Number-Based) ==========
+  const EPISODE_LIMIT = 5; // Episodes 1-5 are always free
+  const WARNING_THRESHOLD = 4; // Show warning at episodes 4-5
 
   function checkGuestEpisodeLimit() {
     const userToken = localStorage.getItem("user_token");
@@ -190,34 +190,12 @@ const isMovie = id.startsWith("movie:");
       return { allowed: true, showWarning: false };
     }
 
-    // Get guest watch data
-    let watchCount = parseInt(localStorage.getItem("guest_watch_count") || "0");
-    let watchedEpisodes = JSON.parse(
-      localStorage.getItem("guest_watch_episodes") || "[]"
-    );
-
-    // Create unique episode ID (use CURRENT_EP fallback)
-    const episodeId = `${dramaId}:${CURRENT_EP}`;
-
-    // Only increment if not watched before
-    if (!watchedEpisodes.includes(episodeId)) {
-      watchedEpisodes.push(episodeId);
-      watchCount++;
-
-      // Save updated data
-      localStorage.setItem("guest_watch_count", watchCount.toString());
-      localStorage.setItem(
-        "guest_watch_episodes",
-        JSON.stringify(watchedEpisodes)
-      );
-    }
-
-    // Determine if episode is allowed
-    const allowed = watchCount <= EPISODE_LIMIT;
+    // STRATEGY A: Check episode number directly (no localStorage tracking needed)
+    const allowed = currentEp <= EPISODE_LIMIT;
     const showWarning =
-      watchCount >= WARNING_THRESHOLD && watchCount <= EPISODE_LIMIT;
+      currentEp >= WARNING_THRESHOLD && currentEp <= EPISODE_LIMIT;
 
-    return { allowed, showWarning, watchCount };
+    return { allowed, showWarning };
   }
 
   function showLoginWall(reason = "episode_limit") {
@@ -253,18 +231,15 @@ const isMovie = id.startsWith("movie:");
     }
   }
 
-  // Listen for login success to reset counter
+  // Listen for login success to reload page
   window.addEventListener("user-logged-in", () => {
-    localStorage.removeItem("guest_watch_count");
-    localStorage.removeItem("guest_watch_episodes");
-
     // Reload page to allow playback
     setTimeout(() => location.reload(), 500);
   });
 
   // ========== EXECUTE ON PAGE LOAD ==========
   document.addEventListener("DOMContentLoaded", () => {
-    const { allowed, showWarning, watchCount } = checkGuestEpisodeLimit();
+    const { allowed, showWarning } = checkGuestEpisodeLimit();
 
     if (!allowed) {
       // Block episode 6+
