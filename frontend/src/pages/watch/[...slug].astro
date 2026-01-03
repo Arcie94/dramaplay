@@ -169,6 +169,18 @@ const isMovie = id.startsWith("movie:");
   </div>
 </div>
 
+<!-- TEMPORARY DEBUG BANNER (Remove after testing) -->
+<div
+  id="debug-guest-limit"
+  class="fixed top-4 right-4 z-50 bg-yellow-500 text-black px-4 py-3 rounded-lg shadow-lg font-mono text-xs max-w-sm"
+>
+  <p class="font-bold mb-1">🐛 DEBUG INFO:</p>
+  <p id="debug-watch-count">Watch Count: ...</p>
+  <p id="debug-logged-in">Logged In: ...</p>
+  <p id="debug-episode">Current Episode: ...</p>
+  <p id="debug-should-block">Should Block: ...</p>
+</div>
+
 <script define:vars={{ drama: detailJson, currentEp: idx, dramaId: id }}>
   const API_URL = "/api";
 
@@ -266,6 +278,22 @@ const isMovie = id.startsWith("movie:");
   // ========== EXECUTE ON PAGE LOAD ==========
   document.addEventListener("DOMContentLoaded", () => {
     const { allowed, showWarning, watchCount } = checkGuestEpisodeLimit();
+
+    // ========== UPDATE DEBUG BANNER ==========
+    const debugBanner = document.getElementById("debug-guest-limit");
+    if (debugBanner) {
+      const userToken = localStorage.getItem("user_token");
+      const isLoggedIn = localStorage.getItem("isLoggedIn");
+
+      document.getElementById("debug-watch-count").textContent =
+        `Watch Count: ${watchCount || 0}`;
+      document.getElementById("debug-logged-in").textContent =
+        `Logged In: ${userToken ? "YES (token)" : isLoggedIn ? "YES (flag)" : "NO"}`;
+      document.getElementById("debug-episode").textContent =
+        `Current Episode: ${currentEp}`;
+      document.getElementById("debug-should-block").textContent =
+        `Should Block: ${!allowed ? "YES ❌" : "NO ✅"}`;
+    }
 
     if (!allowed) {
       // Block episode 6+
