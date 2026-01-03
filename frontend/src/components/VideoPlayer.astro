@@ -1571,7 +1571,13 @@ const {
     }
 
     async function loadEpisode(targetUrl: string) {
-      console.log("SPA Navigating to:", targetUrl);
+      console.log("Navigating to:", targetUrl);
+
+      // FORCE FULL PAGE RELOAD to ensure guest episode limit check runs
+      // SPA navigation bypasses DOMContentLoaded event which is required for tracking
+      window.location.href = targetUrl;
+
+      /* OLD SPA CODE (Disabled for guest limit tracking):
       const data = parseWatchUrl(targetUrl);
       if (!data) {
         // Fallback for non-standard URLs
@@ -1698,6 +1704,7 @@ const {
         // Fallback: Hard Navigate
         window.location.href = targetUrl;
       }
+      */
     }
 
     // Attach SPA Listener to Next/Prev
