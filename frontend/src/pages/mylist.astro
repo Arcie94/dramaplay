@@ -1,10 +1,13 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import BottomNav from "../components/BottomNav.astro";
+import LoginLock from "../components/LoginLock.astro";
 ---
 
 <Layout title="DramaPlay - My List">
   <main class="pb-20 min-h-screen bg-black">
+    <!-- Global Login Gate for Popup -->
+    <LoginLock />
     <!-- Header -->
     <header
       class="sticky top-0 z-30 flex items-center justify-between bg-zinc-950/80 px-4 py-3 backdrop-blur-md border-b border-white/5"
