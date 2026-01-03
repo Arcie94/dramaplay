@@ -19,7 +19,8 @@ class IdlixScraper:
         self.ajax_url = f"{self.base_url}/wp-admin/admin-ajax.php"
         self.keys = [
             "459283", "idlix", "id123", "root", "dooplay", 
-            "tv12.idlixku.com", "https://tv12.idlixku.com/", "Dooplay", "admin"
+            "tv12.idlixku.com", "https://tv12.idlixku.com/", "Dooplay", "admin",
+            "superadmin", "user", "982734", "dummy"
         ]
         self.update_dynamic_keys()
 
@@ -28,12 +29,12 @@ class IdlixScraper:
         try:
             response = self.scraper.get(self.base_url, timeout=10)
             if response.status_code == 200:
-                # Try multiple patterns for nonce
+                # Try multiple patterns for nonce (Single/Double quotes)
                 patterns = [
-                    r'"nonce":"(\w+)"',
-                    r'dt_nonce\s*=\s*"(\w+)"',
-                    r'name="nonce"\s+value="(\w+)"',
-                    r'id="result_nonce"\s+value="(\w+)"'
+                    r'["\']nonce["\']\s*:\s*["\'](\w+)["\']',
+                    r'dt_nonce\s*=\s*["\'](\w+)["\']',
+                    r'name=["\']nonce["\']\s+value=["\'](\w+)["\']',
+                    r'id=["\']result_nonce["\']\s+value=["\'](\w+)["\']'
                 ]
                 
                 found = False
