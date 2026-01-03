@@ -16,6 +16,12 @@ const idx = idxStr ? parseInt(idxStr) : 1;
 
 if (!id) return Astro.redirect("/404");
 
+// SERVER-SIDE DEBUG: Log parsed values
+console.log(`[WATCH PAGE SERVER] Slug: ${slug}`);
+console.log(`[WATCH PAGE SERVER] Parsed ID: ${id}`);
+console.log(`[WATCH PAGE SERVER] Parsed idx: ${idx}`);
+console.log(`[WATCH PAGE SERVER] idxStr: ${idxStr}`);
+
 // Fetch Stream Data
 const API_URL = process.env.INTERNAL_API_URL || "https://dramaplay.online/api";
 const currentIndex = idx - 1; // 0-based for API
@@ -181,8 +187,27 @@ const isMovie = id.startsWith("movie:");
   <p id="debug-should-block">Should Block: ...</p>
 </div>
 
-<script define:vars={{ drama: detailJson, currentEp: idx, dramaId: id }}>
+<script
+  define:vars={{
+    drama: detailJson,
+    currentEp: idx,
+    dramaId: id,
+    slugRaw: slug,
+  }}
+>
   const API_URL = "/api";
+
+  // CLIENT-SIDE DEBUG: Log received variables
+  console.log("[CLIENT] Received currentEp:", currentEp);
+  console.log("[CLIENT] Received dramaId:", dramaId);
+  console.log(
+    "[CLIENT] Received slugRaw:",
+    typeof slugRaw !== "undefined" ? slugRaw : "UNDEFINED"
+  );
+
+  // Fallback if currentEp is undefined or invalid
+  const CURRENT_EP = currentEp || 1;
+  console.log("[CLIENT] Using CURRENT_EP:", CURRENT_EP);
 
   // ========== GUEST EPISODE LIMIT LOGIC ==========
   const EPISODE_LIMIT = 5; // Free episodes for guests
@@ -202,8 +227,8 @@ const isMovie = id.startsWith("movie:");
       localStorage.getItem("guest_watch_episodes") || "[]"
     );
 
-    // Create unique episode ID
-    const episodeId = `${dramaId}:${currentEp}`;
+    // Create unique episode ID (use CURRENT_EP fallback)
+    const episodeId = `${dramaId}:${CURRENT_EP}`;
 
     // Only increment if not watched before
     if (!watchedEpisodes.includes(episodeId)) {
@@ -290,7 +315,7 @@ const isMovie = id.startsWith("movie:");
       document.getElementById("debug-logged-in").textContent =
         `Logged In: ${userToken ? "YES (token)" : isLoggedIn ? "YES (flag)" : "NO"}`;
       document.getElementById("debug-episode").textContent =
-        `Current Episode: ${currentEp}`;
+        `Current Episode: ${CURRENT_EP} (raw: ${currentEp})`;
       document.getElementById("debug-should-block").textContent =
         `Should Block: ${!allowed ? "YES ❌" : "NO ✅"}`;
     }
