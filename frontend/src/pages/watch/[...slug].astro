@@ -134,9 +134,162 @@ const isMovie = id.startsWith("movie:");
   </div>
 </Layout>
 
-<script define:vars={{ drama: detailJson }}>
+<!-- Warning Banner (Episode 4-5 for Guests) -->
+<div
+  id="episode-warning-banner"
+  class="hidden fixed top-20 left-0 right-0 z-40 bg-gradient-to-r from-red-600 to-pink-600 px-4 py-3 shadow-lg animate-in slide-in-from-top duration-300"
+>
+  <div class="max-w-4xl mx-auto flex items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="2"
+        stroke="currentColor"
+        class="w-6 h-6 text-white shrink-0"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+        ></path>
+      </svg>
+      <p class="text-white text-sm md:text-base font-medium">
+        🎬 <strong>Nikmati 1 episode lagi!</strong> Daftar gratis untuk lanjut nonton
+        tanpa batas.
+      </p>
+    </div>
+    <button
+      id="warning-signup-btn"
+      class="px-4 py-2 bg-white text-red-600 font-bold text-sm rounded-lg hover:bg-zinc-100 transition-colors whitespace-nowrap shrink-0"
+    >
+      Daftar Sekarang
+    </button>
+  </div>
+</div>
+
+<script define:vars={{ drama: detailJson, currentEp: idx, dramaId: id }}>
   const API_URL = "/api";
+
+  // ========== GUEST EPISODE LIMIT LOGIC ==========
+  const EPISODE_LIMIT = 5; // Free episodes for guests
+  const WARNING_THRESHOLD = 4; // Show warning starting at episode 4
+
+  function checkGuestEpisodeLimit() {
+    const userToken = localStorage.getItem("user_token");
+
+    // Logged-in users have unlimited access
+    if (userToken) {
+      return { allowed: true, showWarning: false };
+    }
+
+    // Get guest watch data
+    let watchCount = parseInt(localStorage.getItem("guest_watch_count") || "0");
+    let watchedEpisodes = JSON.parse(
+      localStorage.getItem("guest_watch_episodes") || "[]"
+    );
+
+    // Create unique episode ID
+    const episodeId = `${dramaId}:${currentEp}`;
+
+    // Only increment if not watched before
+    if (!watchedEpisodes.includes(episodeId)) {
+      watchedEpisodes.push(episodeId);
+      watchCount++;
+
+      // Save updated data
+      localStorage.setItem("guest_watch_count", watchCount.toString());
+      localStorage.setItem(
+        "guest_watch_episodes",
+        JSON.stringify(watchedEpisodes)
+      );
+
+      console.log(
+        `[Guest Limit] Episode tracked: ${episodeId} (Total: ${watchCount})`
+      );
+    }
+
+    // Determine if episode is allowed
+    const allowed = watchCount <= EPISODE_LIMIT;
+    const showWarning =
+      watchCount >= WARNING_THRESHOLD && watchCount <= EPISODE_LIMIT;
+
+    return { allowed, showWarning, watchCount };
+  }
+
+  function showLoginWall(reason = "episode_limit") {
+    const loginLock = document.querySelector('[data-component="login-lock"]');
+    if (loginLock) {
+      loginLock.classList.remove("hidden");
+
+      // Customize message for episode limit
+      const modalTitle = loginLock.querySelector("h2");
+      if (modalTitle && reason === "episode_limit") {
+        modalTitle.textContent = "Daftar untuk Lanjut Nonton";
+      }
+
+      // Block video playback
+      const video = document.querySelector("video");
+      if (video) {
+        video.pause();
+        video.src = ""; // Clear source
+      }
+
+      console.log("[Guest Limit] Login wall activated:", reason);
+    }
+  }
+
+  function showWarningBanner() {
+    const banner = document.getElementById("episode-warning-banner");
+    if (banner) {
+      banner.classList.remove("hidden");
+
+      // Auto-hide after 10 seconds
+      setTimeout(() => {
+        banner.classList.add("opacity-0");
+        setTimeout(() => banner.classList.add("hidden"), 300);
+      }, 10000);
+    }
+  }
+
+  // Listen for login success to reset counter
+  window.addEventListener("user-logged-in", () => {
+    localStorage.removeItem("guest_watch_count");
+    localStorage.removeItem("guest_watch_episodes");
+    console.log("[Guest Limit] Counter reset after login");
+
+    // Reload page to allow playback
+    setTimeout(() => location.reload(), 500);
+  });
+
+  // ========== EXECUTE ON PAGE LOAD ==========
   document.addEventListener("DOMContentLoaded", () => {
+    const { allowed, showWarning, watchCount } = checkGuestEpisodeLimit();
+
+    if (!allowed) {
+      // Block episode 6+
+      console.log(
+        `[Guest Limit] BLOCKED: ${watchCount} episodes watched (Limit: ${EPISODE_LIMIT})`
+      );
+      showLoginWall("episode_limit");
+    } else if (showWarning) {
+      // Show warning at episode 4-5
+      console.log(
+        `[Guest Limit] WARNING shown (${watchCount}/${EPISODE_LIMIT} watched)`
+      );
+      showWarningBanner();
+    }
+
+    // Warning banner signup button
+    const signupBtn = document.getElementById("warning-signup-btn");
+    if (signupBtn) {
+      signupBtn.addEventListener("click", () => {
+        showLoginWall("warning_banner_click");
+      });
+    }
+
+    // ========== EXISTING TOAST LOGIC ==========
     const toast = document.getElementById("toast");
 
     function showToast(msg) {

@@ -4,6 +4,7 @@
 
 <div
   id="login-overlay"
+  data-component="login-lock"
   class="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-4 animate-in fade-in duration-500"
 >
   <!-- Login Container -->
@@ -519,11 +520,16 @@
     localStorage.setItem("isLoggedIn", "true");
     if (user) {
       localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("user_token", token || ""); // For guest limit check
     }
     if (token) {
       localStorage.setItem("token", token);
     }
+
+    // Dispatch BOTH events for compatibility
     window.dispatchEvent(new Event("login-success"));
+    window.dispatchEvent(new Event("user-logged-in")); // For guest limit reset
+
     const errorMsg = document.getElementById("error-message");
     if (errorMsg) errorMsg.classList.add("hidden"); // Clear errors
 
