@@ -4,11 +4,15 @@ FROM golang:1.24-alpine AS builder
 WORKDIR /app
 
 # Install build dependencies
-RUN apk add --no-cache gcc musl-dev
+RUN apk add --no-cache gcc musl-dev python3 py3-pip python3-dev libffi-dev
 
 # Copy Go mod files
 COPY go.mod go.sum ./
 RUN go mod download
+
+# Copy Python requirements
+COPY python/requirements.txt ./python/requirements.txt
+RUN pip3 install -r ./python/requirements.txt --break-system-packages
 
 # Copy source code
 COPY . .
