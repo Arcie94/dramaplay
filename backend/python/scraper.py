@@ -19,8 +19,7 @@ class IdlixScraper:
         self.ajax_url = f"{self.base_url}/wp-admin/admin-ajax.php"
         self.keys = [
             "459283", "idlix", "id123", "root", "dooplay", 
-            "tv12.idlixku.com", "https://tv12.idlixku.com/", "Dooplay", "admin",
-            "superadmin", "user", "982734", "dummy"
+            "tv12.idlixku.com", "https://tv12.idlixku.com/", "Dooplay", "admin"
         ]
         self.update_dynamic_keys()
 
@@ -29,27 +28,13 @@ class IdlixScraper:
         try:
             response = self.scraper.get(self.base_url, timeout=10)
             if response.status_code == 200:
-                # Try multiple patterns for nonce (Single/Double quotes)
-                patterns = [
-                    r'["\']nonce["\']\s*:\s*["\'](\w+)["\']',
-                    r'dt_nonce\s*=\s*["\'](\w+)["\']',
-                    r'name=["\']nonce["\']\s+value=["\'](\w+)["\']',
-                    r'id=["\']result_nonce["\']\s+value=["\'](\w+)["\']'
-                ]
-                
-                found = False
-                for pattern in patterns:
-                    match = re.search(pattern, response.text)
-                    if match:
-                        nonce = match.group(1)
-                        log(f"Found nonce with pattern '{pattern}': {nonce}")
-                        if nonce not in self.keys:
-                            self.keys.insert(0, nonce)
-                        found = True
-                
-                if not found:
-                    log("No nonce found in homepage.")
-                    
+                # Reference Repo Regex: r'"nonce":"(\w+)"'
+                match = re.search(r'"nonce":"(\w+)"', response.text)
+                if match:
+                    nonce = match.group(1)
+                    log(f"Found nonce: {nonce}")
+                    if nonce not in self.keys:
+                        self.keys.insert(0, nonce)
         except Exception as e:
             log(f"Failed to update keys: {e}")
 
@@ -81,7 +66,6 @@ class IdlixScraper:
         try:
             res = self.scraper.get(url, timeout=15)
             if res.status_code != 200:
-                log(f"Error status: {res.status_code}")
                 return []
             
             soup = BeautifulSoup(res.text, 'html.parser')
@@ -166,23 +150,17 @@ class IdlixScraper:
             nume = option.get('data-nume')
             vtype = option.get('data-type')
             
-            # 2. Hit Ajax
+            # 2. Hit Ajax (Reference Repo Logic: No Headers, just Data)
             data = {'action': 'doo_player_ajax', 'post': post_id, 'nume': nume, 'type': vtype}
             log(f"Posting to Ajax: {data}")
             
-            headers = {
-                'Referer': url,
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-            
-            res_ajax = self.scraper.post(self.ajax_url, data=data, headers=headers, timeout=10)
+            res_ajax = self.scraper.post(self.ajax_url, data=data, timeout=10)
             txt = res_ajax.text
             final_url = ""
 
-            # 3. Decrypt/Parse
+            # 3. Decrypt/Parse (Reference Repo Logic)
             if '"ct":' in txt:
-                # Encrypted
+                log("Encrypted response detected.")
                 decrypted_txt = None
                 for key in self.keys:
                     dec = self.decrypt(txt, key)
@@ -195,7 +173,7 @@ class IdlixScraper:
                     txt = decrypted_txt
                 else:
                     log("Failed to decrypt content with any key.")
-                    return None # Return None if decryption fails
+                    return None
             
             # Extract URL from JSON or HTML
             if txt.startswith('{'):
