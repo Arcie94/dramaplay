@@ -662,6 +662,9 @@ try {
       } else if (drama.bookId && drama.bookId.startsWith("netshort:")) {
         providerColor = "bg-blue-600";
         providerLabel = "NETSHORT";
+      } else if (drama.bookId && drama.bookId.startsWith("dramabox:")) {
+        providerColor = "bg-red-600";
+        providerLabel = "DRAMABOX";
       }
 
       return `
@@ -704,6 +707,9 @@ try {
       } else if (item.bookId && item.bookId.startsWith("netshort:")) {
         providerColor = "bg-blue-600";
         providerLabel = "NETSHORT";
+      } else if (item.bookId && item.bookId.startsWith("dramabox:")) {
+        providerColor = "bg-red-600";
+        providerLabel = "DRAMABOX";
       }
 
       return `
