@@ -92,6 +92,8 @@ const currentEpNumber = idx;
 const nextUrl = `/watch/${id}/${currentEpNumber + 1}`;
 const prevUrl =
   currentEpNumber > 1 ? `/watch/${id}/${currentEpNumber - 1}` : undefined;
+
+const isMovie = id.startsWith("movie:");
 ---
 
 <Layout title={`Watch ${dramaTitle}`}>
@@ -104,6 +106,8 @@ const prevUrl =
     id={id}
     dramaTitle={dramaTitle}
     totalEpisodes={detailJson.total_episode}
+    isHorizontal={isMovie}
+    isIframe={isMovie}
   />
 
   <LoginLock />
