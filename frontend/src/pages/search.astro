@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import DramaCard from "../components/DramaCard.astro";
 import BottomNav from "../components/BottomNav.astro";
+import LoginLock from "../components/LoginLock.astro";
 
 const q = Astro.url.searchParams.get("q") || "";
 const page = parseInt(Astro.url.searchParams.get("page") || "1");
@@ -32,6 +33,7 @@ try {
     const json = await res.json();
     dramas = json.data || [];
     total = json.total || 0;
+    title = `Browse Library`;
   }
 } catch (e) {
   console.error("Error fetching data:", e);
@@ -49,6 +51,8 @@ const paginationLink = (p: number) => {
 
 <Layout title={title}>
   <main class="pb-20 min-h-screen bg-zinc-950">
+    <!-- Global Login Gate (Client-side check) -->
+    <LoginLock />
     <!-- Header -->
     <header
       class="sticky top-0 z-30 flex items-center gap-3 bg-zinc-950/90 px-4 py-3 backdrop-blur-md border-b border-white/5"
@@ -145,3 +149,21 @@ const paginationLink = (p: number) => {
   <!-- Bottom Nav -->
   <BottomNav />
 </Layout>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const loginBtn = document.getElementById("login-nav-btn");
+    if (loginBtn) {
+      loginBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        if ((window as any).showLoginPopup) {
+          (window as any).showLoginPopup();
+        } else {
+          // Fallback
+          const overlay = document.getElementById("login-overlay");
+          if (overlay) overlay.style.display = "flex";
+        }
+      });
+    }
+  });
+</script>
