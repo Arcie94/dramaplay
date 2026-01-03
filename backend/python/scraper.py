@@ -28,12 +28,27 @@ class IdlixScraper:
         try:
             response = self.scraper.get(self.base_url, timeout=10)
             if response.status_code == 200:
-                match = re.search(r'"nonce":"(\w+)"', response.text)
-                if match:
-                    nonce = match.group(1)
-                    log(f"Found nonce: {nonce}")
-                    if nonce not in self.keys:
-                        self.keys.insert(0, nonce)
+                # Try multiple patterns for nonce
+                patterns = [
+                    r'"nonce":"(\w+)"',
+                    r'dt_nonce\s*=\s*"(\w+)"',
+                    r'name="nonce"\s+value="(\w+)"',
+                    r'id="result_nonce"\s+value="(\w+)"'
+                ]
+                
+                found = False
+                for pattern in patterns:
+                    match = re.search(pattern, response.text)
+                    if match:
+                        nonce = match.group(1)
+                        log(f"Found nonce with pattern '{pattern}': {nonce}")
+                        if nonce not in self.keys:
+                            self.keys.insert(0, nonce)
+                        found = True
+                
+                if not found:
+                    log("No nonce found in homepage.")
+                    
         except Exception as e:
             log(f"Failed to update keys: {e}")
 
@@ -161,11 +176,19 @@ class IdlixScraper:
             # 3. Decrypt/Parse
             if '"ct":' in txt:
                 # Encrypted
+                decrypted_txt = None
                 for key in self.keys:
                     dec = self.decrypt(txt, key)
                     if dec:
-                        txt = dec.replace('\\"', '"').strip('"')
+                        decrypted_txt = dec.replace('\\"', '"').strip('"')
+                        log(f"Decrypted successfully with key: {key}")
                         break
+                
+                if decrypted_txt:
+                    txt = decrypted_txt
+                else:
+                    log("Failed to decrypt content with any key.")
+                    return None # Return None if decryption fails
             
             # Extract URL from JSON or HTML
             if txt.startswith('{'):
@@ -181,6 +204,11 @@ class IdlixScraper:
                 if iframe: final_url = iframe.get('src')
 
             if not final_url: final_url = txt # Fallback
+
+            # Final sanity check: if it still looks like encrypted json, fail
+            if '{"ct":' in final_url:
+                log("Final URL still looks encrypted. Failing.")
+                return None
 
             return {
                 "id": f"movie:{id_raw}",
