@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import DramaCard from "../components/DramaCard.astro";
+import BottomNav from "../components/BottomNav.astro";
 
 const q = Astro.url.searchParams.get("q") || "";
 const page = parseInt(Astro.url.searchParams.get("page") || "1");
@@ -139,69 +140,8 @@ const paginationLink = (p: number) => {
         )
       }
     </section>
-
-    <!-- Pagination (Only for Browse mode) -->
-    <!-- Pagination (Only for Browse mode) -->
-    {
-      !q && dramas.length > 0 && (
-        <div class="flex justify-center items-center gap-6 py-12">
-          {page > 1 && (
-            <a
-              href={paginationLink(page - 1)}
-              class="flex items-center gap-2 px-6 py-3 bg-zinc-900 border border-white/10 rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all hover:scale-105 active:scale-95"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="2"
-                stroke="currentColor"
-                class="w-5 h-5"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M15.75 19.5L8.25 12l7.5-7.5"
-                />
-              </svg>
-              Previous
-            </a>
-          )}
-
-          <div class="flex flex-col items-center">
-            <span class="text-zinc-500 text-xs font-medium uppercase tracking-wider">
-              Current Page
-            </span>
-            <span class="text-white text-xl font-bold">{page}</span>
-          </div>
-
-          {/* Heuristic: If we have at least 1 item, we assume there might be a next page. 
-              Since backend doesn't return total, this is the best we can do. 
-              User will hit "No dramas found" if they go too far, which is acceptable. */}
-          {dramas.length > 0 && (
-            <a
-              href={paginationLink(page + 1)}
-              class="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-full font-bold shadow-lg shadow-red-900/30 hover:bg-red-700 hover:scale-105 active:scale-95 transition-all"
-            >
-              Next
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="2"
-                stroke="currentColor"
-                class="w-5 h-5"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M8.25 4.5l7.5 7.5-7.5 7.5"
-                />
-              </svg>
-            </a>
-          )}
-        </div>
-      )
-    }
   </main>
+
+  <!-- Bottom Nav -->
+  <BottomNav />
 </Layout>
