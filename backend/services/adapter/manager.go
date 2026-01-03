@@ -26,14 +26,16 @@ func NewManager() *Manager {
 	db := NewDramaboxProvider()
 	ml := NewMeloloProvider()
 	ns := NewNetshortProvider()
+	mv := NewMovieProvider() // New
 
 	return &Manager{
 		providers: map[string]Provider{
 			db.GetID(): db,
 			ml.GetID(): ml,
 			ns.GetID(): ns,
+			mv.GetID(): mv, // New
 		},
-		providerList: []Provider{db, ml, ns},
+		providerList: []Provider{db, ml, ns, mv},
 		cache:        cache.New(30*time.Minute, 60*time.Minute),
 	}
 }
@@ -207,6 +209,31 @@ func (m *Manager) GetLatest(page int) ([]models.Drama, error) {
 	}
 
 	return merged, nil
+}
+
+func (m *Manager) GetLatestFromProvider(providerID string, page int) ([]models.Drama, error) {
+	// Check Cache
+	cacheKey := fmt.Sprintf("latest:%s:%d", providerID, page)
+	if x, found := m.cache.Get(cacheKey); found {
+		return x.([]models.Drama), nil
+	}
+
+	p, ok := m.providers[providerID]
+	if !ok {
+		return nil, fmt.Errorf("provider not found: %s", providerID)
+	}
+
+	res, err := p.GetLatest(page)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set Cache (15 mins)
+	if len(res) > 0 {
+		m.cache.Set(cacheKey, res, 15*time.Minute)
+	}
+
+	return res, nil
 }
 
 func (m *Manager) GetDetail(fullID string) (*models.Drama, []models.Episode, error) {

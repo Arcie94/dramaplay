@@ -43,7 +43,16 @@ func GetLatest(c *fiber.Ctx) error {
 		page = 1
 	}
 
-	dramas, err := AdapterManager.GetLatest(page)
+	provider := c.Query("provider")
+	var dramas []models.Drama
+	var err error
+
+	if provider != "" {
+		dramas, err = AdapterManager.GetLatestFromProvider(provider, page)
+	} else {
+		dramas, err = AdapterManager.GetLatest(page)
+	}
+
 	if err != nil {
 		return c.Status(502).JSON(fiber.Map{"error": "Failed to fetch latest"})
 	}
