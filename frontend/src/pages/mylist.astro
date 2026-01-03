@@ -6,8 +6,9 @@ import LoginLock from "../components/LoginLock.astro";
 
 <Layout title="DramaPlay - My List">
   <main class="pb-20 min-h-screen bg-black">
-    <!-- Global Login Gate for Popup -->
+    <!-- Global Login Gate (Client-side check) -->
     <LoginLock />
+
     <!-- Header -->
     <header
       class="sticky top-0 z-30 flex items-center justify-between bg-zinc-950/80 px-4 py-3 backdrop-blur-md border-b border-white/5"
@@ -214,6 +215,22 @@ import LoginLock from "../components/LoginLock.astro";
     };
 
     checkAndLoad();
+
+    // Login Button Logic (for guest mode)
+    const loginBtn = document.getElementById("login-nav-btn");
+    if (loginBtn) {
+      loginBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        // Check if showLoginPopup is attached to window (from LoginLock)
+        if ((window as any).showLoginPopup) {
+          (window as any).showLoginPopup();
+        } else {
+          // Fallback if needed
+          const overlay = document.getElementById("login-overlay");
+          if (overlay) overlay.style.display = "flex";
+        }
+      });
+    }
   });
 </script>
 
