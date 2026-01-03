@@ -183,10 +183,12 @@ const isMovie = id.startsWith("movie:");
   const WARNING_THRESHOLD = 4; // Show warning at episodes 4-5
 
   function checkGuestEpisodeLimit() {
-    const userToken = localStorage.getItem("user_token");
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    const userToken =
+      localStorage.getItem("user_token") || localStorage.getItem("token");
 
     // Logged-in users have unlimited access
-    if (userToken) {
+    if (isLoggedIn && userToken) {
       return { allowed: true, showWarning: false };
     }
 
