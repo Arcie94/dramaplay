@@ -28,8 +28,20 @@ FROM alpine:latest
 
 WORKDIR /app
 
-# Install runtime dependencies (e.g. for sqlite cgo if needed, though alpine usually has musl)
-# But standard binary might need libc compatibility or we use CGO_ENABLED=1 above with musl-dev.
+# Install runtime dependencies
+# We need python3 and pip. We also need build deps for pycryptodome, then remove them.
+RUN apk add --no-cache python3 py3-pip \
+    && apk add --no-cache --virtual .build-deps gcc musl-dev python3-dev libffi-dev \
+    && mkdir -p /app/python
+
+# Copy python script and requirements
+COPY --from=builder /app/python /app/python
+
+# Install python requirements in runtime
+RUN pip3 install -r /app/python/requirements.txt --break-system-packages \
+    && apk del .build-deps
+
+# Install other runtime deps
 RUN apk add --no-cache ca-certificates tzdata
 
 # Create directories for data and uploads
