@@ -158,6 +158,12 @@ func (p *MovieProvider) Search(query string) ([]models.Drama, error) {
 
 func (p *MovieProvider) GetLatest(page int) ([]models.Drama, error) {
 	// Same as Trending but with page
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in MovieProvider.GetLatest:", r)
+		}
+	}()
+
 	targetURL := p.baseURL
 	if page > 1 {
 		targetURL = fmt.Sprintf("%s/page/%d/", p.baseURL, page)
