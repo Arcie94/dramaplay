@@ -170,7 +170,13 @@ class IdlixScraper:
             data = {'action': 'doo_player_ajax', 'post': post_id, 'nume': nume, 'type': vtype}
             log(f"Posting to Ajax: {data}")
             
-            res_ajax = self.scraper.post(self.ajax_url, data=data, timeout=10)
+            headers = {
+                'Referer': url,
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+            
+            res_ajax = self.scraper.post(self.ajax_url, data=data, headers=headers, timeout=10)
             txt = res_ajax.text
             final_url = ""
 
