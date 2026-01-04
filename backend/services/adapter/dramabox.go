@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -16,7 +15,7 @@ type DramaboxProvider struct {
 	client *http.Client
 }
 
-const DramaboxAPI = "https://dramabox-api-rho.vercel.app/api"
+const DramaboxAPI = "https://api.sansekai.my.id/api/dramabox"
 
 func NewDramaboxProvider() *DramaboxProvider {
 	return &DramaboxProvider{
@@ -131,32 +130,152 @@ type dbBookCategory struct {
 	Tags         []string `json:"tags"`
 }
 
+type SansekaiDetailResponse struct {
+	Data struct {
+		Book struct {
+			BookID       string   `json:"bookId"`
+			BookName     string   `json:"bookName"`
+			Cover        string   `json:"cover"`
+			Introduction string   `json:"introduction"`
+			ChapterCount int      `json:"chapterCount"`
+			Tags         []string `json:"tags"`
+		} `json:"book"`
+		ChapterList []struct {
+			Index    int    `json:"index"`
+			Mp4      string `json:"mp4"`
+			M3u8Url  string `json:"m3u8Url"`
+			Duration int    `json:"duration"`
+		} `json:"chapterList"`
+	} `json:"data"`
+}
+
 // --- Implementation ---
 
 func (p *DramaboxProvider) GetTrending() ([]models.Drama, error) {
-	body, err := p.fetch(DramaboxAPI + "/home")
+	body, err := p.fetch(DramaboxAPI + "/vip")
 	if err != nil {
 		return nil, err
 	}
 
-	var raw dbResponse
-	if err := json.Unmarshal(body, &raw); err != nil {
+	// Sansekai API returns direct object with columnVoList array
+	var vipData struct {
+		ColumnVoList []struct {
+			BookList []struct {
+				BookID       string `json:"bookId"`
+				BookName     string `json:"bookName"`
+				CoverWap     string `json:"coverWap"`
+				Introduction string `json:"introduction"`
+				ChapterCount int    `json:"chapterCount"`
+				TagV3s       []struct {
+					TagName string `json:"tagName"`
+				} `json:"tagV3s"`
+			} `json:"bookList"`
+		} `json:"columnVoList"`
+	}
+
+	if err := json.Unmarshal(body, &vipData); err != nil {
 		return nil, err
 	}
 
-	var homeData dbHomeData
-	json.Unmarshal(raw.Data, &homeData)
+	var dramas []models.Drama
+	// Loop through all column sections and their books
+	for _, column := range vipData.ColumnVoList {
+		for _, b := range column.BookList {
+			var tags []string
+			for _, t := range b.TagV3s {
+				tags = append(tags, t.TagName)
+			}
+			dramas = append(dramas, models.Drama{
+				BookID:       "dramabox:" + b.BookID,
+				Judul:        b.BookName,
+				Cover:        b.CoverWap,
+				Deskripsi:    b.Introduction,
+				TotalEpisode: fmt.Sprintf("%d", b.ChapterCount),
+				Genre:        strings.Join(tags, ", "),
+			})
+		}
+	}
+	return dramas, nil
+}
+
+func (p *DramaboxProvider) Search(query string) ([]models.Drama, error) {
+	// Sansekai API doesn't have search endpoint yet
+	// Fallback: get from /foryou and filter client-side
+	body, err := p.fetch(DramaboxAPI + "/foryou")
+	if err != nil {
+		return nil, err
+	}
+
+	var books []struct {
+		BookID       string `json:"bookId"`
+		BookName     string `json:"bookName"`
+		CoverWap     string `json:"coverWap"`
+		Introduction string `json:"introduction"`
+		ChapterCount int    `json:"chapterCount"`
+		TagV3s       []struct {
+			TagName string `json:"tagName"`
+		} `json:"tagV3s"`
+	}
+
+	if err := json.Unmarshal(body, &books); err != nil {
+		return nil, err
+	}
+
+	// Filter by query (case insensitive)
+	query = strings.ToLower(query)
+	var dramas []models.Drama
+	for _, b := range books {
+		if strings.Contains(strings.ToLower(b.BookName), query) ||
+			strings.Contains(strings.ToLower(b.Introduction), query) {
+			var tags []string
+			for _, t := range b.TagV3s {
+				tags = append(tags, t.TagName)
+			}
+			dramas = append(dramas, models.Drama{
+				BookID:       "dramabox:" + b.BookID,
+				Judul:        b.BookName,
+				Cover:        b.CoverWap,
+				Deskripsi:    b.Introduction,
+				TotalEpisode: fmt.Sprintf("%d", b.ChapterCount),
+				Genre:        strings.Join(tags, ", "),
+			})
+		}
+	}
+	return dramas, nil
+}
+
+func (p *DramaboxProvider) GetLatest(page int) ([]models.Drama, error) {
+	// Sansekai API /foryou returns array directly, no pagination
+	body, err := p.fetch(DramaboxAPI + "/foryou")
+	if err != nil {
+		return nil, err
+	}
+
+	var books []struct {
+		BookID       string `json:"bookId"`
+		BookName     string `json:"bookName"`
+		CoverWap     string `json:"coverWap"`
+		Introduction string `json:"introduction"`
+		ChapterCount int    `json:"chapterCount"`
+		TagV3s       []struct {
+			TagName string `json:"tagName"`
+		} `json:"tagV3s"`
+	}
+
+	if err := json.Unmarshal(body, &books); err != nil {
+		return nil, err
+	}
 
 	var dramas []models.Drama
-	for _, b := range homeData.Book {
+	for _, b := range books {
 		var tags []string
-		for _, t := range b.Tags {
+		for _, t := range b.TagV3s {
 			tags = append(tags, t.TagName)
 		}
 		dramas = append(dramas, models.Drama{
-			BookID:       "dramabox:" + b.ID, // Prefixing ID
-			Judul:        b.Name,
-			Cover:        b.Cover,
+			BookID:       "dramabox:" + b.BookID,
+			Judul:        b.BookName,
+			Cover:        b.CoverWap,
 			Deskripsi:    b.Introduction,
 			TotalEpisode: fmt.Sprintf("%d", b.ChapterCount),
 			Genre:        strings.Join(tags, ", "),
@@ -165,87 +284,31 @@ func (p *DramaboxProvider) GetTrending() ([]models.Drama, error) {
 	return dramas, nil
 }
 
-func (p *DramaboxProvider) Search(query string) ([]models.Drama, error) {
-	url := fmt.Sprintf("%s/search?keyword=%s", DramaboxAPI, url.QueryEscape(query))
-	body, err := p.fetch(url)
-	if err != nil {
-		return nil, err
-	}
-
-	var raw dbResponse
-	json.Unmarshal(body, &raw)
-	var searchData dbSearchData
-	json.Unmarshal(raw.Data, &searchData)
-
-	var dramas []models.Drama
-	for _, b := range searchData.Book {
-		dramas = append(dramas, models.Drama{
-			BookID:    "dramabox:" + b.ID, // Prefixing ID
-			Judul:     b.Name,
-			Cover:     b.Cover,
-			Deskripsi: b.Introduction,
-			Genre:     strings.Join(b.Tags, ", "),
-		})
-	}
-	return dramas, nil
-}
-
-func (p *DramaboxProvider) GetLatest(page int) ([]models.Drama, error) {
-	// Category 0 is "All" / Latest
-	url := fmt.Sprintf("%s/category/0?page=%d", DramaboxAPI, page)
-	body, err := p.fetch(url)
-	if err != nil {
-		return nil, err
-	}
-
-	var raw ExtCategoryResponse
-	if err := json.Unmarshal(body, &raw); err != nil {
-		return nil, err
-	}
-
-	var dramas []models.Drama
-	for _, b := range raw.Data.BookList {
-		dramas = append(dramas, models.Drama{
-			BookID:       "dramabox:" + b.BookID,
-			Judul:        b.BookName,
-			Cover:        b.Cover,
-			Deskripsi:    b.Introduction,
-			TotalEpisode: fmt.Sprintf("%d", b.ChapterCount),
-			Genre:        strings.Join(b.Tags, ", "),
-		})
-	}
-	return dramas, nil
-}
-
 func (p *DramaboxProvider) GetDetail(id string) (*models.Drama, []models.Episode, error) {
-	// ID passed here is already stripped of prefix by Manager
-	url := fmt.Sprintf("%s/detail/%s/v2", DramaboxAPI, id)
+	url := fmt.Sprintf("%s/detail?bookId=%s", DramaboxAPI, id)
 	body, err := p.fetch(url)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	var raw dbResponse
+	var raw SansekaiDetailResponse
 	if err := json.Unmarshal(body, &raw); err != nil {
-		return nil, nil, err
-	}
-	var detailData dbDetailData
-	if err := json.Unmarshal(raw.Data, &detailData); err != nil {
 		return nil, nil, err
 	}
 
 	drama := models.Drama{
-		BookID:       "dramabox:" + detailData.Drama.BookID,
-		Judul:        detailData.Drama.BookName,
-		Deskripsi:    detailData.Drama.Introduction,
-		Cover:        detailData.Drama.Cover,
-		TotalEpisode: fmt.Sprintf("%d", detailData.Drama.ChapterCount),
+		BookID:       "dramabox:" + raw.Data.Book.BookID,
+		Judul:        raw.Data.Book.BookName,
+		Deskripsi:    raw.Data.Book.Introduction,
+		Cover:        raw.Data.Book.Cover,
+		TotalEpisode: fmt.Sprintf("%d", raw.Data.Book.ChapterCount),
+		Genre:        strings.Join(raw.Data.Book.Tags, ", "),
 	}
 
 	var episodes []models.Episode
-	for _, ch := range detailData.Chapters {
+	for _, ch := range raw.Data.ChapterList {
 		episodes = append(episodes, models.Episode{
-			BookID:       "dramabox:" + detailData.Drama.BookID,
+			BookID:       "dramabox:" + raw.Data.Book.BookID,
 			EpisodeIndex: ch.Index,
 			EpisodeLabel: fmt.Sprintf("Episode %d", ch.Index+1),
 		})
@@ -255,29 +318,34 @@ func (p *DramaboxProvider) GetDetail(id string) (*models.Drama, []models.Episode
 }
 
 func (p *DramaboxProvider) GetStream(id, epIndex string) (*models.StreamData, error) {
-	idx, _ := strconv.Atoi(epIndex)
-	// Dramabox API expects 0-based index same as internal
-	url := fmt.Sprintf("%s/stream?bookId=%s&episode=%d", DramaboxAPI, id, idx)
+	// Use detail endpoint to get stream info (since it contains full chapter list with urls)
+	url := fmt.Sprintf("%s/detail?bookId=%s", DramaboxAPI, id)
 	body, err := p.fetch(url)
 	if err != nil {
 		return nil, err
 	}
 
-	var streamResp dbStreamResponse
-	if err := json.Unmarshal(body, &streamResp); err != nil {
+	var raw SansekaiDetailResponse
+	if err := json.Unmarshal(body, &raw); err != nil {
 		return nil, err
 	}
 
-	// Just return standard StreamData
-	return &models.StreamData{
-		BookID: "dramabox:" + id,
-		Chapter: models.ChapterData{
-			Index:    streamResp.Data.Chapter.Index,
-			Duration: streamResp.Data.Chapter.Duration,
-			Video: models.VideoData{
-				Mp4:  streamResp.Data.Chapter.Video.Mp4,
-				M3u8: streamResp.Data.Chapter.Video.M3u8,
-			},
-		},
-	}, nil
+	idx, _ := strconv.Atoi(epIndex)
+	for _, ch := range raw.Data.ChapterList {
+		if ch.Index == idx {
+			return &models.StreamData{
+				BookID: "dramabox:" + id,
+				Chapter: models.ChapterData{
+					Index:    ch.Index,
+					Duration: ch.Duration,
+					Video: models.VideoData{
+						Mp4:  ch.Mp4,
+						M3u8: ch.M3u8Url,
+					},
+				},
+			}, nil
+		}
+	}
+
+	return nil, fmt.Errorf("chapter index %d not found", idx)
 }
