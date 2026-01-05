@@ -42,8 +42,8 @@ func (p *DramaboxProvider) fetch(url string) ([]byte, error) {
 			return nil, err
 		}
 
-		// Spoof headers to look like a browser (Chrome Android)
-		req.Header.Set("User-Agent", "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36")
+		// Spoof headers to look like a browser
+		req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
 		req.Header.Set("Accept", "application/json, text/plain, */*")
 		req.Header.Set("Accept-Language", "en-US,en;q=0.9")
 		req.Header.Set("Referer", "https://dramabox.com/")
