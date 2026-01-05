@@ -9,14 +9,21 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
-type NetshortProvider struct{}
+type NetshortProvider struct {
+	client *http.Client
+}
 
 const NetshortAPI = "https://api.sansekai.my.id/api/netshort"
 
 func NewNetshortProvider() *NetshortProvider {
-	return &NetshortProvider{}
+	return &NetshortProvider{
+		client: &http.Client{
+			Timeout: 30 * time.Second,
+		},
+	}
 }
 
 func (p *NetshortProvider) GetID() string {
@@ -28,12 +35,50 @@ func (p *NetshortProvider) IsCompatibleID(id string) bool {
 }
 
 func (p *NetshortProvider) fetch(url string) ([]byte, error) {
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
+	// Retry logic (3 times) with Exponential Backoff
+	var lastErr error
+	for i := 0; i < 3; i++ {
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		// Spoof headers to look like a browser (Chrome Android)
+		req.Header.Set("User-Agent", "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36")
+		req.Header.Set("Accept", "application/json, text/plain, */*")
+		req.Header.Set("Accept-Language", "en-US,en;q=0.9")
+		req.Header.Set("Referer", "https://netshort.com/")
+
+		resp, err := p.client.Do(req)
+		if err != nil {
+			lastErr = err
+			time.Sleep(time.Duration(i+1) * 1 * time.Second)
+			continue
+		}
+
+		if resp.StatusCode != 200 {
+			resp.Body.Close()
+			lastErr = fmt.Errorf("status %d", resp.StatusCode)
+
+			// If Rate Limit (429), wait longer
+			if resp.StatusCode == 429 {
+				time.Sleep(time.Duration(i+1) * 2 * time.Second)
+			} else {
+				time.Sleep(time.Duration(i+1) * 500 * time.Millisecond)
+			}
+			continue
+		}
+
+		body, err := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			lastErr = err
+			continue
+		}
+
+		return body, nil
 	}
-	defer resp.Body.Close()
-	return io.ReadAll(resp.Body)
+	return nil, lastErr
 }
 
 // --- Netshort Models ---
