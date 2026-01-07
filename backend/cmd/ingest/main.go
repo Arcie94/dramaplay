@@ -1,88 +1,94 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
-	"log"
-	"net/http"
-	"time"
-
+	"dramabang/database"
 	"dramabang/models"
+	"dramabang/services/adapter"
+	"log"
+	"os"
 
-	"github.com/glebarez/sqlite"
-	"gorm.io/gorm"
+	"github.com/joho/godotenv"
 	"gorm.io/gorm/clause"
 )
 
-const (
-	ScraperURL = "http://localhost:3001/api/latest"
-	StartPage  = 51
-	EndPage    = 500 // Expanded to cover full library
-)
-
-type APIResponse struct {
-	Status string         `json:"status"`
-	Data   []models.Drama `json:"data"`
-}
-
 func main() {
-	// Connect to Database
-	dsn := "../../dramabang.db" // Relative path from cmd/ingest/
-	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
-	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
-	}
-	log.Println("Connected to Database")
-
-	// Ensure Migrations
-	db.AutoMigrate(&models.Drama{}, &models.Episode{})
-
-	client := &http.Client{
-		Timeout: 30 * time.Second,
+	// Load .env if exists
+	if err := godotenv.Load("../../.env"); err != nil {
+		log.Println("No .env file found, using environment variables")
 	}
 
-	for i := StartPage; i <= EndPage; i++ {
-		log.Printf("Fetching Page %d...", i)
-		url := fmt.Sprintf("%s?page=%d", ScraperURL, i)
+	// Connect to database
+	database.Connect()
+	log.Println("✅ Connected to database")
 
-		resp, err := client.Get(url)
+	// Ensure migrations
+	models.MigrateDramas(database.DB)
+	log.Println("✅ Database migrations complete")
+
+	// Initialize providers
+	providers := []adapter.Provider{
+		adapter.NewMeloloProvider(),
+		adapter.NewNetshortProvider(),
+		// Dramabox is skipped due to API issues
+	}
+
+	totalDramas := 0
+
+	for _, provider := range providers {
+		providerName := provider.GetID()
+		log.Printf("📥 Fetching from %s...", providerName)
+
+		// Get trending dramas
+		dramas, err := provider.GetTrending()
 		if err != nil {
-			log.Printf("Error fetching page %d: %v", i, err)
-			continue
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != 200 {
-			log.Printf("Status code %d for page %d", resp.StatusCode, i)
+			log.Printf("⚠️  Error fetching from %s: %v", providerName, err)
 			continue
 		}
 
-		body, _ := io.ReadAll(resp.Body)
-		var apiResp APIResponse
-		if err := json.Unmarshal(body, &apiResp); err != nil {
-			log.Printf("Error decoding JSON page %d: %v", i, err)
+		if len(dramas) == 0 {
+			log.Printf("⚠️  No dramas found from %s", providerName)
 			continue
 		}
 
-		if len(apiResp.Data) == 0 {
-			log.Println("No more data found. Stopping.")
-			break
+		log.Printf("📦 Received %d dramas from %s", len(dramas), providerName)
+
+		// Upsert dramas into database
+		for _, drama := range dramas {
+			if err := database.DB.Clauses(clause.OnConflict{
+				Columns:   []clause.Column{{Name: "book_id"}},
+				DoUpdates: clause.AssignmentColumns([]string{"judul", "cover", "deskripsi", "total_episode", "genre"}),
+			}).Create(&drama).Error; err != nil {
+				log.Printf("❌ Error saving drama %s: %v", drama.BookID, err)
+			}
 		}
 
-		// Batch Upsert
-		if err := db.Clauses(clause.OnConflict{
-			Columns:   []clause.Column{{Name: "book_id"}},
-			DoUpdates: clause.AssignmentColumns([]string{"judul", "cover", "total_episode"}),
-		}).Create(&apiResp.Data).Error; err != nil {
-			log.Printf("Error saving page %d: %v", i, err)
-		} else {
-			log.Printf("Successfully saved %d dramas from page %d", len(apiResp.Data), i)
-		}
+		log.Printf("✅ Saved %d dramas from %s", len(dramas), providerName)
+		totalDramas += len(dramas)
 
-		// Be polite to the scraper/server
-		time.Sleep(500 * time.Millisecond)
+		// Also fetch latest (with pagination) for more content
+		log.Printf("📥 Fetching latest from %s (page 1)...", providerName)
+		latestDramas, err := provider.GetLatest(1)
+		if err == nil && len(latestDramas) > 0 {
+			for _, drama := range latestDramas {
+				database.DB.Clauses(clause.OnConflict{
+					Columns:   []clause.Column{{Name: "book_id"}},
+					DoUpdates: clause.AssignmentColumns([]string{"judul", "cover", "deskripsi", "total_episode", "genre"}),
+				}).Create(&drama)
+			}
+			log.Printf("✅ Saved %d latest dramas from %s", len(latestDramas), providerName)
+			totalDramas += len(latestDramas)
+		}
 	}
 
-	log.Println("Ingestion Complete!")
+	log.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+	if totalDramas > 0 {
+		log.Printf("🎉 Ingestion completed successfully!")
+		log.Printf("📊 Total dramas inserted/updated: %d", totalDramas)
+		log.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+		os.Exit(0)
+	} else {
+		log.Println("⚠️  No dramas were ingested. Check provider APIs.")
+		log.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+		os.Exit(1)
+	}
 }
