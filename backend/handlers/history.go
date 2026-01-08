@@ -77,3 +77,29 @@ func GetHistory(c *fiber.Ctx) error {
 		"data":   histories,
 	})
 }
+
+// CheckHistory verifies if a user has watched a specific book
+func CheckHistory(c *fiber.Ctx) error {
+	userId := c.Query("userId")
+	bookId := c.Query("bookId")
+
+	if userId == "" || bookId == "" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Missing params"})
+	}
+
+	var history models.UserHistory
+	result := database.DB.Where("user_id = ? AND book_id = ?", userId, bookId).First(&history)
+
+	if result.Error != nil {
+		return c.JSON(fiber.Map{
+			"status": "success",
+			"found":  false,
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":      "success",
+		"found":       true,
+		"episode_idx": history.EpisodeIdx,
+	})
+}
