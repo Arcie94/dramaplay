@@ -59,6 +59,45 @@ func UpdateSettings(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "data": setting})
 }
 
+// UpdateSettingsBatch updates multiple settings at once
+func UpdateSettingsBatch(c *fiber.Ctx) error {
+	var input map[string]string
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid input"})
+	}
+
+	tx := database.DB.Begin()
+
+	for k, v := range input {
+		var setting models.Setting
+		if err := tx.Where("key = ?", k).First(&setting).Error; err != nil {
+			// Create
+			setting = models.Setting{Key: k, Value: v}
+			if err := tx.Create(&setting).Error; err != nil {
+				tx.Rollback()
+				return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to create " + k})
+			}
+		} else {
+			// Update
+			setting.Value = v
+			if err := tx.Save(&setting).Error; err != nil {
+				tx.Rollback()
+				return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to update " + k})
+			}
+		}
+
+		// SPECIAL: Tunnel Token File
+		if k == "cloudflare_tunnel_token" {
+			if err := os.MkdirAll("data", 0755); err == nil {
+				os.WriteFile("data/tunnel_token", []byte(v), 0644)
+			}
+		}
+	}
+
+	tx.Commit()
+	return c.JSON(fiber.Map{"status": "success", "message": "All settings updated"})
+}
+
 // GetPublicSettings returns public settings (like Google Client ID) for the frontend
 func GetPublicSettings(c *fiber.Ctx) error {
 	var settings []models.Setting
@@ -77,5 +116,7 @@ func GetPublicSettings(c *fiber.Ctx) error {
 		"site_logo":          sMap["site_logo"],
 		"site_favicon":       sMap["site_favicon"],
 		"turnstile_site_key": sMap["turnstile_site_key"],
+		"social_image":       sMap["social_image"],
+		"app_version":        sMap["app_version"],
 	})
 }

@@ -5,9 +5,13 @@ import (
 	"dramabang/handlers"
 	"dramabang/models"
 	"log"
+	"os"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/helmet"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/joho/godotenv"
 )
 
@@ -19,9 +23,27 @@ func main() {
 
 	app := fiber.New()
 
+	// Security Middleware
+	app.Use(helmet.New()) // XSS, Clickjacking, etc.
+
+	// Rate Limiting (100 reqs / min)
+	app.Use(limiter.New(limiter.Config{
+		Max:        100,
+		Expiration: 1 * time.Minute,
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return c.IP() // Limit by IP
+		},
+		LimitReached: func(c *fiber.Ctx) error {
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Too many requests, please try again later.",
+			})
+		},
+	}))
+
 	// CORS
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
+		AllowOrigins: "http://localhost:3000,http://localhost:4321,https://dramaplay.online,https://www.dramaplay.online",
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 	}))
 
@@ -36,13 +58,29 @@ func main() {
 	models.MigrateUsers(database.DB)
 	models.MigrateHistory(database.DB)
 	models.MigrateLogs(database.DB)
-	// Migrate Comments
+	// Migrate Comments & Bookmarks
 	database.DB.AutoMigrate(&models.Comment{})
+	models.MigrateBookmarks(database.DB)
+
+	// FORCE MANUAL MIGRATION as Fallback
+	// Ensure table exists for postgres (since AutoMigrate is sometimes flaky on new tables in live envs)
+	database.DB.Exec(`
+		CREATE TABLE IF NOT EXISTS password_reset_tokens (
+			id SERIAL PRIMARY KEY,
+			email TEXT NOT NULL,
+			token TEXT NOT NULL,
+			expires_at TIMESTAMPTZ NOT NULL,
+			created_at TIMESTAMPTZ
+		);
+		CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_email ON password_reset_tokens(email);
+		CREATE UNIQUE INDEX IF NOT EXISTS idx_password_reset_tokens_token ON password_reset_tokens(token);
+	`)
+
+	log.Println("Starting server on :3000...")
 
 	// Routes
 	api := app.Group("/api")
 
-	// User endpoints
 	api.Get("/trending", handlers.GetTrending)
 	api.Get("/latest", handlers.GetLatest)
 	api.Get("/search", handlers.GetSearch)
@@ -54,8 +92,32 @@ func main() {
 	api.Get("/sitemap", handlers.GetSitemapData)
 	api.Post("/auth/google", handlers.VerifyGoogleToken)
 	api.Post("/auth/login", handlers.LocalLogin)
+	api.Get("/auth/verify", handlers.VerifyEmail)        // New Verification Endpoint
 	api.Put("/user/profile", handlers.UpdateUserProfile) // New Profile Update
 	api.Put("/user/password", handlers.UpdatePassword)   // New Password Change
+
+	// Forgot Password Rate Limiter (3 per hour)
+	forgotLimiter := limiter.New(limiter.Config{
+		Max:        3,
+		Expiration: 1 * time.Hour,
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return c.IP()
+		},
+		LimitReached: func(c *fiber.Ctx) error {
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Too many reset attempts. Please try again in an hour.",
+			})
+		},
+	})
+	api.Post("/forgot-password", forgotLimiter, handlers.ForgotPassword)
+	api.Post("/reset-password/:token", handlers.ResetPassword)
+
+	// My List (Bookmarks)
+	api.Get("/mylist", handlers.GetBookmarks)
+	api.Post("/mylist", handlers.AddBookmark)
+	api.Delete("/mylist/:bookId", handlers.RemoveBookmark)
+	api.Get("/mylist/check/:bookId", handlers.CheckBookmark)
 
 	// Comments
 	api.Get("/comments/:bookId", handlers.GetComments)
@@ -66,6 +128,7 @@ func main() {
 	// History
 	api.Post("/history", handlers.SaveHistory)
 	api.Get("/history", handlers.GetHistory)
+	api.Get("/history/check", handlers.CheckHistory)
 
 	// Admin Login (Public)
 	api.Post("/admin/login", handlers.AdminLogin)
@@ -75,7 +138,14 @@ func main() {
 	admin.Use(func(c *fiber.Ctx) error {
 		// Get token from header
 		token := c.Get("Authorization")
-		if token != "admin-secret-token-123" {
+		secret := os.Getenv("ADMIN_SECRET")
+		if secret == "" {
+			// Fallback if env not set (Safety net, but should be set)
+			log.Println("WARNING: ADMIN_SECRET not set in env")
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Server Config Error"})
+		}
+
+		if token != secret {
 			return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
 		}
 		return c.Next()
@@ -91,12 +161,24 @@ func main() {
 
 	// Settings
 	admin.Get("/settings", handlers.GetSettings)
-	app.Post("/api/admin/settings", handlers.UpdateSettings)
-	app.Post("/api/admin/upload", handlers.UploadFile) // New Upload Route
+	admin.Post("/settings", handlers.UpdateSettings)
+	admin.Post("/settings/batch", handlers.UpdateSettingsBatch)
+	admin.Post("/upload", handlers.UploadFile)         // Secured under /admin group
+	admin.Put("/account", handlers.UpdateAdminAccount) // Change Admin Password
 
 	// User Admin
-	app.Get("/api/admin/users", handlers.GetAdminUsers)
-	app.Delete("/api/admin/users/:id", handlers.DeleteUser) // New Delete Route
+	// User Admin (Protected)
+	admin.Get("/users", handlers.GetAdminUsers)
+	admin.Delete("/users/:id", handlers.DeleteUser)
+	admin.Get("/users/:id/stats", handlers.GetUserStats)
+	admin.Put("/users/:id/role", handlers.UpdateUserRole)
 
-	log.Fatal(app.Listen(":3000"))
+	// Melolo API Routes (Integrated)
+	// Routes are now handled by the Universal Adapter via standard endpoints (/api/detail, etc.)
+	// Legacy routes removed.
+
+	log.Println("Starting server on :3000...")
+	if err := app.Listen(":3000"); err != nil {
+		log.Fatal("Server Listen Error: ", err)
+	}
 }

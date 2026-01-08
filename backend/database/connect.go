@@ -21,7 +21,13 @@ func Connect() {
 	if driver == "postgres" {
 		dsn := os.Getenv("DB_DSN")
 		if dsn == "" {
-			log.Fatal("DB_DSN environment variable is required for postgres driver")
+			// Construct DSN from individual vars
+			host := os.Getenv("DB_HOST")
+			user := os.Getenv("DB_USER")
+			password := os.Getenv("DB_PASSWORD")
+			dbname := os.Getenv("DB_NAME")
+			port := os.Getenv("DB_PORT")
+			dsn = "host=" + host + " user=" + user + " password=" + password + " dbname=" + dbname + " port=" + port + " sslmode=disable TimeZone=" + os.Getenv("TZ")
 		}
 		dialector = postgres.Open(dsn)
 		log.Println("Connecting to PostgreSQL...")
@@ -46,7 +52,7 @@ func Connect() {
 	log.Println("Connected to Database successfully")
 
 	log.Println("Running Auto Migrations...")
-	db.AutoMigrate(&models.Drama{}, &models.Episode{}, &models.Setting{}, &models.User{}, &models.UserHistory{})
+	db.AutoMigrate(&models.Drama{}, &models.Episode{}, &models.Setting{}, &models.User{}, &models.UserHistory{}, &models.Bookmark{}, &models.PasswordResetToken{})
 
 	DB = db
 }

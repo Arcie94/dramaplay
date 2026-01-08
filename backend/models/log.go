@@ -37,3 +37,10 @@ func LogSuccess(db *gorm.DB, message string) {
 		Message: message,
 	})
 }
+
+func LogSecurity(db *gorm.DB, message string) {
+	db.Create(&SystemLog{
+		Level:   "SECURITY",
+		Message: message,
+	})
+}

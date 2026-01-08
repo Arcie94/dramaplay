@@ -3,8 +3,10 @@ package handlers
 import (
 	"dramabang/database"
 	"dramabang/models"
+	"dramabang/utils"
 	"math"
 	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
@@ -103,6 +105,18 @@ func DeleteUser(c *fiber.Ctx) error {
 
 // UpdateUserProfile allows users to update their own profile (Name, Avatar)
 func UpdateUserProfile(c *fiber.Ctx) error {
+	// 1. Verify Authentication
+	authHeader := c.Get("Authorization")
+	if authHeader == "" {
+		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Unauthorized"})
+	}
+
+	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+	claims, err := utils.ValidateToken(tokenString)
+	if err != nil {
+		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Invalid token"})
+	}
+
 	type UpdateRequest struct {
 		ID     uint   `json:"id"`
 		Name   string `json:"name"`
@@ -112,6 +126,12 @@ func UpdateUserProfile(c *fiber.Ctx) error {
 	var req UpdateRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid input"})
+	}
+
+	// 2. Authorization Check (Token ID must match Request ID)
+	tokenUserID := uint(claims["sub"].(float64)) // JWT numbers are float64 by default
+	if tokenUserID != req.ID {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Forbidden action"})
 	}
 
 	var user models.User
@@ -191,4 +211,87 @@ func UpdatePassword(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"status": "success", "message": "Password updated successfully"})
+}
+
+// GetUserStats aggregates statistics for a specific user
+func GetUserStats(c *fiber.Ctx) error {
+	userId := c.Params("id")
+
+	// 1. Total Watched (History Count)
+	var totalWatched int64
+	database.DB.Model(&models.UserHistory{}).Where("user_id = ?", userId).Count(&totalWatched)
+
+	// 2. Total Comments
+	var totalComments int64
+	database.DB.Model(&models.Comment{}).Where("user_id = ?", userId).Count(&totalComments)
+
+	// 3. Favorite Genre (Complex Query)
+	type GenreStat struct {
+		Genre string
+		Count int
+	}
+	var favGenre GenreStat
+
+	err := database.DB.Table("user_histories").
+		Select("dramas.genre, count(*) as count").
+		Joins("join dramas on dramas.book_id = user_histories.book_id").
+		Where("user_histories.user_id = ?", userId).
+		Group("dramas.genre").
+		Order("count desc").
+		Limit(1).
+		Scan(&favGenre).Error
+
+	if err != nil {
+		favGenre.Genre = "-"
+	}
+	if favGenre.Genre == "" {
+		favGenre.Genre = "-"
+	}
+
+	// 4. Last Active
+	var lastActiveStr string
+	var lastHistory models.UserHistory
+	if err := database.DB.Where("user_id = ?", userId).Order("updated_at desc").First(&lastHistory).Error; err == nil {
+		lastActiveStr = lastHistory.UpdatedAt.Format("2006-01-02 15:04:05")
+	} else {
+		lastActiveStr = "Never"
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data": fiber.Map{
+			"total_watched":  totalWatched,
+			"total_comments": totalComments,
+			"favorite_genre": favGenre.Genre,
+			"last_active":    lastActiveStr,
+		},
+	})
+}
+
+// UpdateUserRole updates the role of a user (e.g. user -> admin)
+func UpdateUserRole(c *fiber.Ctx) error {
+	userId := c.Params("id")
+
+	type UpdateInput struct {
+		Role string `json:"role"`
+	}
+	var input UpdateInput
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid input"})
+	}
+
+	// Validation
+	if input.Role != "user" && input.Role != "admin" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid role. Must be 'user' or 'admin'"})
+	}
+
+	// Update
+	if err := database.DB.Model(&models.User{}).Where("id = ?", userId).Update("role", input.Role).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to update role"})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  "success",
+		"message": "User role updated to " + input.Role,
+	})
 }

@@ -5,10 +5,12 @@ import (
 	"dramabang/models"
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // verifyTurnstile checks the token against Cloudflare's API
@@ -67,23 +69,47 @@ func AdminLogin(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid input"})
 	}
 
-
 	// 1. Verify Turnstile (if configured)
 	var secretKey models.Setting
 	database.DB.Where("key = ?", "turnstile_secret_key").First(&secretKey)
 
 	if secretKey.Value != "" {
 		if !verifyTurnstile(input.CFTurnstileResponse, secretKey.Value) {
+			models.LogSecurity(database.DB, fmt.Sprintf("[IP: %s] Admin Login Blocked: Captcha Failed (%s)", c.IP(), input.Username))
 			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Captcha validation failed"})
 		}
 	}
 
-	if input.Username == "teddyayomi" && input.Password == "Arcie1994" {
+	// 2. Fetch Stored Credentials
+	var storedUser, storedPass models.Setting
+	if err := database.DB.Where("key = ?", "admin_username").First(&storedUser).Error; err != nil {
+		models.LogError(database.DB, "Admin Login: Username not found in settings")
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Server Config Error"})
+	}
+	if err := database.DB.Where("key = ?", "admin_password").First(&storedPass).Error; err != nil {
+		models.LogError(database.DB, "Admin Login: Password not found in settings")
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Server Config Error"})
+	}
+
+	// 3. Authenticate
+	usernameMatch := (input.Username == storedUser.Value)
+	passwordMatch := bcrypt.CompareHashAndPassword([]byte(storedPass.Value), []byte(input.Password)) == nil
+
+	if usernameMatch && passwordMatch {
+		secret := os.Getenv("ADMIN_SECRET")
+		if secret == "" {
+			secret = "admin-secret-token-123"
+		}
+
+		models.LogSecurity(database.DB, fmt.Sprintf("[IP: %s] Admin Login Success: %s", c.IP(), input.Username))
+
 		return c.JSON(fiber.Map{
 			"status": "success",
-			"token":  "admin-secret-token-123", // Simple static token for MVP
+			"token":  secret,
 		})
 	}
+
+	models.LogSecurity(database.DB, fmt.Sprintf("[IP: %s] Admin Login Failed: Invalid Credentials (%s)", c.IP(), input.Username))
 
 	return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Invalid credentials"})
 }
@@ -264,4 +290,45 @@ func ToggleFeatured(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"status": "success", "message": "Featured status updated"})
+}
+
+// UpdateAdminAccount updates admin credentials
+func UpdateAdminAccount(c *fiber.Ctx) error {
+	var input struct {
+		CurrentPassword string `json:"current_password"`
+		NewUsername     string `json:"new_username"`
+		NewPassword     string `json:"new_password"`
+	}
+
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid input"})
+	}
+
+	// 1. Verify Current Password
+	var storedPass models.Setting
+	database.DB.Where("key = ?", "admin_password").First(&storedPass)
+
+	if err := bcrypt.CompareHashAndPassword([]byte(storedPass.Value), []byte(input.CurrentPassword)); err != nil {
+		models.LogSecurity(database.DB, fmt.Sprintf("[IP: %s] Admin Update Failed: Wrong Password", c.IP()))
+		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Current password incorrect"})
+	}
+
+	// 2. Validate New Input
+	if len(input.NewUsername) < 4 || len(input.NewPassword) < 8 {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Username min 4 chars, Password min 8 chars"})
+	}
+
+	// 3. Hash New Password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Server Error"})
+	}
+
+	// 4. Update Database (Atomic Transaction preferred, but individual saves ok here)
+	database.DB.Save(&models.Setting{Key: "admin_username", Value: input.NewUsername})
+	database.DB.Save(&models.Setting{Key: "admin_password", Value: string(hashedPassword)})
+
+	models.LogSecurity(database.DB, fmt.Sprintf("[IP: %s] Admin Credentials Updated", c.IP()))
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Admin account updated"})
 }

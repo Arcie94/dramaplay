@@ -10,6 +10,8 @@ Thumbs.db
 
 # Backend
 backend/main.exe
+*.exe
+*.db
 backend/tmp/
 .env
 backend/.env
@@ -23,3 +25,7 @@ frontend/.npm/
 # Uploads (Do not commit user uploads, but keep the directory)
 frontend/public/uploads/*
 !frontend/public/uploads/.gitkeep
+
+# Database (Docker)
+postgres-data/
+data/
