@@ -37,7 +37,7 @@ func (p *MeloloProvider) fetch(targetURL string) ([]byte, error) {
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
 	req.Header.Set("Accept", "application/json, text/plain, */*")
 	// Auth Token
-	req.Header.Set("x-token", "0ebd6cfdd8054d2a90aa2851532645211aeaf189fa1aed62c53e5fd735af8649")
+	req.Header.Set("Authorization", "Bearer 0ebd6cfdd8054d2a90aa2851532645211aeaf189fa1aed62c53e5fd735af8649")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
