@@ -23,7 +23,7 @@ import Layout from "../../layouts/Layout.astro";
 
       <!-- Settings Form -->
       <div class="bg-zinc-900 border border-zinc-800 rounded-xl p-6 md:p-8">
-        <form id="settings-form" class="space-y-6">
+        <form id="settings-form" class="space-y-6" onsubmit="return false;">
           <div>
             <h2
               class="text-xl font-semibold mb-4 border-b border-zinc-800 pb-2"
@@ -128,6 +128,24 @@ import Layout from "../../layouts/Layout.astro";
             </h2>
             <div class="space-y-4">
               <div>
+                <label
+                  for="app_version"
+                  class="block text-sm font-medium text-zinc-400 mb-1"
+                  >App Version</label
+                >
+                <input
+                  type="text"
+                  id="app_version"
+                  name="app_version"
+                  class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition-colors"
+                  placeholder="e.g. v1.2.0-beta"
+                />
+                <p class="text-xs text-zinc-500 mt-1">
+                  Shown in Profile page footer.
+                </p>
+              </div>
+
+              <div>
                 <label class="block text-sm font-medium text-zinc-400 mb-1"
                   >Site Logo</label
                 >
@@ -144,6 +162,7 @@ import Layout from "../../layouts/Layout.astro";
                         id="logo-preview"
                         src="/favicon.png"
                         class="w-full h-full object-contain"
+                        onerror="this.src='/logo-404.png'"
                       />
                     </div>
                     <div class="flex-1">
@@ -196,6 +215,7 @@ import Layout from "../../layouts/Layout.astro";
                         id="favicon-preview"
                         src="/favicon.png"
                         class="w-full h-full object-contain"
+                        onerror="this.src='/logo-404.png'"
                       />
                     </div>
                     <div class="flex-1">
@@ -231,54 +251,114 @@ import Layout from "../../layouts/Layout.astro";
               </div>
             </div>
           </div>
+        </form>
 
-          <div>
-            <h2
-              class="text-xl font-semibold mb-4 border-b border-zinc-800 pb-2"
-            >
-              Analytics
-            </h2>
-            <div class="space-y-4">
-              <div>
-                <label
-                  for="ga_measurement_id"
-                  class="block text-sm font-medium text-zinc-400 mb-1"
-                  >Google Analytics Measurement ID</label
+        <!-- Social Share Image -->
+        <div>
+          <h2 class="text-xl font-semibold mb-4 border-b border-zinc-800 pb-2">
+            Social Media Sharing
+          </h2>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-zinc-400 mb-1"
+                >Social Share Image (OG:Image)</label
+              >
+
+              <div class="flex flex-col gap-4">
+                <!-- Preview & Input -->
+                <div
+                  class="flex items-center gap-4 bg-black/30 p-4 rounded-lg border border-zinc-800"
                 >
-                <input
-                  type="text"
-                  id="ga_measurement_id"
-                  name="ga_measurement_id"
-                  class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition-colors"
-                  placeholder="e.g. G-XXXXXXXXXX"
-                />
-                <p class="text-xs text-zinc-500 mt-1">
-                  Found in GA4 Admin > Data Streams.
-                </p>
+                  <div
+                    class="w-40 h-24 bg-zinc-900 rounded-lg flex items-center justify-center overflow-hidden border border-zinc-700"
+                  >
+                    <img
+                      id="social-preview"
+                      src="/pwa-512x512.png"
+                      class="w-full h-full object-cover"
+                      onerror="this.src='/logo-404.png'"
+                    />
+                  </div>
+                  <div class="flex-1">
+                    <input
+                      type="file"
+                      id="social-upload"
+                      accept="image/*"
+                      class="hidden"
+                    />
+                    <div class="flex gap-2">
+                      <button
+                        type="button"
+                        onclick="document.getElementById('social-upload').click()"
+                        class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-sm text-white font-medium transition-colors border border-zinc-600"
+                      >
+                        Choose Image
+                      </button>
+                      <input
+                        type="text"
+                        id="social_image"
+                        name="social_image"
+                        class="flex-1 bg-transparent border-none text-zinc-500 text-sm focus:ring-0"
+                        placeholder="URL will appear here..."
+                        readonly
+                      />
+                    </div>
+                    <p class="text-xs text-zinc-500 mt-2">
+                      Recommended: 1200x630px (JPG) - Max 300KB
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+        </div>
 
-          <div class="flex justify-end pt-4">
-            <button
-              type="submit"
-              id="btn-save"
-              class="px-6 py-2.5 bg-red-600 hover:bg-red-700 rounded-lg text-white font-bold shadow-lg shadow-red-900/20 transition-all active:scale-95"
-            >
-              Save Changes
-            </button>
+        <div>
+          <h2 class="text-xl font-semibold mb-4 border-b border-zinc-800 pb-2">
+            Analytics
+          </h2>
+          <div class="space-y-4">
+            <div>
+              <label
+                for="ga_measurement_id"
+                class="block text-sm font-medium text-zinc-400 mb-1"
+                >Google Analytics Measurement ID</label
+              >
+              <input
+                type="text"
+                id="ga_measurement_id"
+                name="ga_measurement_id"
+                class="w-full bg-black/50 border border-zinc-700 rounded-lg px-4 py-2.5 text-white focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 transition-colors"
+                placeholder="e.g. G-XXXXXXXXXX"
+              />
+              <p class="text-xs text-zinc-500 mt-1">
+                Found in GA4 Admin > Data Streams.
+              </p>
+            </div>
           </div>
-        </form>
+        </div>
+
+        <div class="flex justify-end pt-4">
+          <!-- Changed to type="button" and direct onclick -->
+          <button
+            type="button"
+            id="btn-save"
+            onclick="window.handleSaveSettings()"
+            class="px-6 py-2.5 bg-red-600 hover:bg-red-700 rounded-lg text-white font-bold shadow-lg shadow-red-900/20 transition-all active:scale-95"
+          >
+            Save Changes
+          </button>
+        </div>
       </div>
     </div>
   </div>
-  <!-- Toast Container -->
-  <div
-    id="toast-container"
-    class="fixed bottom-6 right-6 z-[60] flex flex-col gap-2 pointer-events-none"
-  >
-  </div>
 </Layout>
+<!-- Toast Container -->
+<div
+  id="toast-container"
+  class="fixed bottom-6 right-6 z-[60] flex flex-col gap-2 pointer-events-none"
+>
+</div>
 
 <!-- CropperJS -->
 <link
@@ -502,12 +582,15 @@ import Layout from "../../layouts/Layout.astro";
   </div>
 </div>
 
-<script>
+<script is:inline>
+  // Ensure Window function is defined ASAP
+  console.log("Settings script loaded");
+
   const API_BASE = "/api";
   const token = localStorage.getItem("admin_token");
 
   // --- Toast Logic ---
-  function showToast(msg: string, type: "success" | "error" = "success") {
+  function showToast(msg, type = "success") {
     const container = document.getElementById("toast-container");
     if (!container) return;
 
@@ -539,85 +622,172 @@ import Layout from "../../layouts/Layout.astro";
     window.location.href = "/admin/login";
   }
 
-  const form = document.getElementById("settings-form");
-  const clientIDInput = document.getElementById(
-    "google_client_id"
-  ) as HTMLInputElement;
-  const gaIDInput = document.getElementById(
-    "ga_measurement_id"
-  ) as HTMLInputElement;
-  const cfTokenInput = document.getElementById(
-    "cloudflare_tunnel_token"
-  ) as HTMLInputElement;
-  const turnstileSiteInput = document.getElementById(
-    "turnstile_site_key"
-  ) as HTMLInputElement;
-  const turnstileSecretInput = document.getElementById(
-    "turnstile_secret_key"
-  ) as HTMLInputElement;
-  const logoInput = document.getElementById("site_logo") as HTMLInputElement;
-  const logoPreview = document.getElementById(
-    "logo-preview"
-  ) as HTMLImageElement;
-  const fileInput = document.getElementById("logo-upload") as HTMLInputElement;
+  if (!token) {
+    window.location.href = "/admin/login";
+  } else {
+    // Load Settings on Initialize
+    loadSettings();
+  }
 
-  // Favicon Elements
-  const faviconInput = document.getElementById(
-    "site_favicon"
-  ) as HTMLInputElement;
-  const faviconPreview = document.getElementById(
-    "favicon-preview"
-  ) as HTMLImageElement;
-  const faviconFileInput = document.getElementById(
-    "favicon-upload"
-  ) as HTMLInputElement;
+  async function loadSettings() {
+    try {
+      const res = await fetch(`${API_BASE}/admin/settings`, {
+        headers: { Authorization: token || "" },
+      });
+      const json = await res.json();
+      if (json.status === "success") {
+        const data = json.data;
+        // Map data to inputs
+        const setVal = (id, key) => {
+          const el = document.getElementById(id);
+          if (el && data[key]) el.value = data[key];
+        };
 
-  const saveBtn = document.getElementById("btn-save");
+        setVal("google_client_id", "google_client_id");
+        setVal("site_logo", "site_logo");
+        setVal("site_favicon", "site_favicon");
+        setVal("cloudflare_tunnel_token", "cloudflare_tunnel_token");
+        setVal("turnstile_site_key", "turnstile_site_key");
+        setVal("turnstile_secret_key", "turnstile_secret_key");
+        setVal("ga_measurement_id", "ga_measurement_id");
+        setVal("social_image", "social_image");
+        setVal("app_version", "app_version");
 
-  // Editor Elements
+        // Trigger previews if images exist
+        if (data.site_logo)
+          document.getElementById("logo-preview").src = data.site_logo;
+        if (data.site_favicon)
+          document.getElementById("favicon-preview").src = data.site_favicon;
+        if (data.social_image)
+          document.getElementById("social-preview").src = data.social_image;
+      }
+    } catch (err) {
+      console.error("Failed to load settings:", err);
+      showToast("Failed to load current settings", "error");
+    }
+  }
+
+  // Define global function for button click
+  window.handleSaveSettings = async function () {
+    const clientIDInput = document.getElementById("google_client_id");
+    const gaIDInput = document.getElementById("ga_measurement_id");
+    const appVersionInput = document.getElementById("app_version");
+    const cfTokenInput = document.getElementById("cloudflare_tunnel_token");
+    const turnstileSiteInput = document.getElementById("turnstile_site_key");
+    const turnstileSecretInput = document.getElementById(
+      "turnstile_secret_key"
+    );
+    const logoInput = document.getElementById("site_logo");
+    const faviconInput = document.getElementById("site_favicon");
+    const socialInput = document.getElementById("social_image");
+
+    const saveBtn = document.getElementById("btn-save");
+
+    if (!clientIDInput || !saveBtn) {
+      showToast("Error: Form elements not found", "error");
+      return;
+    }
+
+    const originalText = saveBtn.innerText;
+    saveBtn.innerText = "Saving...";
+    saveBtn.disabled = true;
+
+    try {
+      const payload = {
+        google_client_id: clientIDInput.value.trim(),
+        ga_measurement_id: gaIDInput.value.trim(),
+        app_version: appVersionInput.value.trim(),
+        cloudflare_tunnel_token: cfTokenInput.value.trim(),
+        turnstile_site_key: turnstileSiteInput.value.trim(),
+        turnstile_secret_key: turnstileSecretInput.value.trim(),
+        site_logo: logoInput.value.trim(),
+        site_favicon: faviconInput.value.trim(),
+      };
+
+      if (socialInput.value) {
+        payload.social_image = socialInput.value.trim();
+      }
+
+      const res = await fetch(`${API_BASE}/admin/settings/batch`, {
+        method: "POST",
+        headers: {
+          Authorization: token || "",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to save settings: ${res.statusText}`);
+      }
+
+      const json = await res.json();
+      showToast("Settings saved successfully!", "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Error saving settings", "error");
+    } finally {
+      saveBtn.innerText = originalText;
+      saveBtn.disabled = false;
+    }
+  };
+
+  // --- Editor & Helper Logic ---
+  // (Simplified for inline context, using document selectors directly)
+
+  // Crop & Upload
+  // We need to re-scan for elements since we are not in DOMContentLoaded
+  // But since this script is at the end of body, elements exist.
+
+  const fileInput = document.getElementById("logo-upload");
+  const faviconFileInput = document.getElementById("favicon-upload");
+  const socialFileInput = document.getElementById("social-upload");
+
   const editorModal = document.getElementById("editor-modal");
-  const imageToEdit = document.getElementById(
-    "image-to-edit"
-  ) as HTMLImageElement;
+  const imageToEdit = document.getElementById("image-to-edit");
   const btnCloseEditor = document.getElementById("btn-close-editor");
   const btnCropSave = document.getElementById("btn-crop-save");
-  let cropper: any = null;
-  let currentUploadTarget = "logo"; // 'logo' or 'favicon'
 
-  // --- Upload & Editor Logic ---
+  let cropper = null;
+  let currentUploadTarget = "logo";
 
-  // 1. File Selection
-  function handleFileSelect(e: any, target: string) {
+  function handleFileSelect(e, target) {
     const file = e.target.files[0];
     if (!file) return;
 
-    currentUploadTarget = target; // Set target
-
+    currentUploadTarget = target;
     const reader = new FileReader();
-    reader.onload = (ev: any) => {
+    reader.onload = (ev) => {
       imageToEdit.src = ev.target.result;
       openEditor();
     };
     reader.readAsDataURL(file);
-
-    // Reset input
     e.target.value = "";
   }
 
-  fileInput?.addEventListener("change", (e) => handleFileSelect(e, "logo"));
-  faviconFileInput?.addEventListener("change", (e) =>
-    handleFileSelect(e, "favicon")
-  );
+  if (fileInput)
+    fileInput.addEventListener("change", (e) => handleFileSelect(e, "logo"));
+  if (faviconFileInput)
+    faviconFileInput.addEventListener("change", (e) =>
+      handleFileSelect(e, "favicon")
+    );
+  if (socialFileInput)
+    socialFileInput.addEventListener("change", (e) =>
+      handleFileSelect(e, "social")
+    );
 
   function openEditor() {
-    editorModal?.classList.remove("hidden");
-    editorModal?.classList.add("flex");
-
-    // Init Cropper
+    editorModal.classList.remove("hidden");
+    editorModal.classList.add("flex");
     if (cropper) cropper.destroy();
-    cropper = new (window as any).Cropper(imageToEdit, {
+
+    let aspectRatio = 1;
+    if (currentUploadTarget === "social") aspectRatio = 1.91;
+
+    cropper = new Cropper(imageToEdit, {
       viewMode: 1,
       dragMode: "move",
+      aspectRatio: aspectRatio,
       autoCropArea: 0.8,
       restore: false,
       guides: true,
@@ -630,110 +800,97 @@ import Layout from "../../layouts/Layout.astro";
   }
 
   function closeEditor() {
-    editorModal?.classList.add("hidden");
-    editorModal?.classList.remove("flex");
+    editorModal.classList.add("hidden");
+    editorModal.classList.remove("flex");
     if (cropper) {
       cropper.destroy();
       cropper = null;
     }
   }
 
-  btnCloseEditor?.addEventListener("click", closeEditor);
+  if (btnCloseEditor) btnCloseEditor.addEventListener("click", closeEditor);
 
-  // Toolbar Actions
+  // Toolbar
   document.querySelectorAll("[data-action]").forEach((btn) => {
     btn.addEventListener("click", (e) => {
       if (!cropper) return;
-      const action = (e.currentTarget as HTMLElement).getAttribute(
-        "data-action"
-      );
-
-      switch (action) {
-        case "zoom-in":
-          cropper.zoom(0.1);
-          break;
-        case "zoom-out":
-          cropper.zoom(-0.1);
-          break;
-        case "rotate-left":
-          cropper.rotate(-90);
-          break;
-        case "rotate-right":
-          cropper.rotate(90);
-          break;
-        case "flip-h":
-          cropper.scaleX(cropper.getData().scaleX * -1);
-          break;
-        case "flip-v":
-          cropper.scaleY(cropper.getData().scaleY * -1);
-          break;
-      }
+      const action = e.currentTarget.getAttribute("data-action");
+      if (action === "zoom-in") cropper.zoom(0.1);
+      if (action === "zoom-out") cropper.zoom(-0.1);
+      if (action === "rotate-left") cropper.rotate(-90);
+      if (action === "rotate-right") cropper.rotate(90);
+      if (action === "flip-h") cropper.scaleX(cropper.getData().scaleX * -1);
+      if (action === "flip-v") cropper.scaleY(cropper.getData().scaleY * -1);
     });
   });
 
-  // Save & Upload
-  btnCropSave?.addEventListener("click", () => {
-    if (!cropper) return;
+  if (btnCropSave) {
+    btnCropSave.addEventListener("click", () => {
+      if (!cropper) return;
+      let width = 400,
+        height = 400,
+        format = "image/png",
+        filename = "logo.png";
 
-    // Determine dimensions based on target
-    const width = currentUploadTarget === "favicon" ? 64 : 400;
-    const height = currentUploadTarget === "favicon" ? 64 : 400;
+      if (currentUploadTarget === "favicon") {
+        width = 64;
+        height = 64;
+        filename = "favicon.png";
+      } else if (currentUploadTarget === "social") {
+        width = 1200;
+        height = 630;
+        format = "image/jpeg";
+        filename = "social-share.jpg";
+      }
 
-    // Get canvas
-    cropper
-      .getCroppedCanvas({
-        width: width,
-        height: height,
-      })
-      .toBlob(async (blob: any) => {
-        // Create FormData
-        const formData = new FormData();
-        const filename =
-          currentUploadTarget === "favicon" ? "favicon.png" : "logo.png";
-        formData.append("file", blob, filename);
+      cropper.getCroppedCanvas({ width, height }).toBlob(
+        async (blob) => {
+          const formData = new FormData();
+          const ts = new Date().getTime();
+          formData.append("file", blob, filename.replace(".", `_${ts}.`));
 
-        // Show loading state
-        const originalText = btnCropSave.innerText;
-        btnCropSave.innerText = "Uploading...";
-        (btnCropSave as HTMLButtonElement).disabled = true;
+          btnCropSave.innerText = "Uploading...";
+          btnCropSave.disabled = true;
 
-        try {
-          const res = await fetch(`${API_BASE}/admin/upload`, {
-            method: "POST",
-            headers: { Authorization: token || "" },
-            body: formData,
-          });
-
-          const json = await res.json();
-
-          if (json.status === "success") {
-            // Update UI with absolute URL (relative to domain)
-            const fullUrl = json.url;
-
-            if (currentUploadTarget === "logo") {
-              logoInput.value = fullUrl;
-              logoPreview.src = fullUrl;
+          try {
+            const res = await fetch(`${API_BASE}/admin/upload`, {
+              method: "POST",
+              headers: { Authorization: token || "" },
+              body: formData,
+            });
+            const json = await res.json();
+            if (json.status === "success") {
+              const fullUrl = json.url;
+              if (currentUploadTarget === "logo") {
+                document.getElementById("site_logo").value = fullUrl;
+                document.getElementById("logo-preview").src = fullUrl;
+              } else if (currentUploadTarget === "favicon") {
+                document.getElementById("site_favicon").value = fullUrl;
+                document.getElementById("favicon-preview").src = fullUrl;
+              } else if (currentUploadTarget === "social") {
+                document.getElementById("social_image").value = fullUrl;
+                document.getElementById("social-preview").src = fullUrl;
+              }
+              closeEditor();
+              showToast("Image uploaded!", "success");
             } else {
-              faviconInput.value = fullUrl;
-              faviconPreview.src = fullUrl;
+              showToast("Upload failed: " + json.message, "error");
             }
-
-            closeEditor();
-            showToast("Image uploaded successfully", "success");
-          } else {
-            showToast("Upload failed: " + json.message, "error");
+          } catch (e) {
+            console.error(e);
+            showToast("Error uploading", "error");
+          } finally {
+            btnCropSave.innerText = "Crop & Upload";
+            btnCropSave.disabled = false;
           }
-        } catch (e) {
-          console.error(e);
-          showToast("Error uploading file", "error");
-        } finally {
-          btnCropSave.innerText = originalText;
-          (btnCropSave as HTMLButtonElement).disabled = false;
-        }
-      }, "image/png");
-  });
+        },
+        format,
+        0.9
+      );
+    });
+  }
 
-  // Fetch current settings
+  // Fetch Settings Init
   async function fetchSettings() {
     try {
       const res = await fetch(`${API_BASE}/admin/settings`, {
@@ -741,150 +898,43 @@ import Layout from "../../layouts/Layout.astro";
       });
       const json = await res.json();
       if (json.status === "success" && json.data) {
-        if (json.data.google_client_id) {
-          clientIDInput.value = json.data.google_client_id;
-        }
-        if (json.data.ga_measurement_id) {
-          gaIDInput.value = json.data.ga_measurement_id;
-        }
-        if (json.data.cloudflare_tunnel_token) {
-          cfTokenInput.value = json.data.cloudflare_tunnel_token;
-        }
-        if (json.data.turnstile_site_key) {
-          turnstileSiteInput.value = json.data.turnstile_site_key;
-        }
-        if (json.data.turnstile_secret_key) {
-          turnstileSecretInput.value = json.data.turnstile_secret_key;
-        }
+        if (json.data.google_client_id)
+          document.getElementById("google_client_id").value =
+            json.data.google_client_id;
+        if (json.data.ga_measurement_id)
+          document.getElementById("ga_measurement_id").value =
+            json.data.ga_measurement_id;
+        if (json.data.cloudflare_tunnel_token)
+          document.getElementById("cloudflare_tunnel_token").value =
+            json.data.cloudflare_tunnel_token;
+        if (json.data.turnstile_site_key)
+          document.getElementById("turnstile_site_key").value =
+            json.data.turnstile_site_key;
+        if (json.data.turnstile_secret_key)
+          document.getElementById("turnstile_secret_key").value =
+            json.data.turnstile_secret_key;
         if (json.data.site_logo) {
-          logoInput.value = json.data.site_logo;
-          logoPreview.src = json.data.site_logo; // Update preview
+          document.getElementById("site_logo").value = json.data.site_logo;
+          document.getElementById("logo-preview").src = json.data.site_logo;
         }
         if (json.data.site_favicon) {
-          faviconInput.value = json.data.site_favicon;
-          faviconPreview.src = json.data.site_favicon;
+          document.getElementById("site_favicon").value =
+            json.data.site_favicon;
+          document.getElementById("favicon-preview").src =
+            json.data.site_favicon;
         }
-      } else if (res.status === 401) {
-        window.location.href = "/admin/login";
-      }
-    } catch (err) {
-      console.error("Failed to load settings:", err);
-    }
-  }
-
-  // Save settings
-  form?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (!clientIDInput || !saveBtn) return;
-
-    const originalText = saveBtn.innerText;
-    saveBtn.innerText = "Saving...";
-    (saveBtn as HTMLButtonElement).disabled = true;
-
-    try {
-      // Save Client ID
-      const res = await fetch(`${API_BASE}/admin/settings`, {
-        method: "POST",
-        headers: {
-          Authorization: token || "",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          key: "google_client_id",
-          value: clientIDInput.value.trim(),
-        }),
-      });
-
-      // Save GA ID
-      await fetch(`${API_BASE}/admin/settings`, {
-        method: "POST",
-        headers: {
-          Authorization: token || "",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          key: "ga_measurement_id",
-          value: gaIDInput.value.trim(),
-        }),
-      });
-
-      // Save CF Token
-      await fetch(`${API_BASE}/admin/settings`, {
-        method: "POST",
-        headers: {
-          Authorization: token || "",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          key: "cloudflare_tunnel_token",
-          value: cfTokenInput.value.trim(),
-        }),
-      });
-
-      // Save Turnstile Keys
-      await fetch(`${API_BASE}/admin/settings`, {
-        method: "POST",
-        headers: {
-          Authorization: token || "",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          key: "turnstile_site_key",
-          value: turnstileSiteInput.value.trim(),
-        }),
-      });
-      await fetch(`${API_BASE}/admin/settings`, {
-        method: "POST",
-        headers: {
-          Authorization: token || "",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          key: "turnstile_secret_key",
-          value: turnstileSecretInput.value.trim(),
-        }),
-      });
-
-      // Save Site Logo
-      await fetch(`${API_BASE}/admin/settings`, {
-        method: "POST",
-        headers: {
-          Authorization: token || "",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          key: "site_logo",
-          value: logoInput.value.trim(),
-        }),
-      });
-
-      // Save Site Favicon
-      await fetch(`${API_BASE}/admin/settings`, {
-        method: "POST",
-        headers: {
-          Authorization: token || "",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          key: "site_favicon",
-          value: faviconInput.value.trim(),
-        }),
-      });
-
-      if (res.ok) {
-        showToast("Settings saved successfully!", "success");
-      } else {
-        showToast("Failed to save settings", "error");
+        if (json.data.social_image) {
+          document.getElementById("social_image").value =
+            json.data.social_image;
+          document.getElementById("social-preview").src =
+            json.data.social_image;
+        }
       }
     } catch (err) {
       console.error(err);
-      showToast("Error saving settings", "error");
-    } finally {
-      saveBtn.innerText = originalText;
-      (saveBtn as HTMLButtonElement).disabled = false;
     }
-  });
+  }
 
-  // Init
+  // Run init
   fetchSettings();
 </script>

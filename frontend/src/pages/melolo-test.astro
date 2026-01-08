@@ -1,0 +1,104 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+// Fetch initial data (Server Side or Client Side - here using Client fetch wrapper for simplicity in testing)
+// But for Astro, we can fetch on server.
+// Let's try fetching Trending on Server.
+
+let trending = [];
+let error = null;
+
+try {
+  // Assuming Backend is accessible via internal Docker network or public URL.
+  // For hybrid apps/dev, we might need a full URL. adjusting to client-side fetch for safety in this test page.
+} catch (e) {
+  error = e;
+}
+---
+
+<Layout title="Melolo API Test">
+  <div class="px-4 py-20 max-w-7xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8 text-white">Melolo API Data Test</h1>
+
+    <!-- Client-side logic to fetch and display -->
+    <div id="app" class="space-y-12">
+      <!-- Trending Section -->
+      <section>
+        <h2 class="text-2xl font-semibold mb-4 text-primary">
+          Trending Content
+        </h2>
+        <div
+          id="trending-grid"
+          class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4"
+        >
+          <div class="animate-pulse bg-gray-800 h-64 rounded-lg"></div>
+          <div class="animate-pulse bg-gray-800 h-64 rounded-lg"></div>
+          <div class="animate-pulse bg-gray-800 h-64 rounded-lg"></div>
+        </div>
+      </section>
+
+      <!-- Latest Section -->
+      <section>
+        <h2 class="text-2xl font-semibold mb-4 text-secondary">
+          Latest Content
+        </h2>
+        <div
+          id="latest-grid"
+          class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4"
+        >
+          <div class="animate-pulse bg-gray-800 h-64 rounded-lg"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "/api";
+
+    async function fetchData(endpoint, elementId) {
+      try {
+        const res = await fetch(`${API_BASE}/melolo/${endpoint}`);
+        const json = await res.json();
+
+        const container = document.getElementById(elementId);
+        if (!container) return;
+
+        container.innerHTML = ""; // Clear loading
+
+        if (json.data && json.data.length > 0) {
+          json.data.forEach((item) => {
+            const card = document.createElement("div");
+            card.className =
+              "bg-gray-800 rounded-lg overflow-hidden group relative";
+            card.innerHTML = `
+                <a href="/detail/${item.bookId}" class="block h-full">
+                    <div class="aspect-[2/3] overflow-hidden">
+                        <img src="${item.cover}" alt="${item.judul}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" loading="lazy" />
+                    </div>
+                    <div class="p-3">
+                        <h3 class="text-sm font-bold text-white line-clamp-1">${item.judul}</h3>
+                        <p class="text-xs text-gray-400 line-clamp-1">${item.genre || "No Genre"}</p>
+                        <p class="text-xs text-gray-500 mt-1">${item.total_episode || "?"} Eps</p>
+                    </div>
+                </a>
+            `;
+            container.appendChild(card);
+          });
+        } else {
+          container.innerHTML = '<p class="text-gray-500">No data found.</p>';
+        }
+      } catch (err) {
+        console.error(err);
+        const container = document.getElementById(elementId);
+        if (container) {
+          const msg = err instanceof Error ? err.message : String(err);
+          container.innerHTML = `<p class="text-red-500">Error: ${msg}</p>`;
+        }
+      }
+    }
+
+    // Run
+    fetchData("trending", "trending-grid");
+    fetchData("latest", "latest-grid");
+  </script>
+</Layout>

@@ -6,6 +6,7 @@ import node from '@astrojs/node';
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://dramaplay.online',
   integrations: [tailwind()],
   adapter: node({
     mode: 'standalone'

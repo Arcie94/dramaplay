@@ -1,0 +1,533 @@
+---
+import Layout from "../../layouts/Layout.astro";
+
+const { id } = Astro.params;
+if (!id) return Astro.redirect("/404");
+
+// Fetch Detail
+// Fetch Detail
+let drama = null;
+let episodes = [];
+const API_URL = process.env.INTERNAL_API_URL || "https://dramaplay.online/api";
+
+const isMelolo = id.length > 15 && /^\d+$/.test(id); // Heuristic for Melolo Snowflake ID
+
+let resStatus = 0;
+let resText = "";
+
+try {
+  let res;
+  if (isMelolo) {
+    res = await fetch(`${API_URL}/melolo/detail/${id}`);
+  } else {
+    res = await fetch(`${API_URL}/detail?bookId=${id}`);
+  }
+
+  resStatus = res.status;
+  if (res.ok) {
+    const json = await res.json();
+    if (json.status === "success") {
+      drama = json.drama || json; // Melolo returns wrapped drama object, Standard returns direct or wrapped? logic below handles standard
+      if (json.source === "melolo") {
+        drama = json.drama;
+        episodes = json.episodes || [];
+      } else {
+        // Standard API handling (assuming it returns flat object or similar)
+        drama = json;
+        episodes = json.episodes || [];
+      }
+    } else {
+      resText = JSON.stringify(json);
+    }
+  } else {
+    try {
+      resText = await res.text();
+    } catch (e) {}
+  }
+} catch (e) {
+  console.error("Detail Fetch Error:", e);
+  resText = e.message;
+}
+
+if (!drama || !drama.judul) {
+  console.error("Drama not found or empty:", drama);
+  // DEBUG MODE: Show error on page instead of 404
+  return new Response(
+    `
+      <html>
+        <body style="background: #111; color: white; padding: 2rem; font-family: monospace;">
+          <h1>Debug: Detail Fetch Failed</h1>
+          <p>ID: ${id}</p>
+          <p>Is Melolo: ${isMelolo}</p>
+          <p>API_URL: ${API_URL}</p>
+          <p>Fetch URL: ${isMelolo ? `${API_URL}/melolo/detail/${id}` : `${API_URL}/detail?bookId=${id}`}</p>
+          <p>HTTP Status: ${resStatus}</p>
+          <p>Error Text: ${resText}</p>
+          <p>Drama Object: ${JSON.stringify(drama, null, 2)}</p>
+          <p>Episodes Count: ${episodes.length}</p>
+          <hr/>
+          <p>If you see this, please take a screenshot and send it to the developer.</p>
+        </body>
+      </html>
+    `,
+    {
+      headers: { "Content-Type": "text/html" },
+    }
+  );
+  // return Astro.redirect("/404");
+}
+
+// Fetch Settings (Logo)
+let siteLogo = "/favicon.png";
+try {
+  const settingsRes = await fetch(`${API_URL}/settings?t=${Date.now()}`);
+  if (settingsRes.ok) {
+    const settingsData = await settingsRes.json();
+    if (settingsData.site_logo) {
+      siteLogo = settingsData.site_logo;
+    }
+  }
+} catch (e) {
+  console.error("Error fetching settings:", e);
+}
+
+const schema = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "TVSeries",
+  name: drama.judul,
+  description: drama.deskripsi,
+  image: drama.cover,
+  numberOfEpisodes: episodes.length,
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: "4.8",
+    ratingCount: drama.likes || 100,
+  },
+});
+---
+
+<Layout title={`${drama.judul} - DramaPlay`} image={drama.cover}>
+  <!-- Top Nav with Back Button and Transparent bg -->
+  <nav
+    class="fixed top-0 z-30 flex w-full items-center justify-between p-4 bg-gradient-to-b from-black/80 to-transparent"
+  >
+    <a
+      href="/"
+      class="rounded-full bg-black/40 p-2 text-white backdrop-blur-md"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="2.5"
+        stroke="currentColor"
+        class="h-6 w-6"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M15.75 19.5L8.25 12l7.5-7.5"></path>
+      </svg>
+    </a>
+    <div class="flex gap-4">
+      <button
+        id="share-btn"
+        class="rounded-full bg-black/40 p-2 text-white backdrop-blur-md hover:bg-black/60 transition-colors"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke="currentColor"
+          class="w-6 h-6"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z"
+          ></path>
+        </svg>
+      </button>
+    </div>
+  </nav>
+</Layout>
+
+<!-- JSON-LD -->
+<script type="application/ld+json" set:html={schema} />
+
+<div class="relative w-full">
+  <!-- Background Cover Blurry -->
+  <div class="absolute inset-0 h-[50vh] overflow-hidden">
+    <img
+      src={drama.cover}
+      class="h-full w-full object-cover blur-xl opacity-50"
+    />
+    <div
+      class="absolute inset-0 bg-gradient-to-b from-transparent via-zinc-950/80 to-zinc-950"
+    >
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="relative z-10 px-4 pt-24 pb-10">
+    <div class="flex gap-4 mb-6">
+      <!-- Cover Image -->
+      <img
+        src={drama.cover}
+        class="w-32 rounded-lg shadow-2xl aspect-[3/4] object-cover"
+      />
+
+      <!-- Info -->
+      <div class="flex-1 flex flex-col justify-end pb-2">
+        <h1 class="text-2xl font-bold text-white leading-tight mb-2">
+          {drama.judul}
+        </h1>
+        <div class="flex items-center gap-2 text-xs text-zinc-400 mb-4">
+          <span class="px-2 py-0.5 border border-zinc-700 rounded text-zinc-300"
+            >Drama</span
+          >
+          <span>{drama.likes} Likes</span>
+          <span>•</span>
+          <span>{drama.total_episode}</span>
+        </div>
+
+        <div class="flex gap-2 w-full">
+          <a
+            id="watch-btn"
+            href={`/watch/${id}/1`}
+            class="flex-1 bg-red-600 text-white font-bold py-3 rounded-full flex items-center justify-center gap-2 shadow-lg shadow-red-900/40 active:scale-95 transition-transform"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              class="w-5 h-5"
+            >
+              <path d="M8 5v14l11-7z"></path>
+            </svg>
+            <span id="watch-text">Watch Now</span>
+          </a>
+          <button
+            id="mylist-btn"
+            class="px-4 bg-zinc-800 text-white rounded-full flex items-center justify-center gap-2 hover:bg-zinc-700 active:scale-95 transition-all"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              class="w-5 h-5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"
+              ></path>
+            </svg>
+            My List
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div class="mb-8">
+      <h3 class="font-bold text-white mb-2">Synopsis</h3>
+      <p
+        class="text-sm text-zinc-400 leading-relaxed line-clamp-3 visited:line-clamp-none"
+      >
+        {drama.deskripsi}
+      </p>
+    </div>
+
+    <!-- Episodes Grid -->
+    <div>
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-bold text-white">Episodes</h3>
+        <span class="text-xs text-zinc-500">{episodes.length} Available</span>
+      </div>
+
+      <div class="grid grid-cols-5 gap-3">
+        {
+          episodes.map((ep: any) => (
+            <a
+              href={`/watch/${id}/${ep.episode_index + 1}`}
+              class="aspect-square bg-zinc-800 rounded-lg flex items-center justify-center text-zinc-300 font-medium hover:bg-zinc-700 active:bg-red-600 active:text-white transition-colors"
+            >
+              {ep.episode_index + 1}
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div
+  id="toast"
+  class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-white/90 text-black px-4 py-2 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-300 z-50 text-sm font-bold flex items-center gap-2"
+>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke-width="2"
+    stroke="currentColor"
+    class="w-4 h-4 text-green-600"
+  >
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      d="M4.5 12.75l6 6 9-13.5"></path>
+  </svg>
+  <span>Link Copied!</span>
+</div>
+
+<script
+  define:vars={{
+    bookId: id,
+    dramaTitle: drama.judul,
+    dramaCover: drama.cover,
+    dramaEpisodes: drama.total_episode,
+  }}
+>
+  const API_URL = "/api";
+  document.addEventListener("DOMContentLoaded", () => {
+    // History / Continue Watching Logic
+    const initContinueWatching = async () => {
+      const watchBtn = document.getElementById("watch-btn");
+      const watchText = document.getElementById("watch-text");
+      if (!watchBtn || !watchText) return;
+
+      const currentUserStr = localStorage.getItem("user");
+      if (!currentUserStr) return;
+
+      try {
+        const user = JSON.parse(currentUserStr);
+        if (!user.id) return;
+
+        // Fetch History
+        const res = await fetch(
+          `${API_URL}/history/check?userId=${user.id}&bookId=${bookId}&_t=${Date.now()}`
+        );
+        if (res.ok) {
+          const json = await res.json();
+          if (json.exists && typeof json.episodeIdx === "number") {
+            const nextEp = json.episodeIdx + 1; // 0-based to 1-based
+            watchBtn.href = `/watch/${bookId}/${nextEp}`;
+            watchText.innerText = `Continue Ep ${nextEp}`;
+
+            // Optional: Visual Cue (e.g. icon change to Play/Resume) is already Play icon.
+          }
+        }
+      } catch (e) {
+        console.error("Failed to check history", e);
+      }
+    };
+    initContinueWatching();
+
+    // Shared Toast Logic
+    const toast = document.getElementById("toast");
+    function showToast(msg) {
+      if (toast) {
+        const span = toast.querySelector("span");
+        if (span) span.innerText = msg;
+        toast.classList.remove("opacity-0");
+        setTimeout(() => {
+          toast.classList.add("opacity-0");
+        }, 2000);
+      }
+    }
+
+    // Share Button
+    const shareBtn = document.getElementById("share-btn");
+    if (shareBtn) {
+      shareBtn.addEventListener("click", async () => {
+        const shareData = {
+          title: document.title,
+          text: "Check out this drama on DramaPlay!",
+          url: window.location.href,
+        };
+        try {
+          if (navigator.share) {
+            await navigator.share(shareData);
+          } else {
+            await navigator.clipboard.writeText(window.location.href);
+            showToast("Link Copied!");
+          }
+        } catch (err) {
+          console.error("Share failed:", err);
+        }
+      });
+    }
+
+    // My List Logic
+    const myListBtn = document.getElementById("mylist-btn");
+    if (myListBtn) {
+      const STORAGE_KEY = "drama_mylist";
+
+      // Helper: Toggle Button UI
+      const toggleUI = (isAdded) => {
+        if (isAdded) {
+          myListBtn.setAttribute("data-added", "true");
+          myListBtn.innerText = "Added";
+          myListBtn.classList.remove("bg-zinc-800", "text-white");
+          myListBtn.classList.add("bg-green-600", "text-white");
+        } else {
+          myListBtn.setAttribute("data-added", "false");
+          myListBtn.innerHTML = `
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                      </svg>
+                      My List
+                   `;
+          myListBtn.classList.remove("bg-green-600");
+          myListBtn.classList.add("bg-zinc-800", "text-white");
+        }
+      };
+
+      const checkStatus = async () => {
+        const currentUserStr = localStorage.getItem("user");
+        let currentUser = null;
+        try {
+          if (currentUserStr) currentUser = JSON.parse(currentUserStr);
+        } catch (e) {}
+
+        if (currentUser && currentUser.id) {
+          // API Check
+          try {
+            const res = await fetch(
+              `${API_URL}/mylist/check/${bookId}?userId=${currentUser.id}&_t=${Date.now()}`
+            );
+            const json = await res.json();
+            toggleUI(json.exists);
+          } catch (e) {
+            console.error("Check status failed", e);
+          }
+        } else {
+          // LocalStorage Check
+          const list = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+          const exists = list.some((d) => d.id === bookId);
+          toggleUI(exists);
+        }
+      };
+
+      // Initial Check
+      checkStatus();
+
+      // Reliable Sync on Page Show
+      window.addEventListener("pageshow", () => {
+        checkStatus();
+      });
+
+      // Sync on Tab Focus
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") checkStatus();
+      });
+
+      // Realtime Sync Channel
+      const syncChannel = new BroadcastChannel("dramaplay_sync");
+      syncChannel.onmessage = (event) => {
+        if (
+          event.data.type === "MYLIST_UPDATE" &&
+          event.data.bookId === bookId
+        ) {
+          toggleUI(event.data.status);
+        }
+      };
+
+      // Click Handler
+      myListBtn.addEventListener("click", async (e) => {
+        e.preventDefault(); // Prevent accidental form submit or link behavior
+
+        const currentUserStr = localStorage.getItem("user");
+        let currentUser = null;
+        try {
+          if (currentUserStr) currentUser = JSON.parse(currentUserStr);
+        } catch (e) {}
+
+        const isAdded = myListBtn.getAttribute("data-added") === "true";
+
+        if (currentUser && currentUser.id) {
+          // Logged In Action
+          if (isAdded) {
+            // Remove
+            try {
+              const res = await fetch(
+                `${API_URL}/mylist/${bookId}?userId=${currentUser.id}`,
+                { method: "DELETE" }
+              );
+              if (res.ok) {
+                toggleUI(false);
+                showToast("Removed from List");
+                syncChannel.postMessage({
+                  type: "MYLIST_UPDATE",
+                  bookId,
+                  status: false,
+                });
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          } else {
+            // Add
+            try {
+              const res = await fetch(`${API_URL}/mylist`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  userId: currentUser.id,
+                  bookId: bookId,
+                }),
+              });
+              if (res.ok) {
+                toggleUI(true);
+                showToast("Added to My List");
+                syncChannel.postMessage({
+                  type: "MYLIST_UPDATE",
+                  bookId,
+                  status: true,
+                });
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          }
+        } else {
+          // Guest Action
+          let list = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+          const index = list.findIndex((d) => d.id === bookId);
+
+          if (index === -1) {
+            list.push({
+              id: bookId,
+              title: dramaTitle,
+              cover: dramaCover,
+              episodes: dramaEpisodes,
+            });
+            toggleUI(true);
+            showToast("Added to My List");
+            syncChannel.postMessage({
+              type: "MYLIST_UPDATE",
+              bookId,
+              status: true,
+            });
+          } else {
+            list.splice(index, 1);
+            toggleUI(false);
+            showToast("Removed from List");
+            syncChannel.postMessage({
+              type: "MYLIST_UPDATE",
+              bookId,
+              status: false,
+            });
+          }
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+        }
+      });
+    }
+  });
+</script>

@@ -1,60 +1,86 @@
 ---
 interface Props {
-    id: string;
-    title: string;
-    cover: string;
-    episodes: string;
-    rank?: number;
+  id: string;
+  title: string;
+  cover: string;
+  episodes: string;
+  rank?: number;
 }
 
 const { id, title, cover, episodes, rank } = Astro.props;
+
+// Providers Logic
+let provider = "Dramabox";
+let providerColor = "bg-red-600";
+let providerLabel = "DB";
+
+if (id.startsWith("melolo:")) {
+  provider = "Melolo";
+  providerColor = "bg-purple-600";
+  providerLabel = "MELOLO";
+} else if (id.startsWith("netshort:")) {
+  provider = "Netshort";
+  providerColor = "bg-blue-600";
+  providerLabel = "NETSHORT";
+} else if (id.startsWith("dramabox:")) {
+  provider = "Dramabox";
+  providerColor = "bg-red-600";
+  providerLabel = "DRAMABOX";
+}
 ---
 
 <a
-    href={`/detail/${id}`}
-    class="group relative block aspect-[3/4] overflow-hidden rounded-lg bg-gray-900 transition-transform active:scale-95"
+  href={`/detail/${id}`}
+  class="group relative block aspect-[3/4] overflow-hidden rounded-lg bg-gray-900 transition-transform active:scale-95"
 >
-    <img
-        src={cover}
-        alt={title}
-        class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-        loading="lazy"
-        onerror="this.closest('a').remove()"
-    />
-    <div
-        class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-100"
-    >
-    </div>
+  <!-- Provider Badge (Top Left) -->
+  <div
+    class={`absolute top-2 left-2 z-10 px-1.5 py-0.5 rounded text-[9px] font-bold text-white shadow-md ${providerColor} border border-white/10`}
+  >
+    {providerLabel}
+  </div>
 
-    <!-- Rank Badge -->
-    {
-        rank && (
-            <div
-                class={`absolute top-0 right-0 z-10 flex h-8 w-8 items-center justify-center rounded-bl-lg font-bold text-white shadow-lg ${
-                    rank === 1
-                        ? "bg-yellow-500 text-yellow-950"
-                        : rank === 2
-                          ? "bg-zinc-300 text-zinc-900"
-                          : rank === 3
-                            ? "bg-orange-600 text-white"
-                            : "bg-black/60 backdrop-blur-md border md:border-t-0 md:border-r-0 border-white/10"
-                }`}
-            >
-                {rank}
-            </div>
-        )
-    }
+  <img
+    src={cover}
+    alt={title}
+    class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+    loading="lazy"
+    onerror="const p=this.closest('.snap-start');if(p){p.remove()}else{this.closest('a').remove()}"
+  />
+  <div
+    class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-100"
+  >
+  </div>
 
-    <div
-        class="absolute bottom-0 left-0 w-full p-2 md:p-3 bg-gradient-to-t from-black via-black/60 to-transparent"
+  <!-- Rank Badge -->
+  {
+    rank && (
+      <div
+        class={`absolute top-0 right-0 z-10 flex h-8 w-8 items-center justify-center rounded-bl-lg font-bold text-white shadow-lg ${
+          rank === 1
+            ? "bg-yellow-500 text-yellow-950"
+            : rank === 2
+              ? "bg-zinc-300 text-zinc-900"
+              : rank === 3
+                ? "bg-orange-600 text-white"
+                : "bg-black/60 backdrop-blur-md border md:border-t-0 md:border-r-0 border-white/10"
+        }`}
+      >
+        {rank}
+      </div>
+    )
+  }
+
+  <div
+    class="absolute bottom-0 left-0 w-full p-2 md:p-3 bg-gradient-to-t from-black via-black/60 to-transparent"
+  >
+    <p class="text-[10px] md:text-xs font-medium text-red-500 mb-0.5">
+      {episodes}
+    </p>
+    <h3
+      class="line-clamp-2 text-xs md:text-sm font-bold text-white leading-tight"
     >
-        <p class="text-[10px] md:text-xs font-medium text-red-500 mb-0.5">
-            {episodes}
-        </p>
-        <h3
-            class="line-clamp-2 text-xs md:text-sm font-bold text-white leading-tight"
-        >
-            {title}
-        </h3>
-    </div>
+      {title}
+    </h3>
+  </div>
 </a>

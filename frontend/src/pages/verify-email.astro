@@ -1,0 +1,141 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Verify Email - DramaPlay">
+  <div
+    class="min-h-screen flex items-center justify-center bg-[#141414] text-white px-4"
+  >
+    <div
+      class="w-full max-w-md bg-[#1a1a1a] p-8 rounded-xl shadow-2xl border border-white/10 text-center"
+    >
+      <!-- Loading State -->
+      <div id="loading-state" class="flex flex-col items-center">
+        <div
+          class="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-4"
+        >
+        </div>
+        <h1 class="text-2xl font-bold mb-2">Verifying...</h1>
+        <p class="text-zinc-400">Please wait while we verify your email.</p>
+      </div>
+
+      <!-- Success State -->
+      <div id="success-state" class="hidden flex flex-col items-center">
+        <div
+          class="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mb-4"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-8 w-8 text-green-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+        <h1 class="text-2xl font-bold mb-2 text-green-500">Verified!</h1>
+        <p class="text-zinc-400 mb-6">
+          Your email has been successfully verified. You can now log in.
+        </p>
+        <button
+          onclick="window.location.href='/?login=true'"
+          class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg transition-colors"
+        >
+          Go to Login
+        </button>
+      </div>
+
+      <!-- Error State -->
+      <div id="error-state" class="hidden flex flex-col items-center">
+        <div
+          class="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-4"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-8 w-8 text-red-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </div>
+        <h1 class="text-2xl font-bold mb-2 text-red-500">
+          Verification Failed
+        </h1>
+        <p id="error-text" class="text-zinc-400 mb-6">
+          The token is invalid or has expired.
+        </p>
+        <button
+          onclick="window.location.href='/'"
+          class="w-full bg-[#2d2d2d] hover:bg-[#3d3d3d] text-white font-bold py-3 rounded-lg transition-colors"
+        >
+          Back to Home
+        </button>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // Dynamic API Base
+  const isDev =
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "10.0.2.2";
+  const API_BASE = isDev
+    ? "http://localhost:3000/api"
+    : "https://dramaplay.online/api";
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get("token");
+
+  const loadingState = document.getElementById("loading-state");
+  const successState = document.getElementById("success-state");
+  const errorState = document.getElementById("error-state");
+  const errorText = document.getElementById("error-text");
+
+  async function verify() {
+    if (!token) {
+      showError("No token provided.");
+      return;
+    }
+
+    try {
+      // Corrected URL construction to match Backend Route
+      const res = await fetch(`${API_BASE}/auth/verify?token=${token}`);
+      const json = await res.json();
+
+      if (json.status === "success") {
+        showSuccess();
+      } else {
+        showError(json.message || "Verification failed");
+      }
+    } catch (err) {
+      console.error(err);
+      showError("Network error occurred.");
+    }
+  }
+
+  function showSuccess() {
+    loadingState?.classList.add("hidden");
+    successState?.classList.remove("hidden");
+  }
+
+  function showError(msg: string) {
+    loadingState?.classList.add("hidden");
+    errorState?.classList.remove("hidden");
+    if (errorText) errorText.innerText = msg;
+  }
+
+  // Run immediately
+  verify();
+</script>

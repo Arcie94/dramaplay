@@ -1,6 +1,8 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import DramaCard from "../components/DramaCard.astro";
+import BottomNav from "../components/BottomNav.astro";
+import LoginLock from "../components/LoginLock.astro";
 
 const q = Astro.url.searchParams.get("q") || "";
 const page = parseInt(Astro.url.searchParams.get("page") || "1");
@@ -31,6 +33,7 @@ try {
     const json = await res.json();
     dramas = json.data || [];
     total = json.total || 0;
+    title = `Browse Library`;
   }
 } catch (e) {
   console.error("Error fetching data:", e);
@@ -48,6 +51,8 @@ const paginationLink = (p: number) => {
 
 <Layout title={title}>
   <main class="pb-20 min-h-screen bg-zinc-950">
+    <!-- Global Login Gate (Client-side check) -->
+    <LoginLock />
     <!-- Header -->
     <header
       class="sticky top-0 z-30 flex items-center gap-3 bg-zinc-950/90 px-4 py-3 backdrop-blur-md border-b border-white/5"
@@ -55,6 +60,7 @@ const paginationLink = (p: number) => {
       <a
         href="/"
         class="p-2 -ml-2 text-zinc-400 hover:text-white transition-colors"
+        aria-label="Back to Home"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -83,6 +89,7 @@ const paginationLink = (p: number) => {
         <button
           type="submit"
           class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
+          aria-label="Search"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -137,30 +144,26 @@ const paginationLink = (p: number) => {
         )
       }
     </section>
-
-    <!-- Pagination (Only for Browse mode) -->
-    {
-      !q && (
-        <div class="flex justify-center items-center gap-4 py-8">
-          {hasPrevPage && (
-            <a
-              href={paginationLink(page - 1)}
-              class="px-4 py-2 bg-zinc-800 rounded-full text-sm font-semibold text-white hover:bg-zinc-700"
-            >
-              Previous
-            </a>
-          )}
-          <span class="text-zinc-500 text-sm">Page {page}</span>
-          {hasNextPage && (
-            <a
-              href={paginationLink(page + 1)}
-              class="px-4 py-2 bg-red-600 rounded-full text-sm font-semibold text-white shadow-lg shadow-red-900/20 hover:bg-red-500"
-            >
-              Next Page
-            </a>
-          )}
-        </div>
-      )
-    }
   </main>
+
+  <!-- Bottom Nav -->
+  <BottomNav />
 </Layout>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const loginBtn = document.getElementById("login-nav-btn");
+    if (loginBtn) {
+      loginBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        if ((window as any).showLoginPopup) {
+          (window as any).showLoginPopup();
+        } else {
+          // Fallback
+          const overlay = document.getElementById("login-overlay");
+          if (overlay) overlay.style.display = "flex";
+        }
+      });
+    }
+  });
+</script>

@@ -8,6 +8,8 @@ interface Props {
   id?: string; // Book ID for My List
   dramaTitle?: string; // Clean Title for My List
   totalEpisodes?: any; // Total Episodes for My List
+  isHorizontal?: boolean; // For Movies/Landscape content
+  isIframe?: boolean; // For Embeds
 }
 
 const {
@@ -19,13 +21,15 @@ const {
   id,
   dramaTitle,
   totalEpisodes,
+  isHorizontal = false,
+  isIframe = false,
 } = Astro.props;
 ---
 
 <div
-  class="relative w-full h-[100dvh] bg-black overflow-hidden flex justify-center"
+  class="relative w-full h-[100dvh] bg-black overflow-hidden flex justify-center items-center"
 >
-  <!-- Desktop Backdrop (Universal for pillarbox/letterbox areas) -->
+  <!-- Desktop Backdrop (Universal) -->
   <div class="absolute inset-0 z-0">
     <img
       src={coverUrl}
@@ -37,41 +41,272 @@ const {
 
   <!-- Main Player Container -->
   <!-- 
-        Universal Locked Ratio: 
-        - Aspect Ratio: 9/16
-        - Max Height: 100vh (Height driven)
-        - Max Width: 100vw (Width driven)
-        - Object Fit: Contain (Ensures header/footer doesn't cut if screen is weird)
-        - Shadow/Ring for aesthetics on large screens
+        Logic: 
+        - Vertical: aspect-[9/16] (Shorts style)
+        - Horizontal: w-full max-w-5xl aspect-video (Movie style)
     -->
   <div
     id="video-container"
-    class="relative z-10 w-auto h-full max-w-full aspect-[9/16] max-h-[100dvh] bg-black overflow-hidden flex items-center justify-center shadow-2xl"
+    class={`relative z-10 w-full max-h-[100dvh] bg-black overflow-hidden flex items-center justify-center shadow-2xl ${
+      isHorizontal
+        ? "aspect-video max-w-6xl h-auto"
+        : "aspect-[9/16] h-full w-auto max-w-full"
+    }`}
   >
-    <!-- Video Element -->
-    <video
-      id="main-video"
-      src={videoUrl}
-      poster={coverUrl}
-      class="absolute top-0 left-0 w-full h-full object-cover"
-      playsinline
-      loop={false}
-      autoplay
-      webkit-playsinline
-      data-next-url={nextUrl}
-      data-prev-url={prevUrl}
-      data-book-id={id}
-      data-drama-title={dramaTitle}
-      data-total-episodes={totalEpisodes}
-      data-cover-url={coverUrl}></video>
+    {
+      isIframe ? (
+        /* IFRAME MODE (No Custom Controls) */
+        <iframe
+          src={videoUrl}
+          class="w-full h-full"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen
+        />
+      ) : (
+        /* VIDEO MODE (Custom Controls) */
+        <>
+          <video
+            id="main-video"
+            src={videoUrl}
+            poster={coverUrl}
+            class={`absolute top-0 left-0 w-full h-full ${isHorizontal ? "object-contain" : "object-cover"}`}
+            playsinline
+            loop={false}
+            autoplay
+            webkit-playsinline
+            data-next-url={nextUrl}
+            data-prev-url={prevUrl}
+            data-book-id={id}
+            data-drama-title={dramaTitle}
+            data-total-episodes={totalEpisodes}
+            data-cover-url={coverUrl}
+          />
 
-    <!-- Overlay Gradient (Top) -->
-    <div
-      class="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black/80 to-transparent pointer-events-none z-10"
-    >
-    </div>
+          {/* Overlay Gradient (Top) */}
+          <div class="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black/80 to-transparent pointer-events-none z-10" />
 
-    <!-- Top Controls (High Z-Index) -->
+          {/* Top Right Group (Volume/Fullscreen) */}
+          <div
+            class="absolute top-4 right-4 z-50 flex flex-col gap-3 transition-opacity duration-500"
+            id="top-right-controls"
+          >
+            {/* Volume Control Group */}
+            <div
+              id="volume-control"
+              class="flex flex-col items-center bg-black/50 hover:bg-black/70 backdrop-blur-md rounded-full p-2 transition-all duration-300 group"
+            >
+              <div class="h-0 w-8 overflow-hidden group-hover:h-24 transition-all duration-300 ease-out flex items-center justify-center">
+                <input
+                  type="range"
+                  id="volume-slider"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value="1"
+                  class="w-20 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer -rotate-90 origin-center accent-red-600 hover:accent-red-500"
+                />
+              </div>
+              <button
+                id="mute-btn"
+                class="p-1 text-white active:scale-90 transition-transform"
+              >
+                <svg
+                  id="icon-muted"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                  class="w-6 h-6 hidden"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"
+                  />
+                </svg>
+                <svg
+                  id="icon-unmuted"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                  class="w-6 h-6"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <button
+              id="fullscreen-btn"
+              class="p-3 bg-black/50 hover:bg-black/70 backdrop-blur-md rounded-full text-white active:scale-90 transition-transform flex items-center justify-center"
+            >
+              <svg
+                id="icon-maximize"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="w-6 h-6"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
+                />
+              </svg>
+              <svg
+                id="icon-minimize"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="w-6 h-6 hidden"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5M15 15l5.25 5.25"
+                />
+              </svg>
+            </button>
+          </div>
+
+          {/* Overlay Gradient (Bottom) */}
+          <div class="absolute bottom-0 left-0 w-full h-64 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none z-10" />
+
+          {/* Play/Pause Overlay */}
+          <div
+            id="play-overlay"
+            class="absolute inset-0 z-20 cursor-pointer bg-transparent"
+          />
+          <div
+            id="play-icon"
+            class="absolute inset-0 z-30 flex items-center justify-center pointer-events-none opacity-0 transition-opacity"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="white"
+              viewBox="0 0 24 24"
+              class="w-20 h-20 drop-shadow-lg"
+            >
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </div>
+
+          {/* Bottom Info & Controls */}
+          <div
+            id="bottom-controls"
+            class="absolute bottom-0 left-0 w-full p-6 z-50 flex flex-col gap-4 transition-opacity duration-500"
+          >
+            <h1 class="text-xl font-bold text-white drop-shadow-md">{title}</h1>
+
+            {/* Progress Bar */}
+            <div
+              id="progress-container"
+              class="w-full py-3 cursor-pointer group flex items-center touch-none"
+            >
+              <div class="w-full h-1 bg-white/30 rounded-full overflow-hidden group-hover:h-1.5 transition-all duration-200 pointer-events-none">
+                <div id="progress-bar" class="relative h-full bg-red-600 w-0">
+                  <div class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-3 h-3 bg-red-600 rounded-full shadow-md scale-0 group-hover:scale-110 transition-transform duration-200" />
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div class="flex items-center justify-between text-white">
+              <div class="flex gap-4">
+                <button
+                  id="mylist-btn"
+                  class="flex flex-col items-center gap-1 group"
+                >
+                  <svg
+                    id="icon-add"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="1.5"
+                    stroke="currentColor"
+                    class="w-8 h-8 group-active:scale-90 transition-transform"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"
+                    />
+                  </svg>
+                  <svg
+                    id="icon-check"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    class="w-8 h-8 text-red-500 hidden group-active:scale-90 transition-transform"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M6.32 2.577a49.255 49.255 0 0111.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 01-1.085.67L12 18.089l-7.165 3.583A.75.75 0 013.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                  <span id="mylist-text" class="text-xs">
+                    My List
+                  </span>
+                </button>
+                <button
+                  id="comment-btn"
+                  class="flex flex-col items-center gap-1 active:scale-95 transition-transform"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    class="w-8 h-8"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M4.804 21.644A6.707 6.707 0 006 21.75a6.721 6.721 0 003.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.608 2.75 6.257a1.606 1.606 0 01.32.964v2.423z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                  <span class="text-xs">Comment</span>
+                </button>
+              </div>
+
+              <div class="flex gap-2">
+                {prevUrl && (
+                  <a
+                    href={prevUrl}
+                    class="px-4 py-2 bg-white/20 rounded-full backdrop-blur-sm text-sm font-semibold"
+                  >
+                    Prev
+                  </a>
+                )}
+                {nextUrl && (
+                  <a
+                    id="next-btn"
+                    href={nextUrl}
+                    class="px-4 py-2 bg-red-600 rounded-full text-white text-sm font-semibold shadow-red-900/50 shadow-lg"
+                  >
+                    Next Ep
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      )
+    }
+
+    {/* Always show Top Left Back Button */}
     <div
       id="top-left-controls"
       class="absolute top-4 left-4 z-50 transition-opacity duration-500"
@@ -95,355 +330,122 @@ const {
         </svg>
       </a>
     </div>
+  </div>
 
-    <!-- Top Right Group (High Z-Index) -->
+  <!-- Comments Bottom Sheet -->
+  <div
+    id="comments-sheet"
+    class="absolute inset-x-0 bottom-0 z-50 bg-[#1a1a1a] rounded-t-2xl transform translate-y-full transition-transform duration-300 ease-out h-[70vh] flex flex-col shadow-2xl border-t border-white/10"
+  >
+    <!-- Handle Bar -->
+    <div class="w-full flex justify-center pt-3 pb-1" id="comments-handle">
+      <div class="w-12 h-1.5 bg-zinc-700 rounded-full"></div>
+    </div>
+
+    <!-- Header -->
     <div
-      class="absolute top-4 right-4 z-50 flex flex-col gap-3 transition-opacity duration-500"
-      id="top-right-controls"
+      class="px-4 py-2 flex items-center justify-between border-b border-white/5"
     >
-      <!-- Volume Control Group -->
-      <div
-        id="volume-control"
-        class="flex flex-col items-center bg-black/50 hover:bg-black/70 backdrop-blur-md rounded-full p-2 transition-all duration-300 group"
-      >
-        <!-- Vertical Slider Container (Collapses to 0 height) -->
-        <div
-          class="h-0 w-8 overflow-hidden group-hover:h-24 transition-all duration-300 ease-out flex items-center justify-center"
+      <h3 class="text-white font-bold text-lg">
+        Comments <span
+          id="comment-count"
+          class="text-zinc-500 text-sm font-normal">(0)</span
         >
-          <input
-            type="range"
-            id="volume-slider"
-            min="0"
-            max="1"
-            step="0.1"
-            value="1"
-            class="w-20 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer -rotate-90 origin-center accent-red-600 hover:accent-red-500"
-          />
-        </div>
-
-        <!-- Mute Button -->
-        <button
-          id="mute-btn"
-          class="p-1 text-white active:scale-90 transition-transform"
-        >
-          <!-- Muted Icon -->
-          <svg
-            id="icon-muted"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            class="w-6 h-6 hidden"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"
-            ></path>
-          </svg>
-          <!-- Unmuted Icon -->
-          <svg
-            id="icon-unmuted"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            class="w-6 h-6"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z"
-            ></path>
-          </svg>
-        </button>
-      </div>
-
-      <!-- Fullscreen Button -->
-      <button
-        id="fullscreen-btn"
-        class="p-3 bg-black/50 hover:bg-black/70 backdrop-blur-md rounded-full text-white active:scale-90 transition-transform flex items-center justify-center"
-      >
+      </h3>
+      <button id="close-comments" class="p-2 text-zinc-400 hover:text-white">
         <svg
-          id="icon-maximize"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
-          stroke-width="1.5"
+          stroke-width="2"
           stroke="currentColor"
           class="w-6 h-6"
         >
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
-            d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
-          ></path>
-        </svg>
-        <svg
-          id="icon-minimize"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke-width="1.5"
-          stroke="currentColor"
-          class="w-6 h-6 hidden"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5M15 15l5.25 5.25"
-          ></path>
+            d="M6 18L18 6M6 6l12 12"></path>
         </svg>
       </button>
     </div>
 
-    <!-- Overlay Gradient (Bottom - Low Z) -->
+    <!-- Comments List -->
     <div
-      class="absolute bottom-0 left-0 w-full h-64 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none z-10"
+      id="comments-list"
+      class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar"
     >
+      <!-- Dynamic Content -->
     </div>
 
-    <!-- Play/Pause Overlay Hitbox (Middle Z) -->
-    <div
-      id="play-overlay"
-      class="absolute inset-0 z-20 cursor-pointer bg-transparent"
-    >
-    </div>
-    <div
-      id="play-icon"
-      class="absolute inset-0 z-30 flex items-center justify-center pointer-events-none opacity-0 transition-opacity"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="white"
-        viewBox="0 0 24 24"
-        class="w-20 h-20 drop-shadow-lg"
-      >
-        <path d="M8 5v14l11-7z"></path>
-      </svg>
-    </div>
-
-    <!-- Bottom Info & Controls -->
-    <div
-      id="bottom-controls"
-      class="absolute bottom-0 left-0 w-full p-6 z-50 flex flex-col gap-4 transition-opacity duration-500"
-    >
-      <!-- Text Info -->
-      <h1 class="text-xl font-bold text-white drop-shadow-md">{title}</h1>
-
-      <!-- Progress Bar (Interactive) -->
-      <div
-        id="progress-container"
-        class="w-full py-3 cursor-pointer group flex items-center touch-none"
-      >
-        <!-- Track -->
-        <div
-          class="w-full h-1 bg-white/30 rounded-full overflow-hidden group-hover:h-1.5 transition-all duration-200 pointer-events-none"
+    <!-- Input Area -->
+    <div class="p-4 border-t border-white/10 bg-[#1a1a1a] pb-safe">
+      <form id="comment-form" class="flex gap-3">
+        <input
+          type="text"
+          id="comment-input"
+          placeholder="Add a comment..."
+          class="flex-1 bg-zinc-800 text-white rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-red-600 border border-transparent placeholder-zinc-500"
+        />
+        <button
+          type="submit"
+          class="bg-red-600 text-white p-2.5 rounded-full hover:bg-red-700 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <div id="progress-bar" class="h-full bg-red-600 w-0"></div>
-        </div>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="flex items-center justify-between text-white">
-        <div class="flex gap-4">
-          <!-- My List Toggle -->
-          <button
-            id="mylist-btn"
-            class="flex flex-col items-center gap-1 group"
-          >
-            <svg
-              id="icon-add"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-              class="w-8 h-8 group-active:scale-90 transition-transform"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"
-              ></path>
-            </svg>
-            <svg
-              id="icon-check"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              class="w-8 h-8 text-red-500 hidden group-active:scale-90 transition-transform"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M6.32 2.577a49.255 49.255 0 0111.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 01-1.085.67L12 18.089l-7.165 3.583A.75.75 0 013.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93z"
-                clip-rule="evenodd"></path>
-            </svg>
-            <span id="mylist-text" class="text-xs">My List</span>
-          </button>
-          <button
-            id="comment-btn"
-            class="flex flex-col items-center gap-1 active:scale-95 transition-transform"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              class="w-8 h-8"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M4.804 21.644A6.707 6.707 0 006 21.75a6.721 6.721 0 003.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.608 2.75 6.257a1.606 1.606 0 01.32.964v2.423z"
-                clip-rule="evenodd"></path>
-            </svg>
-            <span class="text-xs">Comment</span>
-          </button>
-        </div>
-
-        <!-- Navigation -->
-        <div class="flex gap-2">
-          {
-            prevUrl && (
-              <a
-                href={prevUrl}
-                class="px-4 py-2 bg-white/20 rounded-full backdrop-blur-sm text-sm font-semibold"
-              >
-                Prev
-              </a>
-            )
-          }
-          {
-            nextUrl && (
-              <a
-                id="next-btn"
-                href={nextUrl}
-                class="px-4 py-2 bg-red-600 rounded-full text-white text-sm font-semibold shadow-red-900/50 shadow-lg"
-              >
-                Next Ep
-              </a>
-            )
-          }
-        </div>
-      </div>
-    </div>
-
-    <!-- Comments Bottom Sheet -->
-    <div
-      id="comments-sheet"
-      class="absolute inset-x-0 bottom-0 z-50 bg-[#1a1a1a] rounded-t-2xl transform translate-y-full transition-transform duration-300 ease-out h-[70vh] flex flex-col shadow-2xl border-t border-white/10"
-    >
-      <!-- Handle Bar -->
-      <div class="w-full flex justify-center pt-3 pb-1" id="comments-handle">
-        <div class="w-12 h-1.5 bg-zinc-700 rounded-full"></div>
-      </div>
-
-      <!-- Header -->
-      <div
-        class="px-4 py-2 flex items-center justify-between border-b border-white/5"
-      >
-        <h3 class="text-white font-bold text-lg">
-          Comments <span
-            id="comment-count"
-            class="text-zinc-500 text-sm font-normal">(0)</span
-          >
-        </h3>
-        <button id="close-comments" class="p-2 text-zinc-400 hover:text-white">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            fill="none"
             viewBox="0 0 24 24"
-            stroke-width="2"
-            stroke="currentColor"
-            class="w-6 h-6"
+            fill="currentColor"
+            class="w-5 h-5"
           >
             <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M6 18L18 6M6 6l12 12"></path>
+              d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"
+            ></path>
           </svg>
         </button>
-      </div>
+      </form>
+    </div>
+  </div>
+  <!-- Comments Overlay Backdrop -->
+  <div
+    id="comments-backdrop"
+    class="absolute inset-0 z-40 bg-black/50 opacity-0 pointer-events-none transition-opacity duration-300 backdrop-blur-sm"
+  >
+  </div>
+</div>
 
-      <!-- Comments List -->
-      <div
-        id="comments-list"
-        class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar"
+<!-- Delete Confirmation Modal (Professional Style) -->
+<div
+  id="delete-confirm-modal"
+  class="hidden absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+>
+  <div
+    class="bg-zinc-900 border border-zinc-700 p-6 rounded-2xl w-[90%] max-w-sm text-center shadow-xl transform scale-100"
+  >
+    <h3 class="text-white font-bold text-lg mb-2">Delete Comment?</h3>
+    <p class="text-zinc-400 text-sm mb-6">
+      Are you sure you want to delete this comment? This action cannot be
+      undone.
+    </p>
+    <div class="grid grid-cols-2 gap-3">
+      <button
+        id="btn-cancel-delete"
+        class="px-4 py-3 rounded-xl bg-zinc-800 text-white font-semibold hover:bg-zinc-700 transition-colors"
+        >Cancel</button
       >
-        <!-- Dynamic Content -->
-      </div>
-
-      <!-- Input Area -->
-      <div class="p-4 border-t border-white/10 bg-[#1a1a1a] pb-safe">
-        <form id="comment-form" class="flex gap-3">
-          <input
-            type="text"
-            id="comment-input"
-            placeholder="Add a comment..."
-            class="flex-1 bg-zinc-800 text-white rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-red-600 border border-transparent placeholder-zinc-500"
-          />
-          <button
-            type="submit"
-            class="bg-red-600 text-white p-2.5 rounded-full hover:bg-red-700 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              class="w-5 h-5"
-            >
-              <path
-                d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z"
-              ></path>
-            </svg>
-          </button>
-        </form>
-      </div>
-    </div>
-    <!-- Comments Overlay Backdrop -->
-    <div
-      id="comments-backdrop"
-      class="absolute inset-0 z-40 bg-black/50 opacity-0 pointer-events-none transition-opacity duration-300 backdrop-blur-sm"
-    >
+      <button
+        id="btn-confirm-delete"
+        class="px-4 py-3 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors"
+        >Delete</button
+      >
     </div>
   </div>
+</div>
 
-  <!-- Delete Confirmation Modal (Professional Style) -->
-  <div
-    id="delete-confirm-modal"
-    class="hidden absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
-  >
-    <div
-      class="bg-zinc-900 border border-zinc-700 p-6 rounded-2xl w-[90%] max-w-sm text-center shadow-xl transform scale-100"
-    >
-      <h3 class="text-white font-bold text-lg mb-2">Delete Comment?</h3>
-      <p class="text-zinc-400 text-sm mb-6">
-        Are you sure you want to delete this comment? This action cannot be
-        undone.
-      </p>
-      <div class="grid grid-cols-2 gap-3">
-        <button
-          id="btn-cancel-delete"
-          class="px-4 py-3 rounded-xl bg-zinc-800 text-white font-semibold hover:bg-zinc-700 transition-colors"
-          >Cancel</button
-        >
-        <button
-          id="btn-confirm-delete"
-          class="px-4 py-3 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors"
-          >Delete</button
-        >
-      </div>
-    </div>
-  </div>
-
-  <!-- Custom Toast -->
-  <div
-    id="custom-toast"
-    class="absolute top-20 left-1/2 -translate-x-1/2 z-[60] px-4 py-2 bg-zinc-800 text-white text-sm font-medium rounded-full shadow-lg border border-zinc-700 opacity-0 pointer-events-none transition-all duration-300 transform translate-y-[-10px]"
-  >
-    <span id="toast-message">Notification</span>
-  </div>
+<!-- Custom Toast -->
+<div
+  id="custom-toast"
+  class="absolute top-20 left-1/2 -translate-x-1/2 z-[60] px-4 py-2 bg-zinc-800 text-white text-sm font-medium rounded-full shadow-lg border border-zinc-700 opacity-0 pointer-events-none transition-all duration-300 transform translate-y-[-10px]"
+>
+  <span id="toast-message">Notification</span>
 </div>
 
 <style>
@@ -568,17 +570,8 @@ const {
     updateVolumeUI();
 
     // Play/Pause Interactions
-    if (playOverlay) {
-      playOverlay.addEventListener("click", () => {
-        if (video.paused) {
-          video.play();
-          playIcon!.style.opacity = "0";
-        } else {
-          video.pause();
-          playIcon!.style.opacity = "1";
-        }
-      });
-    }
+    // Play/Pause Interactons (Moved to robust handler below)
+    // Duplicate removed
 
     // Mute Toggle
     if (muteBtn) {
@@ -684,10 +677,30 @@ const {
       volumeSlider.addEventListener("click", (e) => e.stopPropagation());
     }
 
-    // Controls Visibility Auto-Hide
+    // --- Controls Visibility (Smart Auto-Hide) ---
+    let lastInteraction = Date.now();
+    let controlsCheckInterval: any = null; // To check hide even if video paused? User wants permanent if paused usually.
+
+    function pokeInteraction() {
+      lastInteraction = Date.now();
+      updateControlsVisibility();
+    }
+
+    // Global interaction listener for the container to keep UI awake
+    if (container) {
+      container.addEventListener("mousemove", pokeInteraction);
+      container.addEventListener("touchstart", pokeInteraction, {
+        passive: true,
+      });
+      container.addEventListener("click", pokeInteraction);
+    }
+
     function updateControlsVisibility() {
-      // Hide if playing AND time > 5s
-      const shouldHide = !video.paused && video.currentTime > 5;
+      const now = Date.now();
+      // Hide if:
+      // 1. Video is PLAYING
+      // 2. Time since last interaction > 4000ms (4 seconds)
+      const shouldHide = !video.paused && now - lastInteraction > 4000;
 
       const toggle = (el: HTMLElement | null) => {
         if (!el) return;
@@ -700,19 +713,28 @@ const {
 
       toggle(bottomControls);
       toggle(topLeftControls);
-      toggle(document.getElementById("top-right-controls")); // Use wrapper
+      toggle(document.getElementById("top-right-controls"));
     }
 
-    video.addEventListener("timeupdate", () => {
-      if (progressBar) {
-        const percent = (video.currentTime / video.duration) * 100;
-        progressBar.style.width = `${percent}%`;
-      }
-      updateControlsVisibility();
-    });
+    // Loop to check visibility frequently (so it hides even if mouse doesn't move)
+    setInterval(updateControlsVisibility, 1000);
 
     video.addEventListener("play", updateControlsVisibility);
     video.addEventListener("pause", updateControlsVisibility);
+    // video.addEventListener("timeupdate") is redundant for UI hiding if we use setInterval,
+    // but useful for progress bar. Keeping the existing listener for progress bar is fine.
+
+    video.addEventListener("timeupdate", () => {
+      if (
+        progressBar &&
+        Number.isFinite(video.duration) &&
+        video.duration > 0
+      ) {
+        const percent = (video.currentTime / video.duration) * 100;
+        progressBar.style.width = `${percent}%`;
+      }
+    });
+
     video.addEventListener("volumechange", updateVolumeUI); // Listen for external volume changes
 
     // Auto-Play Next Episode (SPA)
@@ -721,29 +743,48 @@ const {
       const autoplayPref = localStorage.getItem("pref_autoplay") !== "false";
 
       if (autoplayPref && nextUrl && nextUrl !== window.location.pathname) {
-        // Use SPA navigation instead of hard reload
-        // Check if loadEpisode is defined (it is defined in this scope)
         loadEpisode(nextUrl);
       }
     });
 
-    // --- Play/Pause Toggle ---
+    // --- Play/Pause Toggle with "Tap to Show" Logic ---
     if (playOverlay) {
-      const togglePlay = (e: Event) => {
-        // Prevent ghost clicks if both touch and click fire
+      const handleOverlayTap = (e: Event) => {
+        // Prevent default only for touch to avoid ghost clicks,
+        // but we need to be careful not to block scrolling if it was a scroll gesture.
+        // Simple tap usually doesn't involve scroll.
         if (e.type === "touchstart") e.preventDefault();
 
-        if (video.paused) {
-          video.play().catch((e) => console.error(e));
-          if (playIcon) playIcon.style.opacity = "0";
+        const now = Date.now();
+        const areControlsHidden =
+          bottomControls?.classList.contains("opacity-0");
+
+        // Logic:
+        // 1. If Controls are HIDDEN -> Show them (Poke interaction).
+        // 2. If Controls are VISIBLE -> Toggle Play/Pause.
+
+        // Note: We check if they were hidden *before* pokeInteraction updates the state.
+
+        if (areControlsHidden) {
+          // Just wake up UI
+          pokeInteraction();
+          // Maybe show a quick "Paused" or "Play" icon animation?
+          // For now, just showing controls is enough feedback.
         } else {
-          video.pause();
-          if (playIcon) playIcon.style.opacity = "1";
+          // Controls already visible, so User intends to Play/Pause
+          pokeInteraction(); // Keep them awake
+          if (video.paused) {
+            video.play().catch((e) => console.error(e));
+            if (playIcon) playIcon.style.opacity = "0";
+          } else {
+            video.pause();
+            if (playIcon) playIcon.style.opacity = "1";
+          }
         }
       };
 
-      playOverlay.addEventListener("click", togglePlay);
-      playOverlay.addEventListener("touchstart", togglePlay, {
+      playOverlay.addEventListener("click", handleOverlayTap);
+      playOverlay.addEventListener("touchstart", handleOverlayTap, {
         passive: false,
       });
     }
@@ -840,7 +881,7 @@ const {
       }
     }
 
-    // --- My List Logic ---
+    // --- My List Logic (Hybrid: API + LocalStorage) ---
     const myListBtn = document.getElementById("mylist-btn");
     const iconAdd = document.getElementById("icon-add");
     const iconCheck = document.getElementById("icon-check");
@@ -852,6 +893,13 @@ const {
     const dramaTitle = video.dataset.dramaTitle || "Unknown Title";
     const totalEpisodes = video.dataset.totalEpisodes || "?";
     const coverUrl = video.dataset.coverUrl || "";
+
+    // User Check
+    const userStr = localStorage.getItem("user");
+    let user = null;
+    try {
+      if (userStr) user = JSON.parse(userStr);
+    } catch (e) {}
 
     function updateMyListUI(isSaved: boolean) {
       if (isSaved) {
@@ -868,34 +916,117 @@ const {
     }
 
     if (myListBtn) {
-      const savedList = JSON.parse(
-        localStorage.getItem("drama_mylist") || "[]"
-      );
-      const isSaved = savedList.some((d: any) => d.id === bookId);
-      updateMyListUI(isSaved);
+      const STORAGE_KEY = "drama_mylist";
 
-      myListBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const currentList = JSON.parse(
-          localStorage.getItem("drama_mylist") || "[]"
-        );
-        const existingIndex = currentList.findIndex(
-          (d: any) => d.id === bookId
-        );
-
-        if (existingIndex >= 0) {
-          currentList.splice(existingIndex, 1);
-          updateMyListUI(false);
+      const checkStatus = async () => {
+        if (user && user.id) {
+          // API Check
+          try {
+            const res = await fetch(
+              `/api/mylist/check/${bookId}?userId=${user.id}`
+            );
+            const json = await res.json();
+            updateMyListUI(!!json.exists);
+          } catch (e) {
+            console.error("MyList check failed", e);
+          }
         } else {
-          currentList.push({
-            id: bookId,
-            title: dramaTitle,
-            episodes: totalEpisodes,
-            cover: coverUrl,
-          });
-          updateMyListUI(true);
+          // LocalStorage Check
+          const savedList = JSON.parse(
+            localStorage.getItem(STORAGE_KEY) || "[]"
+          );
+          const isSaved = savedList.some((d: any) => d.id === bookId);
+          updateMyListUI(isSaved);
         }
-        localStorage.setItem("drama_mylist", JSON.stringify(currentList));
+      };
+
+      // Broadcast Channel for Sync
+      const syncChannel = new BroadcastChannel("dramaplay_sync");
+
+      checkStatus();
+
+      myListBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+
+        const isAdded = myListBtn.classList.contains("text-red-500");
+
+        if (user && user.id) {
+          // API Action
+          if (isAdded) {
+            // Remove
+            try {
+              const res = await fetch(
+                `/api/mylist/${bookId}?userId=${user.id}`,
+                { method: "DELETE" }
+              );
+              if (res.ok) {
+                updateMyListUI(false);
+                showToast("Removed from My List");
+                syncChannel.postMessage({
+                  type: "MYLIST_UPDATE",
+                  bookId,
+                  status: false,
+                });
+              }
+            } catch (e) {
+              showToast("Error removing", true);
+            }
+          } else {
+            // Add
+            try {
+              const res = await fetch(`/api/mylist`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId: user.id, bookId }),
+              });
+              if (res.ok) {
+                updateMyListUI(true);
+                showToast("Added to My List");
+                syncChannel.postMessage({
+                  type: "MYLIST_UPDATE",
+                  bookId,
+                  status: true,
+                });
+              }
+            } catch (e) {
+              showToast("Error adding", true);
+            }
+          }
+        } else {
+          // Guest Action (LocalStorage)
+          const currentList = JSON.parse(
+            localStorage.getItem(STORAGE_KEY) || "[]"
+          );
+          const existingIndex = currentList.findIndex(
+            (d: any) => d.id === bookId
+          );
+
+          if (existingIndex >= 0) {
+            currentList.splice(existingIndex, 1);
+            updateMyListUI(false);
+            showToast("Removed from My List");
+            syncChannel.postMessage({
+              type: "MYLIST_UPDATE",
+              bookId,
+              status: false,
+            });
+          } else {
+            currentList.push({
+              id: bookId,
+              title: dramaTitle,
+              episodes: totalEpisodes,
+              cover: coverUrl,
+            });
+            updateMyListUI(true);
+            showToast("Added to My List");
+            syncChannel.postMessage({
+              type: "MYLIST_UPDATE",
+              bookId,
+              status: true,
+            });
+          }
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(currentList));
+        }
       });
     }
 
@@ -1440,7 +1571,13 @@ const {
     }
 
     async function loadEpisode(targetUrl: string) {
-      console.log("SPA Navigating to:", targetUrl);
+      console.log("Navigating to:", targetUrl);
+
+      // FORCE FULL PAGE RELOAD to ensure guest episode limit check runs
+      // SPA navigation bypasses DOMContentLoaded event which is required for tracking
+      window.location.href = targetUrl;
+
+      /* OLD SPA CODE (Disabled for guest limit tracking):
       const data = parseWatchUrl(targetUrl);
       if (!data) {
         // Fallback for non-standard URLs
@@ -1567,6 +1704,7 @@ const {
         // Fallback: Hard Navigate
         window.location.href = targetUrl;
       }
+      */
     }
 
     // Attach SPA Listener to Next/Prev
