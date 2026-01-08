@@ -6,10 +6,21 @@ services:
       context: ./backend
     container_name: dramabang-backend
     restart: always
+    env_file:
+      - ./backend/.env
     environment:
       - DB_DRIVER=postgres
-      - DB_DSN=host=postgres user=dramabang password=dramabang dbname=dramabang port=5432 sslmode=disable TimeZone=Asia/Jakarta
+      - DB_HOST=postgres
+      - DB_USER=dramabang
+      - DB_PASSWORD=dramabang
+      - DB_NAME=dramabang
+      - DB_PORT=5432
       - TZ=Asia/Jakarta
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USER=cs.dramaplay@gmail.com
+      - SMTP_PASS=vhitxtasgonysxdp
+      - SMTP_SENDER=DramaPlay <cs.dramaplay@gmail.com>
     volumes:
       - ./data:/app/data
       - ./uploads:/app/public/uploads
@@ -49,7 +60,7 @@ services:
     container_name: dramabang-nginx
     restart: always
     ports:
-      - "80:80"
+      - "8080:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
