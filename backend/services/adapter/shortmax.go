@@ -103,9 +103,40 @@ func (p *ShortMaxProvider) Search(query string) ([]models.Drama, error) {
 }
 
 func (p *ShortMaxProvider) GetDetail(id string) (*models.Drama, []models.Episode, error) {
-	return nil, nil, fmt.Errorf("not implemented yet")
+	// Endpoint: /shortmax/api/v1/episodes/{id}?lang=id
+	// Note: Metadata endpoint is broken (500), so we only fetch episodes.
+	urlEpisodes := fmt.Sprintf("%s/episodes/%s?lang=id", ShortMaxAPI, id)
+	body, err := p.fetch(urlEpisodes)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var raw smResponse
+	if err := json.Unmarshal(body, &raw); err != nil {
+		return nil, nil, err
+	}
+
+	// Create partial drama object
+	drama := models.Drama{
+		BookID:       "shortmax:" + id,
+		Judul:        "ShortMax Drama " + id, // Metadata unavailable
+		Cover:        "",                     // Metadata unavailable
+		Deskripsi:    "Metadata currently header unavailable from provider.",
+		TotalEpisode: strconv.Itoa(len(raw.Data)),
+	}
+
+	var episodes []models.Episode
+	for _, ep := range raw.Data {
+		episodes = append(episodes, models.Episode{
+			BookID:       "shortmax:" + id,
+			EpisodeIndex: ep.Episode - 1,
+			EpisodeLabel: fmt.Sprintf("Episode %d", ep.Episode),
+		})
+	}
+
+	return &drama, episodes, nil
 }
 
 func (p *ShortMaxProvider) GetStream(id, epIndex string) (*models.StreamData, error) {
-	return nil, fmt.Errorf("not implemented yet")
+	return nil, fmt.Errorf("stream api unavailable (500) from provider")
 }

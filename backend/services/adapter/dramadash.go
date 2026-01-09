@@ -98,9 +98,9 @@ func (p *DramaDashProvider) Search(query string) ([]models.Drama, error) {
 }
 
 func (p *DramaDashProvider) GetDetail(id string) (*models.Drama, []models.Episode, error) {
-	return nil, nil, fmt.Errorf("not implemented yet")
+	return nil, nil, fmt.Errorf("dramadash api unavailable (500)")
 }
 
 func (p *DramaDashProvider) GetStream(id, epIndex string) (*models.StreamData, error) {
-	return nil, fmt.Errorf("not implemented yet")
+	return nil, fmt.Errorf("dramadash api unavailable (500)")
 }
