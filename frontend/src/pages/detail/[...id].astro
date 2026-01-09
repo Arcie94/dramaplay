@@ -44,37 +44,63 @@ try {
       resText = await res.text();
     } catch (e) {}
   }
-} catch (e) {
+} catch (e: any) {
   console.error("Detail Fetch Error:", e);
   resText = e.message;
 }
 
 if (!drama || !drama.judul) {
   console.error("Drama not found or empty:", drama);
-  // DEBUG MODE: Show error on page instead of 404
+
+  let errorMessage = "Sorry, we couldn't find the drama you're looking for.";
+  let errorTitle = "Drama Not Found";
+  let isUnauthorized = false;
+
+  // Simple heuristic to check for unauthorized/unavailable errors
+  if (
+    resText &&
+    (resText.includes("401") ||
+      resText.includes("unauthorized") ||
+      resText.includes("unavailable"))
+  ) {
+    errorTitle = "Provider Unavailable";
+    errorMessage =
+      "This content provider is currently unavailable or undergoing maintenance. Please try again later.";
+    isUnauthorized = true;
+  }
+
   return new Response(
-    `
-      <html>
-        <body style="background: #111; color: white; padding: 2rem; font-family: monospace;">
-          <h1>Debug: Detail Fetch Failed</h1>
-          <p>ID: ${id}</p>
-          <p>Is Melolo: ${isMelolo}</p>
-          <p>API_URL: ${API_URL}</p>
-          <p>Fetch URL: ${isMelolo ? `${API_URL}/melolo/detail/${id}` : `${API_URL}/detail?bookId=${id}`}</p>
-          <p>HTTP Status: ${resStatus}</p>
-          <p>Error Text: ${resText}</p>
-          <p>Drama Object: ${JSON.stringify(drama, null, 2)}</p>
-          <p>Episodes Count: ${episodes.length}</p>
-          <hr/>
-          <p>If you see this, please take a screenshot and send it to the developer.</p>
-        </body>
-      </html>
-    `,
+    `<!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${errorTitle} - DramaPlay</title>
+      <style>
+          body { margin: 0; background-color: #09090b; color: white; font-family: system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; min-height: 100vh; }
+          .container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; }
+          h1 { font-size: 2rem; margin-bottom: 1rem; color: #ef4444; }
+          p { color: #a1a1aa; margin-bottom: 2rem; max-width: 400px; line-height: 1.5; }
+          .btn { background-color: #27272a; color: white; padding: 0.75rem 1.5rem; border-radius: 9999px; text-decoration: none; font-weight: 500; transition: background-color 0.2s; }
+          .btn:hover { background-color: #3f3f46; }
+      </style>
+  </head>
+  <body>
+      <div class="container">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 64px; height: 64px; margin-bottom: 1.5rem; color: #52525b;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+          </svg>
+          <h1>${errorTitle}</h1>
+          <p>${errorMessage}</p>
+          <a href="/" class="btn">Back to Home</a>
+      </div>
+  </body>
+  </html>`,
     {
+      status: 404,
       headers: { "Content-Type": "text/html" },
     }
   );
-  // return Astro.redirect("/404");
 }
 
 // Fetch Settings (Logo)
