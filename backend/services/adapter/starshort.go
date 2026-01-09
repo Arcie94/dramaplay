@@ -219,6 +219,7 @@ func (p *StarshortProvider) GetStream(id, epIndex string) (*models.StreamData, e
 	epNum := idx + 1 // API uses 1-based episode number
 
 	url := fmt.Sprintf("%s/dramas/%s/episodes/%d?lang=4", StarshortAPI, id, epNum)
+	fmt.Printf("[Starshort] Requesting Stream: %s\n", url)
 	body, err := p.fetch(url)
 	if err != nil {
 		return nil, err
