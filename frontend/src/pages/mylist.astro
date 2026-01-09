@@ -161,6 +161,8 @@ import LoginLock from "../components/LoginLock.astro";
           providerBadge = `<div class="absolute top-2 left-2 z-10 px-1.5 py-0.5 rounded text-[9px] font-bold text-white shadow-md bg-blue-600 border border-white/10">NETSHORT</div>`;
         } else if (bookId.startsWith("dramabox:")) {
           providerBadge = `<div class="absolute top-2 left-2 z-10 px-1.5 py-0.5 rounded text-[9px] font-bold text-white shadow-md bg-red-600 border border-white/10">DRAMABOX</div>`;
+        } else if (bookId.startsWith("starshort:")) {
+          providerBadge = `<div class="absolute top-2 left-2 z-10 px-1.5 py-0.5 rounded text-[9px] font-bold text-white shadow-md bg-emerald-600 border border-white/10">STARSHORT</div>`;
         } else {
           providerBadge = `<div class="absolute top-2 left-2 z-10 px-1.5 py-0.5 rounded text-[9px] font-bold text-white shadow-md bg-red-600 border border-white/10">DB</div>`;
         }

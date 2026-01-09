@@ -669,6 +669,9 @@ const currentGenre = Astro.url.searchParams.get("genre");
       } else if (drama.bookId && drama.bookId.startsWith("netshort:")) {
         providerColor = "bg-blue-600";
         providerLabel = "NETSHORT";
+      } else if (drama.bookId && drama.bookId.startsWith("starshort:")) {
+        providerColor = "bg-emerald-600";
+        providerLabel = "STARSHORT";
       } else if (drama.bookId && drama.bookId.startsWith("dramabox:")) {
         providerColor = "bg-red-600";
         providerLabel = "DRAMABOX";
@@ -714,6 +717,9 @@ const currentGenre = Astro.url.searchParams.get("genre");
       } else if (item.bookId && item.bookId.startsWith("netshort:")) {
         providerColor = "bg-blue-600";
         providerLabel = "NETSHORT";
+      } else if (item.bookId && item.bookId.startsWith("starshort:")) {
+        providerColor = "bg-emerald-600";
+        providerLabel = "STARSHORT";
       } else if (item.bookId && item.bookId.startsWith("dramabox:")) {
         providerColor = "bg-red-600";
         providerLabel = "DRAMABOX";
