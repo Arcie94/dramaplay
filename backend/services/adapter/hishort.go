@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strconv"
 )
 
 type HiShortProvider struct{}
@@ -52,149 +51,51 @@ func (p *HiShortProvider) proxyImage(originalURL string) string {
 	return "https://wsrv.nl/?url=" + url.QueryEscape(originalURL) + "&output=jpg"
 }
 
-type hsDrama struct {
-	ID    string   `json:"id"`
-	Title string   `json:"title"`
-	Cover string   `json:"cover"`
-	Tags  []string `json:"tags"`
+type hsResponse struct {
+	Popular []hsItem `json:"popular"`
 }
-
-type hsDetail struct {
-	ID            string   `json:"id"`
-	Title         string   `json:"title"`
-	Description   string   `json:"description"`
-	Cover         string   `json:"cover"`
-	TotalEpisodes int      `json:"total_episodes"`
-	FreeEpisodes  int      `json:"free_episodes"`
-	Tags          []string `json:"tags"`
-}
-
-type hsEpisodeResponse struct {
-	Episodes []hsEpisode `json:"episodes"`
-}
-
-type hsEpisode struct {
-	Episode int  `json:"episode"`
-	Free    bool `json:"free"`
-}
-
-type hsStreamResponse struct {
-	VideoURL string `json:"video_url"`
+type hsItem struct {
+	Slug   string `json:"slug"`
+	Title  string `json:"title"`
+	Poster string `json:"poster"`
+	Type   string `json:"type"`
 }
 
 func (p *HiShortProvider) GetTrending() ([]models.Drama, error) {
-	body, err := p.fetch(HiShortAPI + "/dramas/rising?lang=4")
+	// Use /home for Trending
+	body, err := p.fetch(HiShortAPI + "/home?lang=in")
 	if err != nil {
 		return nil, err
 	}
-	var raw []hsDrama
-	json.Unmarshal(body, &raw)
+
+	var raw hsResponse
+	if err := json.Unmarshal(body, &raw); err != nil {
+		return nil, err
+	}
+
 	var dramas []models.Drama
-	for _, d := range raw {
+	for _, d := range raw.Popular {
 		dramas = append(dramas, models.Drama{
-			BookID: "hishort:" + d.ID,
+			BookID: "hishort:" + d.Slug,
 			Judul:  d.Title,
-			Cover:  p.proxyImage(d.Cover),
+			Cover:  p.proxyImage(d.Poster),
 		})
 	}
 	return dramas, nil
 }
 
 func (p *HiShortProvider) GetLatest(page int) ([]models.Drama, error) {
-	body, err := p.fetch(HiShortAPI + "/dramas/new?lang=4")
-	if err != nil {
-		return nil, err
-	}
-	var raw []hsDrama
-	json.Unmarshal(body, &raw)
-	var dramas []models.Drama
-	for _, d := range raw {
-		dramas = append(dramas, models.Drama{
-			BookID: "hishort:" + d.ID,
-			Judul:  d.Title,
-			Cover:  p.proxyImage(d.Cover),
-		})
-	}
-	return dramas, nil
+	return p.GetTrending()
 }
 
 func (p *HiShortProvider) Search(query string) ([]models.Drama, error) {
-	url := fmt.Sprintf("%s/dramas/search?q=%s&lang=4", HiShortAPI, url.QueryEscape(query))
-	body, err := p.fetch(url)
-	if err != nil {
-		return nil, err
-	}
-	var raw []hsDrama
-	json.Unmarshal(body, &raw)
-	var dramas []models.Drama
-	for _, d := range raw {
-		dramas = append(dramas, models.Drama{
-			BookID: "hishort:" + d.ID,
-			Judul:  d.Title,
-			Cover:  p.proxyImage(d.Cover),
-		})
-	}
-	return dramas, nil
+	return []models.Drama{}, nil
 }
 
 func (p *HiShortProvider) GetDetail(id string) (*models.Drama, []models.Episode, error) {
-	urlDetail := fmt.Sprintf("%s/dramas/%s?lang=4", HiShortAPI, id)
-	bodyDetail, err := p.fetch(urlDetail)
-	if err != nil {
-		return nil, nil, err
-	}
-	var rawDetail hsDetail
-	if err := json.Unmarshal(bodyDetail, &rawDetail); err != nil {
-		return nil, nil, err
-	}
-	drama := models.Drama{
-		BookID:       "hishort:" + rawDetail.ID,
-		Judul:        rawDetail.Title,
-		Cover:        p.proxyImage(rawDetail.Cover),
-		Deskripsi:    rawDetail.Description,
-		TotalEpisode: strconv.Itoa(rawDetail.TotalEpisodes),
-	}
-
-	urlEp := fmt.Sprintf("%s/dramas/%s/episodes?lang=4", HiShortAPI, id)
-	bodyEp, err := p.fetch(urlEp)
-	if err != nil {
-		return &drama, nil, nil
-	}
-	var rawEp hsEpisodeResponse
-	json.Unmarshal(bodyEp, &rawEp)
-	var episodes []models.Episode
-	for _, ep := range rawEp.Episodes {
-		episodes = append(episodes, models.Episode{
-			BookID:       "hishort:" + id,
-			EpisodeIndex: ep.Episode - 1,
-			EpisodeLabel: fmt.Sprintf("Episode %d", ep.Episode),
-		})
-	}
-	return &drama, episodes, nil
+	return nil, nil, fmt.Errorf("not implemented yet")
 }
 
 func (p *HiShortProvider) GetStream(id, epIndex string) (*models.StreamData, error) {
-	idx, _ := strconv.Atoi(epIndex)
-	epNum := idx + 1
-	url := fmt.Sprintf("%s/dramas/%s/episodes/%d?lang=4", HiShortAPI, id, epNum)
-	body, err := p.fetch(url)
-	if err != nil {
-		return nil, err
-	}
-	var raw hsStreamResponse
-	if err := json.Unmarshal(body, &raw); err != nil {
-		return nil, err
-	}
-	if raw.VideoURL == "" {
-		return nil, fmt.Errorf("stream url empty")
-	}
-	return &models.StreamData{
-		BookID: "hishort:" + id,
-		Chapter: models.ChapterData{
-			Index: idx,
-			Video: models.VideoData{
-				Mp4: raw.VideoURL,
-			},
-		},
-	}, nil
+	return nil, fmt.Errorf("not implemented yet")
 }

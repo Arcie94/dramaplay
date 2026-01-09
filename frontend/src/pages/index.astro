@@ -683,6 +683,90 @@ const currentGenre = Astro.url.searchParams.get("genre");
       </div>
     </section>
 
+    <!-- FREESHORT Section -->
+    <section class="mt-4 px-4">
+      <div class="flex items-center gap-2 mb-4">
+        <span
+          class="text-xs font-bold px-2 py-0.5 rounded bg-cyan-600/20 text-cyan-400 border border-cyan-600/30"
+          >FREESHORT</span
+        >
+        <h2 class="text-lg font-bold text-white">FreeShort Dramas</h2>
+      </div>
+      <div
+        id="freeshort-grid"
+        class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6 min-h-[200px]"
+      >
+        {
+          Array.from({ length: 6 }).map((_, i) => (
+            <div class="aspect-[2/3] bg-zinc-900 rounded-lg animate-pulse" />
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- SHORTMAX Section -->
+    <section class="mt-4 px-4">
+      <div class="flex items-center gap-2 mb-4">
+        <span
+          class="text-xs font-bold px-2 py-0.5 rounded bg-orange-600/20 text-orange-400 border border-orange-600/30"
+          >SHORTMAX</span
+        >
+        <h2 class="text-lg font-bold text-white">ShortMax Originals</h2>
+      </div>
+      <div
+        id="shortmax-grid"
+        class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6 min-h-[200px]"
+      >
+        {
+          Array.from({ length: 6 }).map((_, i) => (
+            <div class="aspect-[2/3] bg-zinc-900 rounded-lg animate-pulse" />
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- DRAMADASH Section -->
+    <section class="mt-4 px-4">
+      <div class="flex items-center gap-2 mb-4">
+        <span
+          class="text-xs font-bold px-2 py-0.5 rounded bg-pink-600/20 text-pink-400 border border-pink-600/30"
+          >DRAMADASH</span
+        >
+        <h2 class="text-lg font-bold text-white">DramaDash Hits</h2>
+      </div>
+      <div
+        id="dramadash-grid"
+        class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6 min-h-[200px]"
+      >
+        {
+          Array.from({ length: 6 }).map((_, i) => (
+            <div class="aspect-[2/3] bg-zinc-900 rounded-lg animate-pulse" />
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- HISHORT Section -->
+    <section class="mt-4 px-4">
+      <div class="flex items-center gap-2 mb-4">
+        <span
+          class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-600/20 text-indigo-400 border border-indigo-600/30"
+          >HISHORT</span
+        >
+        <h2 class="text-lg font-bold text-white">HiShort Dramas</h2>
+      </div>
+      <div
+        id="hishort-grid"
+        class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6 min-h-[200px]"
+      >
+        {
+          Array.from({ length: 6 }).map((_, i) => (
+            <div class="aspect-[2/3] bg-zinc-900 rounded-lg animate-pulse" />
+          ))
+        }
+      </div>
+    </section>
+
     <!-- Bottom Nav -->
     <BottomNav />
   </main>
@@ -734,6 +818,24 @@ const currentGenre = Astro.url.searchParams.get("genre");
       } else if (drama.bookId && drama.bookId.startsWith("dramabox:")) {
         providerColor = "bg-red-600";
         providerLabel = "DRAMABOX";
+      } else if (drama.bookId && drama.bookId.startsWith("freeshort:")) {
+        providerColor = "bg-cyan-600";
+        providerLabel = "FREESHORT";
+      } else if (drama.bookId && drama.bookId.startsWith("shortmax:")) {
+        providerColor = "bg-orange-600";
+        providerLabel = "SHORTMAX";
+      } else if (drama.bookId && drama.bookId.startsWith("dramadash:")) {
+        providerColor = "bg-pink-600";
+        providerLabel = "DRAMADASH";
+      } else if (drama.bookId && drama.bookId.startsWith("hishort:")) {
+        providerColor = "bg-indigo-600";
+        providerLabel = "HISHORT";
+      } else if (drama.bookId && drama.bookId.startsWith("flickreels:")) {
+        providerColor = "bg-yellow-600";
+        providerLabel = "FLICKREELS";
+      } else if (drama.bookId && drama.bookId.startsWith("dramawave:")) {
+        providerColor = "bg-teal-600";
+        providerLabel = "DRAMAWAVE";
       }
 
       return `
@@ -1004,6 +1106,42 @@ const currentGenre = Astro.url.searchParams.get("genre");
         }
       })
       .catch((err) => console.error("Starshort fetch error", err));
+
+    // 8. FreeShort Section
+    fetch("/api/provider/freeshort/latest")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.status === "success")
+          renderProviderGrid(json.data, "freeshort-grid");
+      })
+      .catch((err) => console.error("FreeShort fetch error", err));
+
+    // 9. ShortMax Section
+    fetch("/api/provider/shortmax/latest")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.status === "success")
+          renderProviderGrid(json.data, "shortmax-grid");
+      })
+      .catch((err) => console.error("ShortMax fetch error", err));
+
+    // 10. DramaDash Section
+    fetch("/api/provider/dramadash/latest")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.status === "success")
+          renderProviderGrid(json.data, "dramadash-grid");
+      })
+      .catch((err) => console.error("DramaDash fetch error", err));
+
+    // 11. HiShort Section
+    fetch("/api/provider/hishort/latest")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.status === "success")
+          renderProviderGrid(json.data, "hishort-grid");
+      })
+      .catch((err) => console.error("HiShort fetch error", err));
 
     // 8. Genres (Romance & Action)
     const genres = [

@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strconv"
 )
 
 type FreeShortProvider struct{}
@@ -62,176 +61,55 @@ func (p *FreeShortProvider) proxyImage(originalURL string) string {
 // But Go doesn't like cross-file private structs easily unless exported.
 // I will copy private structs to be safe and independent.
 
-type fsDrama struct {
-	ID    string   `json:"id"`
+type fsResponse struct {
+	Items []fsItem `json:"items"`
+}
+type fsItem struct {
+	Key   string   `json:"key"`
 	Title string   `json:"title"`
 	Cover string   `json:"cover"`
-	Tags  []string `json:"tags"`
+	Tags  []string `json:"tag"`
 }
 
-type fsDetail struct {
-	ID            string   `json:"id"`
-	Title         string   `json:"title"`
-	Description   string   `json:"description"`
-	Cover         string   `json:"cover"`
-	TotalEpisodes int      `json:"total_episodes"`
-	FreeEpisodes  int      `json:"free_episodes"`
-	Tags          []string `json:"tags"`
-}
-
-type fsEpisodeResponse struct {
-	DramaID  string      `json:"drama_id"`
-	Title    string      `json:"title"`
-	Total    int         `json:"total"`
-	Episodes []fsEpisode `json:"episodes"`
-}
-
-type fsEpisode struct {
-	Episode int  `json:"episode"`
-	Free    bool `json:"free"`
-}
-
-type fsStreamResponse struct {
-	VideoURL  string `json:"video_url"`
-	ExpiresIn string `json:"expires_in"`
-}
+// fsDetail and fsEpisode reuse from before or generic
 
 func (p *FreeShortProvider) GetTrending() ([]models.Drama, error) {
-	body, err := p.fetch(FreeShortAPI + "/dramas/rising?lang=4")
+	// Use /foryou for Trending
+	body, err := p.fetch(FreeShortAPI + "/foryou?lang=id-ID")
 	if err != nil {
 		return nil, err
 	}
 
-	var raw []fsDrama
+	var raw fsResponse
 	if err := json.Unmarshal(body, &raw); err != nil {
 		return nil, err
 	}
 
 	var dramas []models.Drama
-	for _, d := range raw {
+	for _, d := range raw.Items {
 		dramas = append(dramas, models.Drama{
-			BookID: "freeshort:" + d.ID,
+			BookID: "freeshort:" + d.Key,
 			Judul:  d.Title,
 			Cover:  p.proxyImage(d.Cover),
+			Genre:  "", // d.Tags is []string
 		})
 	}
 	return dramas, nil
 }
 
 func (p *FreeShortProvider) GetLatest(page int) ([]models.Drama, error) {
-	body, err := p.fetch(FreeShortAPI + "/dramas/new?lang=4")
-	if err != nil {
-		return nil, err
-	}
-
-	var raw []fsDrama
-	if err := json.Unmarshal(body, &raw); err != nil {
-		return nil, err
-	}
-
-	var dramas []models.Drama
-	for _, d := range raw {
-		dramas = append(dramas, models.Drama{
-			BookID: "freeshort:" + d.ID,
-			Judul:  d.Title,
-			Cover:  p.proxyImage(d.Cover),
-		})
-	}
-	return dramas, nil
+	// Use /foryou for Latest too (as we don't have explicit /new)
+	return p.GetTrending()
 }
 
 func (p *FreeShortProvider) Search(query string) ([]models.Drama, error) {
-	url := fmt.Sprintf("%s/dramas/search?q=%s&lang=4", FreeShortAPI, url.QueryEscape(query))
-	body, err := p.fetch(url)
-	if err != nil {
-		return nil, err
-	}
-
-	var raw []fsDrama
-	if err := json.Unmarshal(body, &raw); err != nil {
-		return []models.Drama{}, nil
-	}
-
-	var dramas []models.Drama
-	for _, d := range raw {
-		dramas = append(dramas, models.Drama{
-			BookID: "freeshort:" + d.ID,
-			Judul:  d.Title,
-			Cover:  p.proxyImage(d.Cover),
-		})
-	}
-	return dramas, nil
+	return []models.Drama{}, nil
 }
 
 func (p *FreeShortProvider) GetDetail(id string) (*models.Drama, []models.Episode, error) {
-	urlDetail := fmt.Sprintf("%s/dramas/%s?lang=4", FreeShortAPI, id)
-	bodyDetail, err := p.fetch(urlDetail)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var rawDetail fsDetail
-	if err := json.Unmarshal(bodyDetail, &rawDetail); err != nil {
-		return nil, nil, err
-	}
-
-	drama := models.Drama{
-		BookID:       "freeshort:" + rawDetail.ID,
-		Judul:        rawDetail.Title,
-		Cover:        p.proxyImage(rawDetail.Cover),
-		Deskripsi:    rawDetail.Description,
-		TotalEpisode: strconv.Itoa(rawDetail.TotalEpisodes),
-	}
-
-	urlEp := fmt.Sprintf("%s/dramas/%s/episodes?lang=4", FreeShortAPI, id)
-	bodyEp, err := p.fetch(urlEp)
-	if err != nil {
-		return &drama, nil, nil
-	}
-
-	var rawEp fsEpisodeResponse
-	if err := json.Unmarshal(bodyEp, &rawEp); err != nil {
-		return &drama, nil, nil
-	}
-
-	var episodes []models.Episode
-	for _, ep := range rawEp.Episodes {
-		episodes = append(episodes, models.Episode{
-			BookID:       "freeshort:" + id,
-			EpisodeIndex: ep.Episode - 1,
-			EpisodeLabel: fmt.Sprintf("Episode %d", ep.Episode),
-		})
-	}
-
-	return &drama, episodes, nil
+	return nil, nil, fmt.Errorf("not implemented yet")
 }
 
 func (p *FreeShortProvider) GetStream(id, epIndex string) (*models.StreamData, error) {
-	idx, _ := strconv.Atoi(epIndex)
-	epNum := idx + 1
-
-	url := fmt.Sprintf("%s/dramas/%s/episodes/%d?lang=4", FreeShortAPI, id, epNum)
-	body, err := p.fetch(url)
-	if err != nil {
-		return nil, err
-	}
-
-	var raw fsStreamResponse
-	if err := json.Unmarshal(body, &raw); err != nil {
-		return nil, err
-	}
-
-	if raw.VideoURL == "" {
-		return nil, fmt.Errorf("stream url empty")
-	}
-
-	return &models.StreamData{
-		BookID: "freeshort:" + id,
-		Chapter: models.ChapterData{
-			Index: idx,
-			Video: models.VideoData{
-				Mp4: raw.VideoURL,
-			},
-		},
-	}, nil
+	return nil, fmt.Errorf("not implemented yet")
 }
