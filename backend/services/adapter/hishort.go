@@ -26,13 +26,17 @@ func (p *HiShortProvider) IsCompatibleID(id string) bool {
 	return true
 }
 
+// Specific token for HiShort provided by user
+const HiShortToken = "0ebd6cfdd8054d2a90aa2851532645211aeaf189fa1aed62c53e5fd735af8649"
+
 func (p *HiShortProvider) fetch(targetURL string) ([]byte, error) {
 	req, err := http.NewRequest("GET", targetURL, nil)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("User-Agent", "Mozilla/5.0")
-	req.Header.Set("Authorization", "Bearer "+SapimuToken)
+	// Use Specific HiShortToken instead of shared SapimuToken
+	req.Header.Set("Authorization", "Bearer "+HiShortToken)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -114,7 +118,27 @@ func (p *HiShortProvider) GetLatest(page int) ([]models.Drama, error) {
 }
 
 func (p *HiShortProvider) Search(query string) ([]models.Drama, error) {
-	return []models.Drama{}, nil
+	// Endpoint: /hishort/api/search/{query}?lang=in
+	urlSearch := fmt.Sprintf("%s/search/%s?lang=in", HiShortAPI, url.QueryEscape(query))
+	body, err := p.fetch(urlSearch)
+	if err != nil {
+		return nil, err
+	}
+
+	var raw []hsItem
+	if err := json.Unmarshal(body, &raw); err != nil {
+		return nil, err
+	}
+
+	var dramas []models.Drama
+	for _, d := range raw {
+		dramas = append(dramas, models.Drama{
+			BookID: "hishort:" + d.Slug,
+			Judul:  d.Title,
+			Cover:  p.proxyImage(d.Poster),
+		})
+	}
+	return dramas, nil
 }
 
 func (p *HiShortProvider) GetDetail(id string) (*models.Drama, []models.Episode, error) {
