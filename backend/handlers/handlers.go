@@ -43,6 +43,29 @@ func GetLatest(c *fiber.Ctx) error {
 	})
 }
 
+func GetProviderLatest(c *fiber.Ctx) error {
+	provider := c.Params("provider")
+	page := c.QueryInt("page", 1)
+
+	dramas, err := AdapterManager.GetLatestFromProvider(provider, page)
+	if err != nil {
+		// Return empty list instead of error to prevent frontend crash
+		return c.JSON(fiber.Map{
+			"status": "success",
+			"type":   "latest_provider",
+			"data":   []models.Drama{},
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":   "success",
+		"type":     "latest_provider",
+		"provider": provider,
+		"page":     page,
+		"data":     dramas,
+	})
+}
+
 func GetHero(c *fiber.Ctx) error {
 	// Hero uses top 5 trending dramas
 	dramas, err := AdapterManager.GetTrending()

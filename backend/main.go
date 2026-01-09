@@ -83,6 +83,7 @@ func main() {
 
 	api.Get("/trending", handlers.GetTrending)
 	api.Get("/latest", handlers.GetLatest)
+	api.Get("/provider/:provider/latest", handlers.GetProviderLatest) // New Provider-specific Route
 	api.Get("/search", handlers.GetSearch)
 	api.Get("/detail", handlers.GetDetail)
 	api.Get("/stream", handlers.GetStream)

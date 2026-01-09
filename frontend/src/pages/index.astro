@@ -641,6 +641,48 @@ const currentGenre = Astro.url.searchParams.get("genre");
       </div>
     </section>
 
+    <!-- Melolo Section -->
+    <section class="mt-4 px-4">
+      <div class="flex items-center gap-2 mb-4">
+        <span
+          class="text-xs font-bold px-2 py-0.5 rounded bg-purple-600/20 text-purple-400 border border-purple-600/30"
+          >MELOLO</span
+        >
+        <h2 class="text-lg font-bold text-white">Melolo Dramas</h2>
+      </div>
+      <div
+        id="melolo-grid"
+        class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6 min-h-[200px]"
+      >
+        {
+          Array.from({ length: 6 }).map((_, i) => (
+            <div class="aspect-[2/3] bg-zinc-900 rounded-lg animate-pulse" />
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- Starshort Section -->
+    <section class="mt-4 px-4">
+      <div class="flex items-center gap-2 mb-4">
+        <span
+          class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-600/20 text-emerald-400 border border-emerald-600/30"
+          >STARSHORT</span
+        >
+        <h2 class="text-lg font-bold text-white">Starshort Originals</h2>
+      </div>
+      <div
+        id="starshort-grid"
+        class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6 min-h-[200px]"
+      >
+        {
+          Array.from({ length: 6 }).map((_, i) => (
+            <div class="aspect-[2/3] bg-zinc-900 rounded-lg animate-pulse" />
+          ))
+        }
+      </div>
+    </section>
+
     <!-- Bottom Nav -->
     <BottomNav />
   </main>
@@ -659,6 +701,23 @@ const currentGenre = Astro.url.searchParams.get("genre");
   // Client-Side Fetching Logic (Skeleton Loading)
   document.addEventListener("DOMContentLoaded", () => {
     // --- Templates ---
+    const renderProviderGrid = (list, containerId) => {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = "";
+
+      if (!list || list.length === 0) {
+        container.innerHTML =
+          '<p class="text-zinc-500 text-sm col-span-full text-center py-10">No dramas found from this provider.</p>';
+        return;
+      }
+
+      list.slice(0, 12).forEach((drama) => {
+        const html = renderDramaCard(drama);
+        container.innerHTML += html;
+      });
+    };
+
     const renderDramaCard = (drama, cls = "") => {
       // Provider Logic
       let providerColor = "bg-red-600";
@@ -926,7 +985,27 @@ const currentGenre = Astro.url.searchParams.get("genre");
       })
       .catch((e) => console.error("Movies fetch failed", e));
 
-    // 6. Genres (Romance & Action)
+    // 6. Melolo Section
+    fetch("/api/provider/melolo/latest")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.status === "success") {
+          renderProviderGrid(json.data, "melolo-grid");
+        }
+      })
+      .catch((err) => console.error("Melolo fetch error", err));
+
+    // 7. Starshort Section
+    fetch("/api/provider/starshort/latest")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.status === "success") {
+          renderProviderGrid(json.data, "starshort-grid");
+        }
+      })
+      .catch((err) => console.error("Starshort fetch error", err));
+
+    // 8. Genres (Romance & Action)
     const genres = [
       { id: "romance", query: "Modern Romance & CEO" },
       { id: "action", query: "Martial Arts Action" },
