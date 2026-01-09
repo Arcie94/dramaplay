@@ -191,7 +191,7 @@ func (p *StarshortProvider) GetDetail(id string) (*models.Drama, []models.Episod
 	}
 
 	// 2. Fetch Episodes List
-	urlEp := fmt.Sprintf("%s/dramas/%s/episodes?lang=3", StarshortAPI, id)
+	urlEp := fmt.Sprintf("%s/dramas/%s/episodes?lang=4", StarshortAPI, id)
 	bodyEp, err := p.fetch(urlEp)
 	if err != nil {
 		return &drama, nil, nil // Return what we have if ep fail
@@ -218,7 +218,7 @@ func (p *StarshortProvider) GetStream(id, epIndex string) (*models.StreamData, e
 	idx, _ := strconv.Atoi(epIndex)
 	epNum := idx + 1 // API uses 1-based episode number
 
-	url := fmt.Sprintf("%s/dramas/%s/episodes/%d?lang=3", StarshortAPI, id, epNum)
+	url := fmt.Sprintf("%s/dramas/%s/episodes/%d?lang=4", StarshortAPI, id, epNum)
 	body, err := p.fetch(url)
 	if err != nil {
 		return nil, err
