@@ -83,7 +83,7 @@ type hsStreamResponse struct {
 }
 
 func (p *HiShortProvider) GetTrending() ([]models.Drama, error) {
-	body, err := p.fetch(HiShortAPI + "/dramas/rising?lang=3")
+	body, err := p.fetch(HiShortAPI + "/dramas/rising?lang=4")
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (p *HiShortProvider) GetTrending() ([]models.Drama, error) {
 }
 
 func (p *HiShortProvider) GetLatest(page int) ([]models.Drama, error) {
-	body, err := p.fetch(HiShortAPI + "/dramas/new?lang=3")
+	body, err := p.fetch(HiShortAPI + "/dramas/new?lang=4")
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func (p *HiShortProvider) GetLatest(page int) ([]models.Drama, error) {
 }
 
 func (p *HiShortProvider) Search(query string) ([]models.Drama, error) {
-	url := fmt.Sprintf("%s/dramas/search?q=%s&lang=3", HiShortAPI, url.QueryEscape(query))
+	url := fmt.Sprintf("%s/dramas/search?q=%s&lang=4", HiShortAPI, url.QueryEscape(query))
 	body, err := p.fetch(url)
 	if err != nil {
 		return nil, err
@@ -138,7 +138,7 @@ func (p *HiShortProvider) Search(query string) ([]models.Drama, error) {
 }
 
 func (p *HiShortProvider) GetDetail(id string) (*models.Drama, []models.Episode, error) {
-	urlDetail := fmt.Sprintf("%s/dramas/%s?lang=3", HiShortAPI, id)
+	urlDetail := fmt.Sprintf("%s/dramas/%s?lang=4", HiShortAPI, id)
 	bodyDetail, err := p.fetch(urlDetail)
 	if err != nil {
 		return nil, nil, err

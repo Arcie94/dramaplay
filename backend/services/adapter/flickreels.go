@@ -83,7 +83,7 @@ type frStreamResponse struct {
 }
 
 func (p *FlickReelsProvider) GetTrending() ([]models.Drama, error) {
-	body, err := p.fetch(FlickReelsAPI + "/dramas/rising?lang=3")
+	body, err := p.fetch(FlickReelsAPI + "/dramas/rising?lang=4")
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (p *FlickReelsProvider) GetTrending() ([]models.Drama, error) {
 }
 
 func (p *FlickReelsProvider) GetLatest(page int) ([]models.Drama, error) {
-	body, err := p.fetch(FlickReelsAPI + "/dramas/new?lang=3")
+	body, err := p.fetch(FlickReelsAPI + "/dramas/new?lang=4")
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func (p *FlickReelsProvider) GetLatest(page int) ([]models.Drama, error) {
 }
 
 func (p *FlickReelsProvider) Search(query string) ([]models.Drama, error) {
-	url := fmt.Sprintf("%s/dramas/search?q=%s&lang=3", FlickReelsAPI, url.QueryEscape(query))
+	url := fmt.Sprintf("%s/dramas/search?q=%s&lang=4", FlickReelsAPI, url.QueryEscape(query))
 	body, err := p.fetch(url)
 	if err != nil {
 		return nil, err
@@ -138,7 +138,7 @@ func (p *FlickReelsProvider) Search(query string) ([]models.Drama, error) {
 }
 
 func (p *FlickReelsProvider) GetDetail(id string) (*models.Drama, []models.Episode, error) {
-	urlDetail := fmt.Sprintf("%s/dramas/%s?lang=3", FlickReelsAPI, id)
+	urlDetail := fmt.Sprintf("%s/dramas/%s?lang=4", FlickReelsAPI, id)
 	bodyDetail, err := p.fetch(urlDetail)
 	if err != nil {
 		return nil, nil, err

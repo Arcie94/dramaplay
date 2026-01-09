@@ -93,7 +93,7 @@ type smStreamResponse struct {
 }
 
 func (p *ShortMaxProvider) GetTrending() ([]models.Drama, error) {
-	body, err := p.fetch(ShortMaxAPI + "/dramas/rising?lang=3")
+	body, err := p.fetch(ShortMaxAPI + "/dramas/rising?lang=4")
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (p *ShortMaxProvider) GetTrending() ([]models.Drama, error) {
 }
 
 func (p *ShortMaxProvider) GetLatest(page int) ([]models.Drama, error) {
-	body, err := p.fetch(ShortMaxAPI + "/dramas/new?lang=3")
+	body, err := p.fetch(ShortMaxAPI + "/dramas/new?lang=4")
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (p *ShortMaxProvider) GetLatest(page int) ([]models.Drama, error) {
 }
 
 func (p *ShortMaxProvider) Search(query string) ([]models.Drama, error) {
-	url := fmt.Sprintf("%s/dramas/search?q=%s&lang=3", ShortMaxAPI, url.QueryEscape(query))
+	url := fmt.Sprintf("%s/dramas/search?q=%s&lang=4", ShortMaxAPI, url.QueryEscape(query))
 	body, err := p.fetch(url)
 	if err != nil {
 		return nil, err
@@ -160,7 +160,7 @@ func (p *ShortMaxProvider) Search(query string) ([]models.Drama, error) {
 }
 
 func (p *ShortMaxProvider) GetDetail(id string) (*models.Drama, []models.Episode, error) {
-	urlDetail := fmt.Sprintf("%s/dramas/%s?lang=3", ShortMaxAPI, id)
+	urlDetail := fmt.Sprintf("%s/dramas/%s?lang=4", ShortMaxAPI, id)
 	bodyDetail, err := p.fetch(urlDetail)
 	if err != nil {
 		return nil, nil, err

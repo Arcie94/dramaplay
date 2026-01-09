@@ -97,7 +97,7 @@ type fsStreamResponse struct {
 }
 
 func (p *FreeShortProvider) GetTrending() ([]models.Drama, error) {
-	body, err := p.fetch(FreeShortAPI + "/dramas/rising?lang=3")
+	body, err := p.fetch(FreeShortAPI + "/dramas/rising?lang=4")
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func (p *FreeShortProvider) GetTrending() ([]models.Drama, error) {
 }
 
 func (p *FreeShortProvider) GetLatest(page int) ([]models.Drama, error) {
-	body, err := p.fetch(FreeShortAPI + "/dramas/new?lang=3")
+	body, err := p.fetch(FreeShortAPI + "/dramas/new?lang=4")
 	if err != nil {
 		return nil, err
 	}
@@ -141,7 +141,7 @@ func (p *FreeShortProvider) GetLatest(page int) ([]models.Drama, error) {
 }
 
 func (p *FreeShortProvider) Search(query string) ([]models.Drama, error) {
-	url := fmt.Sprintf("%s/dramas/search?q=%s&lang=3", FreeShortAPI, url.QueryEscape(query))
+	url := fmt.Sprintf("%s/dramas/search?q=%s&lang=4", FreeShortAPI, url.QueryEscape(query))
 	body, err := p.fetch(url)
 	if err != nil {
 		return nil, err
@@ -164,7 +164,7 @@ func (p *FreeShortProvider) Search(query string) ([]models.Drama, error) {
 }
 
 func (p *FreeShortProvider) GetDetail(id string) (*models.Drama, []models.Episode, error) {
-	urlDetail := fmt.Sprintf("%s/dramas/%s?lang=3", FreeShortAPI, id)
+	urlDetail := fmt.Sprintf("%s/dramas/%s?lang=4", FreeShortAPI, id)
 	bodyDetail, err := p.fetch(urlDetail)
 	if err != nil {
 		return nil, nil, err

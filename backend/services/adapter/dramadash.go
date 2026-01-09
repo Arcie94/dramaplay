@@ -84,7 +84,7 @@ type ddStreamResponse struct {
 
 func (p *DramaDashProvider) GetTrending() ([]models.Drama, error) {
 	// DramaDash might differ on sub-paths? Assuming standard /dramas/rising
-	body, err := p.fetch(DramaDashAPI + "/dramas/rising?lang=3")
+	body, err := p.fetch(DramaDashAPI + "/dramas/rising?lang=4")
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func (p *DramaDashProvider) GetTrending() ([]models.Drama, error) {
 }
 
 func (p *DramaDashProvider) GetLatest(page int) ([]models.Drama, error) {
-	body, err := p.fetch(DramaDashAPI + "/dramas/new?lang=3")
+	body, err := p.fetch(DramaDashAPI + "/dramas/new?lang=4")
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func (p *DramaDashProvider) GetLatest(page int) ([]models.Drama, error) {
 }
 
 func (p *DramaDashProvider) Search(query string) ([]models.Drama, error) {
-	url := fmt.Sprintf("%s/dramas/search?q=%s&lang=3", DramaDashAPI, url.QueryEscape(query))
+	url := fmt.Sprintf("%s/dramas/search?q=%s&lang=4", DramaDashAPI, url.QueryEscape(query))
 	body, err := p.fetch(url)
 	if err != nil {
 		return nil, err
@@ -139,7 +139,7 @@ func (p *DramaDashProvider) Search(query string) ([]models.Drama, error) {
 }
 
 func (p *DramaDashProvider) GetDetail(id string) (*models.Drama, []models.Episode, error) {
-	urlDetail := fmt.Sprintf("%s/dramas/%s?lang=3", DramaDashAPI, id)
+	urlDetail := fmt.Sprintf("%s/dramas/%s?lang=4", DramaDashAPI, id)
 	bodyDetail, err := p.fetch(urlDetail)
 	if err != nil {
 		return nil, nil, err

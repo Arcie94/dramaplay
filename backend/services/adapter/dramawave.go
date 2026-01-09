@@ -83,7 +83,7 @@ type dwStreamResponse struct {
 }
 
 func (p *DramaWaveProvider) GetTrending() ([]models.Drama, error) {
-	body, err := p.fetch(DramaWaveAPI + "/dramas/rising?lang=3")
+	body, err := p.fetch(DramaWaveAPI + "/dramas/rising?lang=4")
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (p *DramaWaveProvider) GetTrending() ([]models.Drama, error) {
 }
 
 func (p *DramaWaveProvider) GetLatest(page int) ([]models.Drama, error) {
-	body, err := p.fetch(DramaWaveAPI + "/dramas/new?lang=3")
+	body, err := p.fetch(DramaWaveAPI + "/dramas/new?lang=4")
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func (p *DramaWaveProvider) GetLatest(page int) ([]models.Drama, error) {
 }
 
 func (p *DramaWaveProvider) Search(query string) ([]models.Drama, error) {
-	url := fmt.Sprintf("%s/dramas/search?q=%s&lang=3", DramaWaveAPI, url.QueryEscape(query))
+	url := fmt.Sprintf("%s/dramas/search?q=%s&lang=4", DramaWaveAPI, url.QueryEscape(query))
 	body, err := p.fetch(url)
 	if err != nil {
 		return nil, err
@@ -138,7 +138,7 @@ func (p *DramaWaveProvider) Search(query string) ([]models.Drama, error) {
 }
 
 func (p *DramaWaveProvider) GetDetail(id string) (*models.Drama, []models.Episode, error) {
-	urlDetail := fmt.Sprintf("%s/dramas/%s?lang=3", DramaWaveAPI, id)
+	urlDetail := fmt.Sprintf("%s/dramas/%s?lang=4", DramaWaveAPI, id)
 	bodyDetail, err := p.fetch(urlDetail)
 	if err != nil {
 		return nil, nil, err
