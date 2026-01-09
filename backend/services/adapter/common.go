@@ -1,0 +1,3 @@
+package adapter
+
+const SapimuToken = "0ebd6cfdd8054d2a90aa2851532645211aeaf189fa1aed62c53e5fd735af8649"

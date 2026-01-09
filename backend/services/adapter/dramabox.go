@@ -15,7 +15,9 @@ type DramaboxProvider struct {
 	client *http.Client
 }
 
-const DramaboxAPI = "https://api.sansekai.my.id/api/dramabox"
+const DramaboxAPI = "https://sapimu.au/dramabox/api"
+
+// const SapimuToken moved to common.go
 
 func NewDramaboxProvider() *DramaboxProvider {
 	return &DramaboxProvider{
@@ -42,10 +44,11 @@ func (p *DramaboxProvider) fetch(url string) ([]byte, error) {
 			return nil, err
 		}
 
-		// Spoof headers to look like a browser
+		// Spoof headers to look like a browser + Auth
 		req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
 		req.Header.Set("Accept", "application/json, text/plain, */*")
 		req.Header.Set("Accept-Language", "en-US,en;q=0.9")
+		req.Header.Set("Authorization", "Bearer "+SapimuToken)
 		req.Header.Set("Referer", "https://dramabox.com/")
 
 		resp, err := p.client.Do(req)

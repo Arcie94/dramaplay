@@ -27,7 +27,13 @@ func NewManager() *Manager {
 	ml := NewMeloloProvider()
 	ns := NewNetshortProvider()
 	st := NewStarshortProvider()
-	// mv := NewMovieProvider() // DISABLED
+	// New Providers
+	fs := NewFreeShortProvider()
+	sm := NewShortMaxProvider()
+	dd := NewDramaDashProvider()
+	hs := NewHiShortProvider()
+	fr := NewFlickReelsProvider()
+	dw := NewDramaWaveProvider()
 
 	return &Manager{
 		providers: map[string]Provider{
@@ -35,9 +41,14 @@ func NewManager() *Manager {
 			ml.GetID(): ml,
 			ns.GetID(): ns,
 			st.GetID(): st,
-			// mv.GetID(): mv,
+			fs.GetID(): fs,
+			sm.GetID(): sm,
+			dd.GetID(): dd,
+			hs.GetID(): hs,
+			fr.GetID(): fr,
+			dw.GetID(): dw,
 		},
-		providerList: []Provider{db, ml, ns, st}, // Added Starshort
+		providerList: []Provider{db, ml, ns, st, fs, sm, dd, hs, fr, dw},
 		cache:        cache.New(30*time.Minute, 60*time.Minute),
 	}
 }

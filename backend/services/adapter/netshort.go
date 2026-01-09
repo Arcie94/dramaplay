@@ -11,12 +11,18 @@ import (
 	"strings"
 )
 
-type NetshortProvider struct{}
+type NetshortProvider struct {
+	client *http.Client
+}
 
-const NetshortAPI = "https://api.sansekai.my.id/api/netshort"
+const NetshortAPI = "https://sapimu.au/netshort/api"
+
+// const SapimuToken moved to common.go
 
 func NewNetshortProvider() *NetshortProvider {
-	return &NetshortProvider{}
+	return &NetshortProvider{
+		client: &http.Client{},
+	}
 }
 
 func (p *NetshortProvider) GetID() string {
@@ -28,11 +34,24 @@ func (p *NetshortProvider) IsCompatibleID(id string) bool {
 }
 
 func (p *NetshortProvider) fetch(url string) ([]byte, error) {
-	resp, err := http.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("User-Agent", "Dramabang/1.0")
+	req.Header.Set("Authorization", "Bearer "+SapimuToken)
+
+	resp, err := p.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("status: %d", resp.StatusCode)
+	}
+
 	return io.ReadAll(resp.Body)
 }
 
