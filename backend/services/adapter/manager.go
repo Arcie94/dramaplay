@@ -26,16 +26,18 @@ func NewManager() *Manager {
 	db := NewDramaboxProvider()
 	ml := NewMeloloProvider()
 	ns := NewNetshortProvider()
-	// mv := NewMovieProvider() // DISABLED: User requested removal of IDLIX movie provider
+	st := NewStarshortProvider()
+	// mv := NewMovieProvider() // DISABLED
 
 	return &Manager{
 		providers: map[string]Provider{
 			db.GetID(): db,
 			ml.GetID(): ml,
 			ns.GetID(): ns,
-			// mv.GetID(): mv, // DISABLED
+			st.GetID(): st,
+			// mv.GetID(): mv,
 		},
-		providerList: []Provider{db, ml, ns}, // Removed mv
+		providerList: []Provider{db, ml, ns, st}, // Added Starshort
 		cache:        cache.New(30*time.Minute, 60*time.Minute),
 	}
 }
