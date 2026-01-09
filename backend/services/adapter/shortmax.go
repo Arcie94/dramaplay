@@ -66,7 +66,15 @@ type smItem struct {
 	Code  int    `json:"code"`
 	Name  string `json:"name"`
 	Cover string `json:"cover"`
-	// Summary string `json:"summary"`
+}
+
+type smEpisodeResponse struct {
+	Data []smEpisode `json:"data"`
+}
+type smEpisode struct {
+	ID      int  `json:"id"`
+	Episode int  `json:"episode"`
+	Locked  bool `json:"locked"`
 }
 
 // smDetail/smEpisode likely differ too, but concentrating on Home for now
@@ -111,7 +119,7 @@ func (p *ShortMaxProvider) GetDetail(id string) (*models.Drama, []models.Episode
 		return nil, nil, err
 	}
 
-	var raw smResponse
+	var raw smEpisodeResponse
 	if err := json.Unmarshal(body, &raw); err != nil {
 		return nil, nil, err
 	}
