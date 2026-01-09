@@ -2,12 +2,10 @@ package adapter
 
 import (
 	"dramabang/models"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
-	"strconv"
 )
 
 type FlickReelsProvider struct{}
@@ -52,149 +50,27 @@ func (p *FlickReelsProvider) proxyImage(originalURL string) string {
 	return "https://wsrv.nl/?url=" + url.QueryEscape(originalURL) + "&output=jpg"
 }
 
-type frDrama struct {
-	ID    string   `json:"id"`
-	Title string   `json:"title"`
-	Cover string   `json:"cover"`
-	Tags  []string `json:"tags"`
-}
-
-type frDetail struct {
-	ID            string   `json:"id"`
-	Title         string   `json:"title"`
-	Description   string   `json:"description"`
-	Cover         string   `json:"cover"`
-	TotalEpisodes int      `json:"total_episodes"`
-	FreeEpisodes  int      `json:"free_episodes"`
-	Tags          []string `json:"tags"`
-}
-
-type frEpisodeResponse struct {
-	Episodes []frEpisode `json:"episodes"`
-}
-
-type frEpisode struct {
-	Episode int  `json:"episode"`
-	Free    bool `json:"free"`
-}
-
-type frStreamResponse struct {
-	VideoURL string `json:"video_url"`
-}
+// Stubs for currently unauthorized API
 
 func (p *FlickReelsProvider) GetTrending() ([]models.Drama, error) {
-	body, err := p.fetch(FlickReelsAPI + "/dramas/rising?lang=4")
-	if err != nil {
-		return nil, err
-	}
-	var raw []frDrama
-	json.Unmarshal(body, &raw)
-	var dramas []models.Drama
-	for _, d := range raw {
-		dramas = append(dramas, models.Drama{
-			BookID: "flickreels:" + d.ID,
-			Judul:  d.Title,
-			Cover:  p.proxyImage(d.Cover),
-		})
-	}
-	return dramas, nil
+	// /rising returns 401, so we return empty or error.
+	// Returning empty list is safer for Homepage to not crash.
+	return []models.Drama{}, nil
 }
 
 func (p *FlickReelsProvider) GetLatest(page int) ([]models.Drama, error) {
-	body, err := p.fetch(FlickReelsAPI + "/dramas/new?lang=4")
-	if err != nil {
-		return nil, err
-	}
-	var raw []frDrama
-	json.Unmarshal(body, &raw)
-	var dramas []models.Drama
-	for _, d := range raw {
-		dramas = append(dramas, models.Drama{
-			BookID: "flickreels:" + d.ID,
-			Judul:  d.Title,
-			Cover:  p.proxyImage(d.Cover),
-		})
-	}
-	return dramas, nil
+	// /new returns 401
+	return []models.Drama{}, nil
 }
 
 func (p *FlickReelsProvider) Search(query string) ([]models.Drama, error) {
-	url := fmt.Sprintf("%s/dramas/search?q=%s&lang=4", FlickReelsAPI, url.QueryEscape(query))
-	body, err := p.fetch(url)
-	if err != nil {
-		return nil, err
-	}
-	var raw []frDrama
-	json.Unmarshal(body, &raw)
-	var dramas []models.Drama
-	for _, d := range raw {
-		dramas = append(dramas, models.Drama{
-			BookID: "flickreels:" + d.ID,
-			Judul:  d.Title,
-			Cover:  p.proxyImage(d.Cover),
-		})
-	}
-	return dramas, nil
+	return []models.Drama{}, nil
 }
 
 func (p *FlickReelsProvider) GetDetail(id string) (*models.Drama, []models.Episode, error) {
-	urlDetail := fmt.Sprintf("%s/dramas/%s?lang=4", FlickReelsAPI, id)
-	bodyDetail, err := p.fetch(urlDetail)
-	if err != nil {
-		return nil, nil, err
-	}
-	var rawDetail frDetail
-	if err := json.Unmarshal(bodyDetail, &rawDetail); err != nil {
-		return nil, nil, err
-	}
-	drama := models.Drama{
-		BookID:       "flickreels:" + rawDetail.ID,
-		Judul:        rawDetail.Title,
-		Cover:        p.proxyImage(rawDetail.Cover),
-		Deskripsi:    rawDetail.Description,
-		TotalEpisode: strconv.Itoa(rawDetail.TotalEpisodes),
-	}
-
-	urlEp := fmt.Sprintf("%s/dramas/%s/episodes?lang=4", FlickReelsAPI, id)
-	bodyEp, err := p.fetch(urlEp)
-	if err != nil {
-		return &drama, nil, nil
-	}
-	var rawEp frEpisodeResponse
-	json.Unmarshal(bodyEp, &rawEp)
-	var episodes []models.Episode
-	for _, ep := range rawEp.Episodes {
-		episodes = append(episodes, models.Episode{
-			BookID:       "flickreels:" + id,
-			EpisodeIndex: ep.Episode - 1,
-			EpisodeLabel: fmt.Sprintf("Episode %d", ep.Episode),
-		})
-	}
-	return &drama, episodes, nil
+	return nil, nil, fmt.Errorf("flickreels api unauthorized (401)")
 }
 
 func (p *FlickReelsProvider) GetStream(id, epIndex string) (*models.StreamData, error) {
-	idx, _ := strconv.Atoi(epIndex)
-	epNum := idx + 1
-	url := fmt.Sprintf("%s/dramas/%s/episodes/%d?lang=4", FlickReelsAPI, id, epNum)
-	body, err := p.fetch(url)
-	if err != nil {
-		return nil, err
-	}
-	var raw frStreamResponse
-	if err := json.Unmarshal(body, &raw); err != nil {
-		return nil, err
-	}
-	if raw.VideoURL == "" {
-		return nil, fmt.Errorf("stream url empty")
-	}
-	return &models.StreamData{
-		BookID: "flickreels:" + id,
-		Chapter: models.ChapterData{
-			Index: idx,
-			Video: models.VideoData{
-				Mp4: raw.VideoURL,
-			},
-		},
-	}, nil
+	return nil, fmt.Errorf("flickreels api unauthorized (401)")
 }

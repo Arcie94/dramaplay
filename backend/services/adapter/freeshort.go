@@ -107,7 +107,7 @@ func (p *FreeShortProvider) Search(query string) ([]models.Drama, error) {
 }
 
 func (p *FreeShortProvider) GetDetail(id string) (*models.Drama, []models.Episode, error) {
-	return nil, nil, fmt.Errorf("freeshort api unavailable (500)")
+	return nil, nil, fmt.Errorf("freeshort api unauthorized (401)")
 }
 
 func (p *FreeShortProvider) GetStream(id, epIndex string) (*models.StreamData, error) {

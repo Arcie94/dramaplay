@@ -98,7 +98,7 @@ func (p *DramaDashProvider) Search(query string) ([]models.Drama, error) {
 }
 
 func (p *DramaDashProvider) GetDetail(id string) (*models.Drama, []models.Episode, error) {
-	return nil, nil, fmt.Errorf("dramadash api unavailable (500)")
+	return nil, nil, fmt.Errorf("dramadash api unauthorized (401)")
 }
 
 func (p *DramaDashProvider) GetStream(id, epIndex string) (*models.StreamData, error) {
