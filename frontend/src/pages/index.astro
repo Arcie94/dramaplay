@@ -767,6 +767,48 @@ const currentGenre = Astro.url.searchParams.get("genre");
       </div>
     </section>
 
+    <!-- FLICKREELS Section -->
+    <section class="mt-4 px-4">
+      <div class="flex items-center gap-2 mb-4">
+        <span
+          class="text-xs font-bold px-2 py-0.5 rounded bg-yellow-600/20 text-yellow-400 border border-yellow-600/30"
+          >FLICKREELS</span
+        >
+        <h2 class="text-lg font-bold text-white">FlickReels Dramas</h2>
+      </div>
+      <div
+        id="flickreels-grid"
+        class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6 min-h-[200px]"
+      >
+        {
+          Array.from({ length: 6 }).map((_, i) => (
+            <div class="aspect-[2/3] bg-zinc-900 rounded-lg animate-pulse" />
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- DRAMAWAVE Section -->
+    <section class="mt-4 px-4">
+      <div class="flex items-center gap-2 mb-4">
+        <span
+          class="text-xs font-bold px-2 py-0.5 rounded bg-teal-600/20 text-teal-400 border border-teal-600/30"
+          >DRAMAWAVE</span
+        >
+        <h2 class="text-lg font-bold text-white">DramaWave Dramas</h2>
+      </div>
+      <div
+        id="dramawave-grid"
+        class="grid grid-cols-3 gap-3 md:grid-cols-4 lg:grid-cols-6 min-h-[200px]"
+      >
+        {
+          Array.from({ length: 6 }).map((_, i) => (
+            <div class="aspect-[2/3] bg-zinc-900 rounded-lg animate-pulse" />
+          ))
+        }
+      </div>
+    </section>
+
     <!-- Bottom Nav -->
     <BottomNav />
   </main>
@@ -1142,6 +1184,24 @@ const currentGenre = Astro.url.searchParams.get("genre");
           renderProviderGrid(json.data, "hishort-grid");
       })
       .catch((err) => console.error("HiShort fetch error", err));
+
+    // 12. FlickReels Section
+    fetch("/api/provider/flickreels/latest")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.status === "success")
+          renderProviderGrid(json.data, "flickreels-grid");
+      })
+      .catch((err) => console.error("FlickReels fetch error", err));
+
+    // 13. DramaWave Section
+    fetch("/api/provider/dramawave/latest")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.status === "success")
+          renderProviderGrid(json.data, "dramawave-grid");
+      })
+      .catch((err) => console.error("DramaWave fetch error", err));
 
     // 8. Genres (Romance & Action)
     const genres = [
