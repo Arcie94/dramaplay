@@ -247,12 +247,15 @@ func (p *ShortMaxProvider) GetStream(id, epIndex string) (*models.StreamData, er
 		return nil, fmt.Errorf("no video url found in response")
 	}
 
+	// Use Proxy to handle CORS/Auth
+	proxiedURL := "/api/proxy?url=" + url.QueryEscape(videoURL)
+
 	return &models.StreamData{
 		BookID: "shortmax:" + id,
 		Chapter: models.ChapterData{
 			Index: idx,
 			Video: models.VideoData{
-				Mp4: videoURL,
+				Mp4: proxiedURL,
 			},
 		},
 	}, nil

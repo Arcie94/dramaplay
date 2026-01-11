@@ -96,6 +96,7 @@ func main() {
 	api.Get("/auth/verify", handlers.VerifyEmail)        // New Verification Endpoint
 	api.Put("/user/profile", handlers.UpdateUserProfile) // New Profile Update
 	api.Put("/user/password", handlers.UpdatePassword)   // New Password Change
+	api.Get("/proxy", handlers.ProxyStream)              // HLS Proxy
 
 	// Forgot Password Rate Limiter (3 per hour)
 	forgotLimiter := limiter.New(limiter.Config{
