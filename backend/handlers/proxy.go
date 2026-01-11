@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bufio"
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -26,16 +27,21 @@ func ProxyStream(c *fiber.Ctx) error {
 	// Forward User-Agent for compatibility
 	req.Header.Set("User-Agent", c.Get("User-Agent"))
 
-	// Create client (disable compression to easily rewrite text)
-	client := &http.Client{}
+	// Create client with InsecureSkipVerify to avoid docker SSL issues
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+
 	resp, err := client.Do(req)
 	if err != nil {
-		return c.Status(502).SendString("Failed to fetch upstream: " + err.Error())
+		// return 500 to try to bypass Cloudflare 502 masking
+		return c.Status(500).SendString("Failed to fetch upstream: " + err.Error())
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		return c.Status(resp.StatusCode).SendString("Upstream error")
+		return c.Status(resp.StatusCode).SendString("Upstream error: " + resp.Status)
 	}
 
 	// Set CORS headers
