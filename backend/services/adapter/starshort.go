@@ -1,7 +1,6 @@
 package adapter
 
 import (
-	"crypto/tls"
 	"dramabang/models"
 	"encoding/json"
 	"fmt"
@@ -38,10 +37,7 @@ func (p *StarshortProvider) fetch(targetURL string) ([]byte, error) {
 	req.Header.Set("Accept", "application/json, text/plain, */*")
 	req.Header.Set("Authorization", "Bearer 0ebd6cfdd8054d2a90aa2851532645211aeaf189fa1aed62c53e5fd735af8649")
 
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-	client := &http.Client{Transport: tr}
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
