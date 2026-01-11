@@ -1,6 +1,7 @@
 package adapter
 
 import (
+	"crypto/tls"
 	"dramabang/models"
 	"encoding/json"
 	"fmt"
@@ -35,7 +36,10 @@ func (p *FreeShortProvider) fetch(targetURL string) ([]byte, error) {
 	req.Header.Set("Accept", "application/json, text/plain, */*")
 	req.Header.Set("Authorization", "Bearer "+SapimuToken)
 
-	client := &http.Client{}
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
