@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 type ShortMaxProvider struct{}
@@ -157,7 +158,36 @@ func (p *ShortMaxProvider) Search(query string) ([]models.Drama, error) {
 }
 
 func (p *ShortMaxProvider) GetDetail(id string) (*models.Drama, []models.Episode, error) {
-	// Fetch episodes to get count + list
+	// 1. Fetch Metadata (Title) from /batch
+	// /batch endpoint returns NDJSON, first line has metadata.
+	urlBatch := fmt.Sprintf("%s/batch/%s?lang=id", ShortMaxAPI, id)
+	var dramaTitle = "ShortMax Drama " + id
+	var dramaDesc = "Metadata currently not available via direct detail endpoint."
+
+	// We use a short timeout or just fetch it.
+	// We read the body, take the first line.
+	bodyBatch, err := p.fetch(urlBatch)
+	if err == nil {
+		// Parse NDJSON first line
+		lines := strings.Split(string(bodyBatch), "\n")
+		if len(lines) > 0 {
+			var meta struct {
+				Name    string `json:"name"`
+				Total   int    `json:"total"`
+				Summary string `json:"summary"` // Optimistic guess, logic below checks
+			}
+			if json.Unmarshal([]byte(lines[0]), &meta) == nil && meta.Name != "" {
+				dramaTitle = meta.Name
+				if meta.Summary != "" {
+					dramaDesc = meta.Summary
+				} else {
+					dramaDesc = meta.Name // Use title as desc if empty
+				}
+			}
+		}
+	}
+
+	// 2. Fetch Episodes from /episodes for reliable Locked status
 	urlEpisodes := fmt.Sprintf("%s/episodes/%s?lang=id", ShortMaxAPI, id)
 	body, err := p.fetch(urlEpisodes)
 	if err != nil {
@@ -169,16 +199,11 @@ func (p *ShortMaxProvider) GetDetail(id string) (*models.Drama, []models.Episode
 		return nil, nil, err
 	}
 
-	// We don't have metadata from /episodes endpoint.
-	// We will return a Stub drama with ID.
-	// The frontend will usually show what it has, or previously we tried to guess.
-	// Ideally we should cache metadata from Home/Search.
-	// For now, we return minimal info.
 	drama := models.Drama{
 		BookID:       "shortmax:" + id,
-		Judul:        "ShortMax Drama " + id,
-		Cover:        "",
-		Deskripsi:    "Metadata currently not available via direct detail endpoint.",
+		Judul:        dramaTitle,
+		Cover:        "", // Still no source for cover in batch/episodes
+		Deskripsi:    dramaDesc,
 		TotalEpisode: strconv.Itoa(len(raw.Data)),
 	}
 
