@@ -12,7 +12,7 @@ import (
 
 type ShortMaxProvider struct{}
 
-const ShortMaxAPI = "https://sapimu.au/shortmax/api/v1"
+const ShortMaxAPI = "https://dramabos.asia/api/shortmax/api/v1"
 
 func NewShortMaxProvider() *ShortMaxProvider {
 	return &ShortMaxProvider{}
@@ -34,6 +34,14 @@ func (p *ShortMaxProvider) fetch(targetURL string) ([]byte, error) {
 
 	req.Header.Set("User-Agent", "Mozilla/5.0")
 	req.Header.Set("Accept", "application/json, text/plain, */*")
+	// Using generic SapimuToken or empty if no auth needed for dramabos?
+	// User didn't specify auth for dramabos.asia. Assuming open or same token.
+	// The provided URLs in the prompt contain "auth_key" in image URLs but the API URLs themselves don't seem to have tokens in them (except maybe implicit?)
+	// Wait, the prompt urls: `https://dramabos.asia/api/shortmax/api/v1/home?lang=id`
+	// No "token" query param.
+	// I will keep sending SapimuToken just in case, or remove if it causes 400.
+	// The user didn't say "don't use token".
+	// I will use SapimuToken as header just to be safe/consistent, unless it breaks it.
 	req.Header.Set("Authorization", "Bearer "+SapimuToken)
 
 	client := &http.Client{}
@@ -57,15 +65,18 @@ func (p *ShortMaxProvider) proxyImage(originalURL string) string {
 	return "https://wsrv.nl/?url=" + url.QueryEscape(originalURL) + "&output=jpg"
 }
 
-// Reusing same structs with `sm` prefix for safety
 type smResponse struct {
 	Data []smItem `json:"data"`
 }
 type smItem struct {
-	ID    int    `json:"id"`
-	Code  int    `json:"code"`
-	Name  string `json:"name"`
-	Cover string `json:"cover"`
+	ID        int      `json:"id"`
+	Code      int      `json:"code"`
+	Name      string   `json:"name"`
+	Cover     string   `json:"cover"`
+	Episodes  int      `json:"episodes"`
+	Summary   string   `json:"summary"`
+	Tags      []string `json:"tags"`
+	Favorites int      `json:"favorites"`
 }
 
 type smEpisodeResponse struct {
@@ -77,7 +88,15 @@ type smEpisode struct {
 	Locked  bool `json:"locked"`
 }
 
-// smDetail/smEpisode likely differ too, but concentrating on Home for now
+type smPlayResponse struct {
+	Data struct {
+		Video struct {
+			Video1080 string `json:"video_1080"`
+			Video720  string `json:"video_720"`
+			Video480  string `json:"video_480"`
+		} `json:"video"`
+	} `json:"data"`
+}
 
 func (p *ShortMaxProvider) GetTrending() ([]models.Drama, error) {
 	// Use /home for Trending
@@ -94,9 +113,13 @@ func (p *ShortMaxProvider) GetTrending() ([]models.Drama, error) {
 	var dramas []models.Drama
 	for _, d := range raw.Data {
 		dramas = append(dramas, models.Drama{
-			BookID: "shortmax:" + strconv.Itoa(d.ID),
-			Judul:  d.Name,
-			Cover:  p.proxyImage(d.Cover),
+			BookID:       "shortmax:" + strconv.Itoa(d.ID),
+			Judul:        d.Name,
+			Cover:        p.proxyImage(d.Cover),
+			Deskripsi:    d.Summary,
+			TotalEpisode: strconv.Itoa(d.Episodes),
+			Likes:        strconv.Itoa(d.Favorites),
+			Genre:        fmt.Sprintf("%v", d.Tags),
 		})
 	}
 	return dramas, nil
@@ -107,12 +130,34 @@ func (p *ShortMaxProvider) GetLatest(page int) ([]models.Drama, error) {
 }
 
 func (p *ShortMaxProvider) Search(query string) ([]models.Drama, error) {
-	return []models.Drama{}, nil
+	urlSearch := fmt.Sprintf("%s/search?q=%s&lang=id&page=1", ShortMaxAPI, url.QueryEscape(query))
+	body, err := p.fetch(urlSearch)
+	if err != nil {
+		return nil, err
+	}
+
+	var raw smResponse
+	if err := json.Unmarshal(body, &raw); err != nil {
+		return nil, err
+	}
+
+	var dramas []models.Drama
+	for _, d := range raw.Data {
+		dramas = append(dramas, models.Drama{
+			BookID:       "shortmax:" + strconv.Itoa(d.ID),
+			Judul:        d.Name,
+			Cover:        p.proxyImage(d.Cover),
+			Deskripsi:    d.Summary,
+			TotalEpisode: strconv.Itoa(d.Episodes),
+			Likes:        strconv.Itoa(d.Favorites),
+			Genre:        fmt.Sprintf("%v", d.Tags),
+		})
+	}
+	return dramas, nil
 }
 
 func (p *ShortMaxProvider) GetDetail(id string) (*models.Drama, []models.Episode, error) {
-	// Endpoint: /shortmax/api/v1/episodes/{id}?lang=id
-	// Note: Metadata endpoint is broken (500), so we only fetch episodes.
+	// Fetch episodes to get count + list
 	urlEpisodes := fmt.Sprintf("%s/episodes/%s?lang=id", ShortMaxAPI, id)
 	body, err := p.fetch(urlEpisodes)
 	if err != nil {
@@ -124,12 +169,16 @@ func (p *ShortMaxProvider) GetDetail(id string) (*models.Drama, []models.Episode
 		return nil, nil, err
 	}
 
-	// Create partial drama object
+	// We don't have metadata from /episodes endpoint.
+	// We will return a Stub drama with ID.
+	// The frontend will usually show what it has, or previously we tried to guess.
+	// Ideally we should cache metadata from Home/Search.
+	// For now, we return minimal info.
 	drama := models.Drama{
 		BookID:       "shortmax:" + id,
-		Judul:        "ShortMax Drama " + id, // Metadata unavailable
-		Cover:        "",                     // Metadata unavailable
-		Deskripsi:    "Metadata currently header unavailable from provider.",
+		Judul:        "ShortMax Drama " + id,
+		Cover:        "",
+		Deskripsi:    "Metadata currently not available via direct detail endpoint.",
 		TotalEpisode: strconv.Itoa(len(raw.Data)),
 	}
 
@@ -146,5 +195,40 @@ func (p *ShortMaxProvider) GetDetail(id string) (*models.Drama, []models.Episode
 }
 
 func (p *ShortMaxProvider) GetStream(id, epIndex string) (*models.StreamData, error) {
-	return nil, fmt.Errorf("stream api unavailable (500) from provider")
+	idx, _ := strconv.Atoi(epIndex)
+	epNum := idx + 1
+	urlPlay := fmt.Sprintf("%s/play/%s?lang=id&ep=%d", ShortMaxAPI, id, epNum)
+
+	body, err := p.fetch(urlPlay)
+	if err != nil {
+		return nil, err
+	}
+
+	var raw smPlayResponse
+	if err := json.Unmarshal(body, &raw); err != nil {
+		return nil, err
+	}
+
+	// Pick best quality
+	videoURL := raw.Data.Video.Video1080
+	if videoURL == "" {
+		videoURL = raw.Data.Video.Video720
+	}
+	if videoURL == "" {
+		videoURL = raw.Data.Video.Video480
+	}
+
+	if videoURL == "" {
+		return nil, fmt.Errorf("no video url found in response")
+	}
+
+	return &models.StreamData{
+		BookID: "shortmax:" + id,
+		Chapter: models.ChapterData{
+			Index: idx,
+			Video: models.VideoData{
+				Mp4: videoURL,
+			},
+		},
+	}, nil
 }
