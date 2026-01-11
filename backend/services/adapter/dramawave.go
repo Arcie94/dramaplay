@@ -103,15 +103,16 @@ type dwGenericResponse struct {
 
 func (p *DramaWaveProvider) GetTrending() ([]models.Drama, error) {
 	// /feed/popular?lang=id
-	// Assuming returns list of dramas
 	body, err := p.fetch(DramaWaveAPI + "/feed/popular?lang=id")
 	if err != nil {
 		return nil, err
 	}
 
-	// Try parsing as array first
+	// API returns {code, message, data: [...]}
 	var raw struct {
-		Data []dwDrama `json:"data"`
+		Code    int       `json:"code"`
+		Message string    `json:"message"`
+		Data    []dwDrama `json:"data"`
 	}
 	if err := json.Unmarshal(body, &raw); err != nil {
 		return nil, err
@@ -125,7 +126,7 @@ func (p *DramaWaveProvider) GetTrending() ([]models.Drama, error) {
 			Cover:        p.proxyImage(d.Cover),
 			Deskripsi:    d.Brief,
 			TotalEpisode: strconv.Itoa(d.Episodes),
-			Genre:        "", // Tags might be complicated
+			Genre:        "",
 		})
 	}
 	return dramas, nil
@@ -139,7 +140,9 @@ func (p *DramaWaveProvider) GetLatest(page int) ([]models.Drama, error) {
 	}
 
 	var raw struct {
-		Data []dwDrama `json:"data"`
+		Code    int       `json:"code"`
+		Message string    `json:"message"`
+		Data    []dwDrama `json:"data"`
 	}
 	if err := json.Unmarshal(body, &raw); err != nil {
 		return nil, err
@@ -166,7 +169,9 @@ func (p *DramaWaveProvider) Search(query string) ([]models.Drama, error) {
 	}
 
 	var raw struct {
-		Data []dwDrama `json:"data"`
+		Code    int       `json:"code"`
+		Message string    `json:"message"`
+		Data    []dwDrama `json:"data"`
 	}
 	if err := json.Unmarshal(body, &raw); err != nil {
 		return nil, err
