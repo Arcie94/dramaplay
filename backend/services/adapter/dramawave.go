@@ -188,7 +188,7 @@ func (p *DramaWaveProvider) Search(query string) ([]models.Drama, error) {
 	// Let's assume generic parsing or look at user request list (Get search/hot implies similar struct)
 	// We'll try same dwFeedResponse first.
 	var resp dwFeedResponse
-	err := json.Unmarshal(body, &resp)
+	err = json.Unmarshal(body, &resp)
 	if err != nil || len(resp.Data.Items) == 0 {
 		// Fallback: maybe raw items list?
 		var rawList struct {
