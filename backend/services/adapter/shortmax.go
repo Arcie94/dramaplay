@@ -9,14 +9,21 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
-type ShortMaxProvider struct{}
+type ShortMaxProvider struct {
+	client *http.Client
+}
 
 const ShortMaxAPI = "https://dramabos.asia/api/shortmax/api/v1"
 
 func NewShortMaxProvider() *ShortMaxProvider {
-	return &ShortMaxProvider{}
+	return &ShortMaxProvider{
+		client: &http.Client{
+			Timeout: 30 * time.Second,
+		},
+	}
 }
 
 func (p *ShortMaxProvider) GetID() string {
@@ -33,20 +40,12 @@ func (p *ShortMaxProvider) fetch(targetURL string) ([]byte, error) {
 		return nil, err
 	}
 
-	req.Header.Set("User-Agent", "Mozilla/5.0")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 	req.Header.Set("Accept", "application/json, text/plain, */*")
-	// Using generic SapimuToken or empty if no auth needed for dramabos?
-	// User didn't specify auth for dramabos.asia. Assuming open or same token.
-	// The provided URLs in the prompt contain "auth_key" in image URLs but the API URLs themselves don't seem to have tokens in them (except maybe implicit?)
-	// Wait, the prompt urls: `https://dramabos.asia/api/shortmax/api/v1/home?lang=id`
-	// No "token" query param.
-	// I will keep sending SapimuToken just in case, or remove if it causes 400.
-	// The user didn't say "don't use token".
-	// I will use SapimuToken as header just to be safe/consistent, unless it breaks it.
-	req.Header.Set("Authorization", "Bearer "+SapimuToken)
+	req.Header.Set("Referer", "https://dramabos.asia/")
+	req.Header.Set("Origin", "https://dramabos.asia")
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := p.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -66,12 +65,15 @@ func (p *ShortMaxProvider) proxyImage(originalURL string) string {
 	return "https://wsrv.nl/?url=" + url.QueryEscape(originalURL) + "&output=jpg"
 }
 
+// --- Internal Models ---
+
 type smResponse struct {
 	Data []smItem `json:"data"`
 }
+
 type smItem struct {
 	ID        int      `json:"id"`
-	Code      int      `json:"code"`
+	Code      int      `json:"code"` // Sometimes ID is in Code
 	Name      string   `json:"name"`
 	Cover     string   `json:"cover"`
 	Episodes  int      `json:"episodes"`
@@ -83,6 +85,7 @@ type smItem struct {
 type smEpisodeResponse struct {
 	Data []smEpisode `json:"data"`
 }
+
 type smEpisode struct {
 	ID      int  `json:"id"`
 	Episode int  `json:"episode"`
@@ -99,13 +102,25 @@ type smPlayResponse struct {
 	} `json:"data"`
 }
 
+type smBatchMeta struct {
+	// Trying to cover common list/item fields if batch returns a list or item
+	// Usually batch is [ {project_info}, {episode_list...} ] or similar line-delimited
+	ID      int    `json:"id"`
+	Name    string `json:"name"`
+	Summary string `json:"summary"`
+	Cover   string `json:"cover"`
+}
+
+// --- Implementation ---
+
 func (p *ShortMaxProvider) GetTrending() ([]models.Drama, error) {
-	// Use /home for Trending
+	// Use /home?lang=id
 	body, err := p.fetch(ShortMaxAPI + "/home?lang=id")
 	if err != nil {
 		return nil, err
 	}
 
+	// Try parsing as standard wrapper
 	var raw smResponse
 	if err := json.Unmarshal(body, &raw); err != nil {
 		return nil, err
@@ -120,17 +135,20 @@ func (p *ShortMaxProvider) GetTrending() ([]models.Drama, error) {
 			Deskripsi:    d.Summary,
 			TotalEpisode: strconv.Itoa(d.Episodes),
 			Likes:        strconv.Itoa(d.Favorites),
-			Genre:        fmt.Sprintf("%v", d.Tags),
+			Genre:        strings.Join(d.Tags, ", "),
 		})
 	}
 	return dramas, nil
 }
 
 func (p *ShortMaxProvider) GetLatest(page int) ([]models.Drama, error) {
+	// ShortMax doesn't seem to have specific pagination in provided endpoints
+	// Fallback to Trending/Home
 	return p.GetTrending()
 }
 
 func (p *ShortMaxProvider) Search(query string) ([]models.Drama, error) {
+	// Endpoint: /search?q={q}&lang=id&page=1
 	urlSearch := fmt.Sprintf("%s/search?q=%s&lang=id&page=1", ShortMaxAPI, url.QueryEscape(query))
 	body, err := p.fetch(urlSearch)
 	if err != nil {
@@ -151,64 +169,87 @@ func (p *ShortMaxProvider) Search(query string) ([]models.Drama, error) {
 			Deskripsi:    d.Summary,
 			TotalEpisode: strconv.Itoa(d.Episodes),
 			Likes:        strconv.Itoa(d.Favorites),
-			Genre:        fmt.Sprintf("%v", d.Tags),
+			Genre:        strings.Join(d.Tags, ", "),
 		})
 	}
 	return dramas, nil
 }
 
 func (p *ShortMaxProvider) GetDetail(id string) (*models.Drama, []models.Episode, error) {
-	// 1. Fetch Metadata (Title) from /batch
-	// /batch endpoint returns NDJSON, first line has metadata.
-	urlBatch := fmt.Sprintf("%s/batch/%s?lang=id", ShortMaxAPI, id)
-	var dramaTitle = "ShortMax Drama " + id
-	var dramaDesc = "Metadata currently not available via direct detail endpoint."
+	// Strategy:
+	// 1. Fetch metadata from /batch/{id}?lang=id
+	//    Usually this contains details.
+	//    If batch fails or is empty, we might only have episodes from /episodes.
 
-	// We use a short timeout or just fetch it.
-	// We read the body, take the first line.
-	bodyBatch, err := p.fetch(urlBatch)
-	if err == nil {
-		// Parse NDJSON first line
-		lines := strings.Split(string(bodyBatch), "\n")
-		if len(lines) > 0 {
-			var meta struct {
-				Name    string `json:"name"`
-				Total   int    `json:"total"`
-				Summary string `json:"summary"` // Optimistic guess, logic below checks
+	urlBatch := fmt.Sprintf("%s/batch/%s?lang=id", ShortMaxAPI, id)
+
+	dramaTitle := "ShortMax Drama " + id
+	dramaDesc := "No description available"
+	dramaCover := ""
+
+	// Fetch batch (optimistic)
+	if bodyBatch, err := p.fetch(urlBatch); err == nil {
+		// Try to handle both NDJSON or standard JSON array
+		sBody := string(bodyBatch)
+
+		// If response starts with [ or {, good.
+		// If NDJSON, split newline.
+
+		var firstItem smItem // Re-use smItem as it matches drama fields
+		var successParse bool
+
+		// Attempt 1: Parse as single object
+		if json.Unmarshal(bodyBatch, &firstItem) == nil && firstItem.Name != "" {
+			successParse = true
+		} else {
+			// Attempt 2: Parse as list, take first
+			var list []smItem
+			if json.Unmarshal(bodyBatch, &list) == nil && len(list) > 0 {
+				firstItem = list[0]
+				successParse = true
 			}
-			if json.Unmarshal([]byte(lines[0]), &meta) == nil && meta.Name != "" {
-				dramaTitle = meta.Name
-				if meta.Summary != "" {
-					dramaDesc = meta.Summary
-				} else {
-					dramaDesc = meta.Name // Use title as desc if empty
+		}
+
+		if successParse {
+			dramaTitle = firstItem.Name
+			dramaDesc = firstItem.Summary
+			dramaCover = firstItem.Cover
+		} else {
+			// NDJSON fallback (common in ShortMax APIs)
+			lines := strings.Split(sBody, "\n")
+			if len(lines) > 0 {
+				// Try parsing first line
+				if json.Unmarshal([]byte(lines[0]), &firstItem) == nil && firstItem.Name != "" {
+					dramaTitle = firstItem.Name
+					dramaDesc = firstItem.Summary
+					dramaCover = firstItem.Cover
 				}
 			}
 		}
 	}
 
-	// 2. Fetch Episodes from /episodes for reliable Locked status
-	urlEpisodes := fmt.Sprintf("%s/episodes/%s?lang=id", ShortMaxAPI, id)
-	body, err := p.fetch(urlEpisodes)
+	// 2. Fetch Episodes List: /episodes/{id}?lang=id
+	urlEp := fmt.Sprintf("%s/episodes/%s?lang=id", ShortMaxAPI, id)
+	bodyEp, err := p.fetch(urlEp)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	var raw smEpisodeResponse
-	if err := json.Unmarshal(body, &raw); err != nil {
+	var rawEp smEpisodeResponse
+	if err := json.Unmarshal(bodyEp, &rawEp); err != nil {
 		return nil, nil, err
 	}
 
 	drama := models.Drama{
 		BookID:       "shortmax:" + id,
 		Judul:        dramaTitle,
-		Cover:        "", // Still no source for cover in batch/episodes
+		Cover:        p.proxyImage(dramaCover),
 		Deskripsi:    dramaDesc,
-		TotalEpisode: strconv.Itoa(len(raw.Data)),
+		TotalEpisode: strconv.Itoa(len(rawEp.Data)),
 	}
 
 	var episodes []models.Episode
-	for _, ep := range raw.Data {
+	for _, ep := range rawEp.Data {
 		episodes = append(episodes, models.Episode{
 			BookID:       "shortmax:" + id,
 			EpisodeIndex: ep.Episode - 1,
@@ -222,8 +263,8 @@ func (p *ShortMaxProvider) GetDetail(id string) (*models.Drama, []models.Episode
 func (p *ShortMaxProvider) GetStream(id, epIndex string) (*models.StreamData, error) {
 	idx, _ := strconv.Atoi(epIndex)
 	epNum := idx + 1
-	urlPlay := fmt.Sprintf("%s/play/%s?lang=id&ep=%d", ShortMaxAPI, id, epNum)
 
+	urlPlay := fmt.Sprintf("%s/play/%s?lang=id&ep=%d", ShortMaxAPI, id, epNum)
 	body, err := p.fetch(urlPlay)
 	if err != nil {
 		return nil, err
@@ -244,7 +285,7 @@ func (p *ShortMaxProvider) GetStream(id, epIndex string) (*models.StreamData, er
 	}
 
 	if videoURL == "" {
-		return nil, fmt.Errorf("no video url found in response")
+		return nil, fmt.Errorf("no video url found")
 	}
 
 	return &models.StreamData{
