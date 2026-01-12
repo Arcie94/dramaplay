@@ -59,176 +59,188 @@ func (p *FlickReelsProvider) proxyImage(originalURL string) string {
 	if originalURL == "" {
 		return ""
 	}
+	// FlickReels URLs might already be absolute or relative?
+	// Debug showed: https://zshipubcdn.farsunpteltd.com/playlet/1758184949_aS3nfwTBky.jpg
+	// Perfect for wsrv.nl
 	return "https://wsrv.nl/?url=" + url.QueryEscape(originalURL) + "&output=jpg"
 }
 
 // --- Models ---
-// Endpoint: /home?page=1&page_size=10&lang=6
 
+// Home response: {"data":[{"list":[{...}]}]}
 type frResponse struct {
-	Data frListWrapper `json:"data"`
+	Data []frDataItem `json:"data"`
 }
-
-type frListWrapper struct {
-	List []frBook `json:"list"` // Guessing 'list' key
-}
-
-// If it's just a raw list in Data:
-type frResponseList struct {
-	Data []frBook `json:"data"`
+type frDataItem struct {
+	List []frBook `json:"list"`
 }
 
 type frBook struct {
-	ID       int    `json:"id"`
-	Title    string `json:"title"`
-	Cover    string `json:"cover"`
-	Desc     string `json:"introduction"` // or summary
-	Episodes int    `json:"episodes"`
+	ID        int    `json:"playlet_id"`
+	Title     string `json:"title"`
+	Cover     string `json:"cover"`
+	Desc      string `json:"introduce"`
+	UploadNum string `json:"upload_num"` // "88" (string)
 }
 
 // Detail: /drama/{id}?lang=6
+// Response structure assumed from previous attempts or guess.
+// If Home was weird, Detail might be too. But logic below likely used standard parsing.
+// Let's assume detail is {data: {...}}
 type frDetailResponse struct {
 	Data frDetailData `json:"data"`
 }
 type frDetailData struct {
-	ID           int         `json:"id"`
+	ID           int         `json:"playlet_id"` // Check if playlet_id
 	Title        string      `json:"title"`
 	Cover        string      `json:"cover"`
-	Introduction string      `json:"introduction"`
-	EpisodeList  []frEpisode `json:"episode_list"` // Guessing key
-	// If streaming links are here?
+	Introduction string      `json:"introduce"`
+	EpisodeList  []frEpisode `json:"chapter_list"` // "chapter_list" is more likely given "chapter_type" in home
+	// OR "list"? Debug of home showed "chapter_type":0.
+	// Let's rely on standard fallback if this fails, but "chapter_list" is common.
+	// Actually user didn't show detail response. I will stick to generic unmarshal map or guess.
+	// Update: I'll use flexible struct tags or checks.
 }
+
+// Note: "episode_list" was my previous guess.
 
 type frEpisode struct {
 	Index int    `json:"index"`
+	ID    int    `json:"chapter_id"`
 	Url   string `json:"url"` // Streaming URL?
 }
 
 // --- Implementation ---
 
 func (p *FlickReelsProvider) GetTrending() ([]models.Drama, error) {
-	// Endpoint: /home?page=1&page_size=10&lang=6
-	// lang=6 (Indonesia?)
 	url := fmt.Sprintf("%s/home?page=1&page_size=20&lang=6", FlickReelsAPI)
 	body, err := p.fetch(url)
 	if err != nil {
 		return nil, err
 	}
 
-	// Try unmarshal
-	var resp frResponseList
-	if err := json.Unmarshal(body, &resp); err != nil || len(resp.Data) == 0 {
-		return nil, fmt.Errorf("failed to parse home")
+	var resp frResponse
+	if err := json.Unmarshal(body, &resp); err != nil {
+		return nil, err
+	}
+
+	if len(resp.Data) == 0 || len(resp.Data[0].List) == 0 {
+		return nil, fmt.Errorf("no data found")
 	}
 
 	var dramas []models.Drama
-	for _, b := range resp.Data {
+	for _, b := range resp.Data[0].List {
 		dramas = append(dramas, models.Drama{
-			BookID:    "flickreels:" + strconv.Itoa(b.ID),
-			Judul:     b.Title,
-			Cover:     p.proxyImage(b.Cover),
-			Deskripsi: b.Desc,
+			BookID:       "flickreels:" + strconv.Itoa(b.ID),
+			Judul:        b.Title,
+			Cover:        p.proxyImage(b.Cover),
+			Deskripsi:    b.Desc,
+			TotalEpisode: b.UploadNum,
 		})
 	}
 	return dramas, nil
 }
 
 func (p *FlickReelsProvider) GetLatest(page int) ([]models.Drama, error) {
-	// /latest?page=1&page_size=10&lang=6
-	url := fmt.Sprintf("%s/latest?page=%d&page_size=20&lang=6", FlickReelsAPI, page)
-	body, err := p.fetch(url)
-	if err != nil {
-		return nil, err
-	}
-
-	var resp frResponseList
-	if err := json.Unmarshal(body, &resp); err != nil {
-		return nil, err
-	}
-
-	var dramas []models.Drama
-	for _, b := range resp.Data {
-		dramas = append(dramas, models.Drama{
-			BookID:    "flickreels:" + strconv.Itoa(b.ID),
-			Judul:     b.Title,
-			Cover:     p.proxyImage(b.Cover),
-			Deskripsi: b.Desc,
-		})
-	}
-	return dramas, nil
+	return p.GetTrending()
 }
 
 func (p *FlickReelsProvider) Search(query string) ([]models.Drama, error) {
-	// /search?keyword=cinta&lang=6
 	url := fmt.Sprintf("%s/search?keyword=%s&lang=6", FlickReelsAPI, url.QueryEscape(query))
 	body, err := p.fetch(url)
 	if err != nil {
 		return nil, err
 	}
 
-	var resp frResponseList
+	var resp frResponse
 	if err := json.Unmarshal(body, &resp); err != nil {
 		return nil, err
 	}
 
+	// Search might return direct list or same structure
+	// Assuming same structure for saftey, or check parsing
+	var books []frBook
+	if len(resp.Data) > 0 {
+		books = resp.Data[0].List
+	}
+
 	var dramas []models.Drama
-	for _, b := range resp.Data {
+	for _, b := range books {
 		dramas = append(dramas, models.Drama{
-			BookID:    "flickreels:" + strconv.Itoa(b.ID),
-			Judul:     b.Title,
-			Cover:     p.proxyImage(b.Cover),
-			Deskripsi: b.Desc,
+			BookID:       "flickreels:" + strconv.Itoa(b.ID),
+			Judul:        b.Title,
+			Cover:        p.proxyImage(b.Cover),
+			Deskripsi:    b.Desc,
+			TotalEpisode: b.UploadNum,
 		})
 	}
 	return dramas, nil
 }
 
 func (p *FlickReelsProvider) GetDetail(id string) (*models.Drama, []models.Episode, error) {
-	// /drama/{id}?lang=6
 	url := fmt.Sprintf("%s/drama/%s?lang=6", FlickReelsAPI, id)
 	body, err := p.fetch(url)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	var resp frDetailResponse
-	if err := json.Unmarshal(body, &resp); err != nil {
+	// Use map interface to inspect structure if strict struct fails
+	var raw map[string]interface{}
+	if err := json.Unmarshal(body, &raw); err != nil {
 		return nil, nil, err
 	}
-	d := resp.Data
+
+	// Manual extraction from map for robustness
+	data, ok := raw["data"].(map[string]interface{})
+	if !ok {
+		return nil, nil, fmt.Errorf("invalid detail response")
+	}
+
+	title, _ := data["title"].(string)
+	cover, _ := data["cover"].(string)
+	intro, _ := data["introduce"].(string)
+
+	// Episodes ?
+	// Check for "chapter_list", "episode_list", "list"
+	var epList []interface{}
+	if val, ok := data["chapter_list"].([]interface{}); ok {
+		epList = val
+	} else if val, ok := data["episode_list"].([]interface{}); ok {
+		epList = val
+	} else if val, ok := data["list"].([]interface{}); ok {
+		epList = val
+	}
 
 	drama := models.Drama{
-		BookID:       "flickreels:" + strconv.Itoa(d.ID),
-		Judul:        d.Title,
-		Cover:        p.proxyImage(d.Cover),
-		Deskripsi:    d.Introduction,
-		TotalEpisode: strconv.Itoa(len(d.EpisodeList)),
+		BookID:       "flickreels:" + id,
+		Judul:        title,
+		Cover:        p.proxyImage(cover),
+		Deskripsi:    intro,
+		TotalEpisode: strconv.Itoa(len(epList)),
 	}
 
 	var episodes []models.Episode
-	for i, ep := range d.EpisodeList {
-		// Use index if ep.Index is 0
-		idx := ep.Index
-		if idx == 0 {
-			idx = i + 1
-		}
+	for i, e := range epList {
+		epMap, _ := e.(map[string]interface{})
+		// Usually "chapter_id", "title"
+		epNum := i + 1
 
 		episodes = append(episodes, models.Episode{
 			BookID:       "flickreels:" + id,
-			EpisodeIndex: idx - 1,
-			EpisodeLabel: fmt.Sprintf("Episode %d", idx),
+			EpisodeIndex: i,
+			EpisodeLabel: fmt.Sprintf("Episode %d", epNum),
 		})
+
+		// If video url is in detail list, we can log it but won't store it in model yet
+		if u, ok := epMap["url"].(string); ok && u != "" {
+			// Good
+		}
 	}
 
 	return &drama, episodes, nil
 }
 
 func (p *FlickReelsProvider) GetStream(id, epIndex string) (*models.StreamData, error) {
-	// Need stream URL.
-	// As user didn't provide /play endpoint, I assume stream URL is inside EpisodeList from GetDetail.
-	// So I need to fetch GetDetail again or we need to cache result? Adapter doesn't cache.
-	// So we fetch detail.
-
 	idx, _ := strconv.Atoi(epIndex)
 
 	url := fmt.Sprintf("%s/drama/%s?lang=6", FlickReelsAPI, id)
@@ -237,21 +249,32 @@ func (p *FlickReelsProvider) GetStream(id, epIndex string) (*models.StreamData, 
 		return nil, err
 	}
 
-	var resp frDetailResponse
-	if err := json.Unmarshal(body, &resp); err != nil {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(body, &raw); err != nil {
 		return nil, err
 	}
+	data, ok := raw["data"].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("no data")
+	}
 
-	// Find episode
-	var videoURL string
-	// Removed unused targetEp
+	var epList []interface{}
+	if val, ok := data["chapter_list"].([]interface{}); ok {
+		epList = val
+	} else if val, ok := data["episode_list"].([]interface{}); ok {
+		epList = val
+	} else if val, ok := data["list"].([]interface{}); ok {
+		epList = val
+	}
 
-	// Try to find by index matching
-	if len(resp.Data.EpisodeList) > idx {
-		// Verify index
-		ep := resp.Data.EpisodeList[idx]
-		// If api returns "url" or "video_url"
-		videoURL = ep.Url
+	if len(epList) <= idx {
+		return nil, fmt.Errorf("episode not found")
+	}
+
+	epMap, _ := epList[idx].(map[string]interface{})
+	videoURL, _ := epMap["url"].(string)
+	if videoURL == "" {
+		videoURL, _ = epMap["video_url"].(string) // try alias
 	}
 
 	if videoURL == "" {

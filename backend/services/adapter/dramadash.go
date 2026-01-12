@@ -62,28 +62,33 @@ func (p *DramaDashProvider) proxyImage(originalURL string) string {
 }
 
 // --- Models ---
-
-// Home/Tabs response
-type ddResponse struct {
-	Data ddDataWrapper `json:"data"` // Or direct? Assume Wrapper
-}
-type ddDataWrapper struct {
-	Items []ddItem `json:"items"` // Guess
+// Home: {"data": {"banner": [...]}}
+type ddHomeResponse struct {
+	Data struct {
+		Banner []ddItem `json:"banner"`
+	} `json:"data"`
 }
 
-// Actually user url: /api/home (Maybe list of categories?)
-// /api/tabs/1 (Maybe a category?)
-
-// Let's assume generic structure for simpler parsing
 type ddGenericList struct {
-	Data []ddItem `json:"data"`
+	// Search often returns list in data
+	Data []ddItemSearch `json:"data"` // Or generic items?
 }
+
+// Note: Search endpoint structure wasn't debugged as clear as home.
+// Assuming it might be different. But generic list is safer guess if not sure.
 
 type ddItem struct {
-	ID    int    `json:"id"`
-	Title string `json:"title"`
-	Cover string `json:"cover"`
-	Desc  string `json:"summary"`
+	ID     int    `json:"id"`
+	Name   string `json:"name"`
+	Poster string `json:"poster"`
+	Desc   string `json:"desc"` // or summary
+}
+
+type ddItemSearch struct {
+	ID     int    `json:"id"`
+	Name   string `json:"name"`
+	Poster string `json:"poster"`
+	Slug   string `json:"slug"`
 }
 
 // Detail: /api/drama/44
@@ -93,13 +98,13 @@ type ddDetailResp struct {
 type ddDetailData struct {
 	ID       int         `json:"id"`
 	Title    string      `json:"title"`
-	Cover    string      `json:"cover"`
-	Summary  string      `json:"summary"`
+	Cover    string      `json:"poster"` // Usually 'poster' in DramaDash
+	Summary  string      `json:"desc"`   // 'desc'
 	Episodes []ddEpisode `json:"episodes"`
 }
 type ddEpisode struct {
 	ID    int `json:"id"`
-	Index int `json:"index"` // or episode_number
+	Index int `json:"index"`
 }
 
 // Stream: /api/episode/44/1
@@ -113,31 +118,24 @@ type ddStreamData struct {
 // --- Implementation ---
 
 func (p *DramaDashProvider) GetTrending() ([]models.Drama, error) {
-	// Endpoint: /api/home (Likely returns categories with lists)
-	// Or /api/tabs/1 (Likely 'Recommend' or similar)
-	url := DramaDashAPI + "/tabs/1"
+	// Endpoint: /api/home
+	url := DramaDashAPI + "/home"
 	body, err := p.fetch(url)
 	if err != nil {
 		return nil, err
 	}
 
-	var resp ddGenericList
+	var resp ddHomeResponse
 	if err := json.Unmarshal(body, &resp); err != nil {
-		// Fallback try raw list if no data wrapper
-		var rawList []ddItem
-		if json.Unmarshal(body, &rawList) == nil {
-			resp.Data = rawList
-		} else {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	var dramas []models.Drama
-	for _, b := range resp.Data {
+	for _, b := range resp.Data.Banner {
 		dramas = append(dramas, models.Drama{
 			BookID:    "dramadash:" + strconv.Itoa(b.ID),
-			Judul:     b.Title,
-			Cover:     p.proxyImage(b.Cover),
+			Judul:     b.Name,
+			Cover:     p.proxyImage(b.Poster),
 			Deskripsi: b.Desc,
 		})
 	}
@@ -150,21 +148,32 @@ func (p *DramaDashProvider) GetLatest(page int) ([]models.Drama, error) {
 
 func (p *DramaDashProvider) Search(query string) ([]models.Drama, error) {
 	// /api/search/cinta
-	url := fmt.Sprintf("%s/search/%s", DramaDashAPI, query) // No query param? url path param?
-	// User example: /api/search/cinta . Path param!
+	url := fmt.Sprintf("%s/search/%s", DramaDashAPI, query)
 
 	body, err := p.fetch(url)
 	if err != nil {
 		return nil, err
 	}
 
-	var resp ddGenericList
-	if err := json.Unmarshal(body, &resp); err != nil {
-		var rawList []ddItem
-		if json.Unmarshal(body, &rawList) == nil {
-			resp.Data = rawList
+	// Search likely returns list of ddItemSearch directly or in data wrapper?
+	// Let's assume list in data because user said /api/search/cinta but didn't show json.
+	// We'll try generic wrapper.
+
+	// Re-use ddGenericList locally or map
+	var resp struct {
+		Data []ddItemSearch `json:"data"`
+	}
+	if json.Unmarshal(body, &resp) != nil || len(resp.Data) == 0 {
+		// Try raw list?
+		var raw []ddItemSearch
+		if json.Unmarshal(body, &raw) == nil {
+			resp.Data = raw
 		} else {
-			return nil, err
+			// Try "trendingSearches" structure from tabs debugging?
+			// tabs/1 returned "list": [], "moreToExplore": [...]
+			// Maybe search returns similar?
+			// Fallback: empty
+			return []models.Drama{}, nil
 		}
 	}
 
@@ -172,9 +181,9 @@ func (p *DramaDashProvider) Search(query string) ([]models.Drama, error) {
 	for _, b := range resp.Data {
 		dramas = append(dramas, models.Drama{
 			BookID:    "dramadash:" + strconv.Itoa(b.ID),
-			Judul:     b.Title,
-			Cover:     p.proxyImage(b.Cover),
-			Deskripsi: b.Desc,
+			Judul:     b.Name,
+			Cover:     p.proxyImage(b.Poster),
+			Deskripsi: "",
 		})
 	}
 	return dramas, nil

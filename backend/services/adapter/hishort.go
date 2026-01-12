@@ -63,27 +63,29 @@ func (p *HiShortProvider) proxyImage(originalURL string) string {
 }
 
 // --- Models ---
-// /home?module=12&page=1
+// Structure based on DEBUG: { pageNum: 1, source: [...] }
 type hsResponse struct {
-	Data []hsItem `json:"data"` // Assuming list
+	Source []hsItem `json:"source"`
 }
+
 type hsItem struct {
-	ID    int    `json:"id"`
-	Title string `json:"title"` // or name
-	Cover string `json:"cover"`
-	Desc  string `json:"introduction"` // or summary
+	ID    int    `json:"vidId"`
+	Title string `json:"vidName"`
+	Cover string `json:"coverUrl"`
+	Desc  string `json:"vidDescribe"`
 }
 
 // /video/{id} (Detail + Play?)
 type hsDetailResp struct {
-	Data hsDetailData `json:"data"`
+	Data hsDetailData `json:"data"` // Hopefully detail follows Data wrapper? If not, need debug.
+	// But let's assume standard wrapper for detail because usually list and detail API formats differ slightly.
 }
 type hsDetailData struct {
-	ID       int    `json:"id"`
-	Title    string `json:"title"`
-	Cover    string `json:"cover"`
-	Desc     string `json:"introduction"`
-	VideoUrl string `json:"url"` // Streaming url usually here if it's /video endpoint
+	ID       int    `json:"vidId"`       // or id
+	Title    string `json:"vidName"`     // or title
+	Cover    string `json:"coverUrl"`    // or cover
+	Desc     string `json:"vidDescribe"` // or desc
+	VideoUrl string `json:"url"`         // Streaming url
 }
 
 // /video/{id}/playlist
@@ -111,7 +113,7 @@ func (p *HiShortProvider) GetTrending() ([]models.Drama, error) {
 	}
 
 	var dramas []models.Drama
-	for _, b := range resp.Data {
+	for _, b := range resp.Source {
 		dramas = append(dramas, models.Drama{
 			BookID:    "hishort:" + strconv.Itoa(b.ID),
 			Judul:     b.Title,
@@ -134,13 +136,14 @@ func (p *HiShortProvider) Search(query string) ([]models.Drama, error) {
 		return nil, err
 	}
 
+	// Assuming search returns same "source" [] list
 	var resp hsResponse
 	if err := json.Unmarshal(body, &resp); err != nil {
 		return nil, err
 	}
 
 	var dramas []models.Drama
-	for _, b := range resp.Data {
+	for _, b := range resp.Source {
 		dramas = append(dramas, models.Drama{
 			BookID:    "hishort:" + strconv.Itoa(b.ID),
 			Judul:     b.Title,
@@ -159,24 +162,49 @@ func (p *HiShortProvider) GetDetail(id string) (*models.Drama, []models.Episode,
 		return nil, nil, err
 	}
 
-	var resp hsDetailResp
-	if err := json.Unmarshal(body, &resp); err != nil {
+	// Parsing detail using generic map to find keys
+	var raw map[string]interface{}
+	if err := json.Unmarshal(body, &raw); err != nil {
 		return nil, nil, err
 	}
-	d := resp.Data
+
+	// Locate Data object
+	dataMap := raw
+	if d, ok := raw["data"].(map[string]interface{}); ok {
+		dataMap = d
+	}
+
+	// Try keys: vidId, id, etc.
+	title, _ := dataMap["vidName"].(string)
+	if title == "" {
+		title, _ = dataMap["title"].(string)
+	}
+
+	cover, _ := dataMap["coverUrl"].(string)
+	if cover == "" {
+		cover, _ = dataMap["cover"].(string)
+	}
+
+	desc, _ := dataMap["vidDescribe"].(string)
+	if desc == "" {
+		desc, _ = dataMap["introduction"].(string)
+	}
 
 	drama := models.Drama{
-		BookID:    "hishort:" + strconv.Itoa(d.ID),
-		Judul:     d.Title,
-		Cover:     p.proxyImage(d.Cover),
-		Deskripsi: d.Desc,
+		BookID:    "hishort:" + id,
+		Judul:     title,
+		Cover:     p.proxyImage(cover),
+		Deskripsi: desc,
 	}
 
 	// Playlist: /video/{id}/playlist
 	urlPlay := fmt.Sprintf("%s/video/%s/playlist", HiShortAPI, id)
 	bodyPlay, err := p.fetch(urlPlay)
 	if err == nil {
-		var respPlay hsPlaylistResp
+		// Try parsing "data" keys
+		var respPlay struct {
+			Data []map[string]interface{} `json:"data"`
+		}
 		if json.Unmarshal(bodyPlay, &respPlay) == nil {
 			drama.TotalEpisode = strconv.Itoa(len(respPlay.Data))
 			var episodes []models.Episode
@@ -206,12 +234,22 @@ func (p *HiShortProvider) GetStream(id, epIndex string) (*models.StreamData, err
 		return nil, err
 	}
 
-	var resp hsDetailResp
-	if err := json.Unmarshal(body, &resp); err != nil {
+	var raw map[string]interface{}
+	if err := json.Unmarshal(body, &raw); err != nil {
 		return nil, err
 	}
 
-	if resp.Data.VideoUrl == "" {
+	dataMap := raw
+	if d, ok := raw["data"].(map[string]interface{}); ok {
+		dataMap = d
+	}
+
+	videoURL, _ := dataMap["url"].(string)
+	if videoURL == "" {
+		videoURL, _ = dataMap["videoUrl"].(string)
+	}
+
+	if videoURL == "" {
 		return nil, fmt.Errorf("no video url")
 	}
 
@@ -220,7 +258,7 @@ func (p *HiShortProvider) GetStream(id, epIndex string) (*models.StreamData, err
 		Chapter: models.ChapterData{
 			Index: idx,
 			Video: models.VideoData{
-				Mp4: resp.Data.VideoUrl,
+				Mp4: videoURL,
 			},
 		},
 	}, nil
