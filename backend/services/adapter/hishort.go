@@ -180,7 +180,7 @@ func (p *HiShortProvider) GetDetail(id string) (*models.Drama, []models.Episode,
 		if json.Unmarshal(bodyPlay, &respPlay) == nil {
 			drama.TotalEpisode = strconv.Itoa(len(respPlay.Data))
 			var episodes []models.Episode
-			for i, _ := range respPlay.Data {
+			for i := range respPlay.Data {
 				epNum := i + 1
 				episodes = append(episodes, models.Episode{
 					BookID:       "hishort:" + id,

@@ -203,7 +203,7 @@ func (p *DramaDashProvider) GetDetail(id string) (*models.Drama, []models.Episod
 	}
 
 	var episodes []models.Episode
-	for i, _ := range d.Episodes {
+	for i := range d.Episodes {
 		epNum := i + 1
 		episodes = append(episodes, models.Episode{
 			BookID:       "dramadash:" + id,
