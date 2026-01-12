@@ -8,14 +8,21 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 )
 
-type HiShortProvider struct{}
+type HiShortProvider struct {
+	client *http.Client
+}
 
-const HiShortAPI = "https://sapimu.au/hishort/api"
+const HiShortAPI = "https://dramabos.asia/api/hishort/api/v1"
 
 func NewHiShortProvider() *HiShortProvider {
-	return &HiShortProvider{}
+	return &HiShortProvider{
+		client: &http.Client{
+			Timeout: 30 * time.Second,
+		},
+	}
 }
 
 func (p *HiShortProvider) GetID() string {
@@ -26,26 +33,25 @@ func (p *HiShortProvider) IsCompatibleID(id string) bool {
 	return true
 }
 
-// Specific token for HiShort provided by user
-const HiShortToken = "0ebd6cfdd8054d2a90aa2851532645211aeaf189fa1aed62c53e5fd735af8649"
-
 func (p *HiShortProvider) fetch(targetURL string) ([]byte, error) {
 	req, err := http.NewRequest("GET", targetURL, nil)
 	if err != nil {
 		return nil, err
 	}
+
 	req.Header.Set("User-Agent", "Mozilla/5.0")
-	// Use Specific HiShortToken instead of shared SapimuToken
-	req.Header.Set("Authorization", "Bearer "+HiShortToken)
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	req.Header.Set("Referer", "https://dramabos.asia/")
+
+	resp, err := p.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("status: %d", resp.StatusCode)
 	}
+
 	return io.ReadAll(resp.Body)
 }
 
@@ -56,58 +62,61 @@ func (p *HiShortProvider) proxyImage(originalURL string) string {
 	return "https://wsrv.nl/?url=" + url.QueryEscape(originalURL) + "&output=jpg"
 }
 
-type hsDetail struct {
-	Title    string `json:"title"`
-	Poster   string `json:"poster"`
-	Synopsis string `json:"synopsis"`
-	Episodes []struct {
-		Slug   string `json:"slug"`
-		Title  string `json:"title"`
-		Number int    `json:"number"`
-	} `json:"episodes"`
-}
-
-type hsStreamResponse struct {
-	Title   string `json:"title"`
-	Servers []struct {
-		Name string `json:"name"`
-		URL  string `json:"url"`
-		Type string `json:"type"`
-	} `json:"servers"`
-	Subtitles []struct {
-		Lang string `json:"lang"`
-		URL  string `json:"url"`
-	} `json:"subtitles"`
-}
-
+// --- Models ---
+// /home?module=12&page=1
 type hsResponse struct {
-	Popular []hsItem `json:"popular"`
+	Data []hsItem `json:"data"` // Assuming list
 }
 type hsItem struct {
-	Slug   string `json:"slug"`
-	Title  string `json:"title"`
-	Poster string `json:"poster"`
-	Type   string `json:"type"`
+	ID    int    `json:"id"`
+	Title string `json:"title"` // or name
+	Cover string `json:"cover"`
+	Desc  string `json:"introduction"` // or summary
 }
 
+// /video/{id} (Detail + Play?)
+type hsDetailResp struct {
+	Data hsDetailData `json:"data"`
+}
+type hsDetailData struct {
+	ID       int    `json:"id"`
+	Title    string `json:"title"`
+	Cover    string `json:"cover"`
+	Desc     string `json:"introduction"`
+	VideoUrl string `json:"url"` // Streaming url usually here if it's /video endpoint
+}
+
+// /video/{id}/playlist
+type hsPlaylistResp struct {
+	Data []hsEpisode `json:"data"`
+}
+type hsEpisode struct {
+	ID int `json:"id"`
+	No int `json:"no"` // Episode number
+}
+
+// --- Implementation ---
+
 func (p *HiShortProvider) GetTrending() ([]models.Drama, error) {
-	// Use /home for Trending
-	body, err := p.fetch(HiShortAPI + "/home?lang=in")
+	// /home?module=12&page=1
+	url := HiShortAPI + "/home?module=12&page=1"
+	body, err := p.fetch(url)
 	if err != nil {
 		return nil, err
 	}
 
-	var raw hsResponse
-	if err := json.Unmarshal(body, &raw); err != nil {
+	var resp hsResponse
+	if err := json.Unmarshal(body, &resp); err != nil {
 		return nil, err
 	}
 
 	var dramas []models.Drama
-	for _, d := range raw.Popular {
+	for _, b := range resp.Data {
 		dramas = append(dramas, models.Drama{
-			BookID: "hishort:" + d.Slug,
-			Judul:  d.Title,
-			Cover:  p.proxyImage(d.Poster),
+			BookID:    "hishort:" + strconv.Itoa(b.ID),
+			Judul:     b.Title,
+			Cover:     p.proxyImage(b.Cover),
+			Deskripsi: b.Desc,
 		})
 	}
 	return dramas, nil
@@ -118,93 +127,92 @@ func (p *HiShortProvider) GetLatest(page int) ([]models.Drama, error) {
 }
 
 func (p *HiShortProvider) Search(query string) ([]models.Drama, error) {
-	// Endpoint: /hishort/api/search/{query}?lang=in
-	urlSearch := fmt.Sprintf("%s/search/%s?lang=in", HiShortAPI, url.QueryEscape(query))
-	body, err := p.fetch(urlSearch)
+	// /search?q=love
+	url := fmt.Sprintf("%s/search?q=%s", HiShortAPI, url.QueryEscape(query))
+	body, err := p.fetch(url)
 	if err != nil {
 		return nil, err
 	}
 
-	var raw []hsItem
-	if err := json.Unmarshal(body, &raw); err != nil {
+	var resp hsResponse
+	if err := json.Unmarshal(body, &resp); err != nil {
 		return nil, err
 	}
 
 	var dramas []models.Drama
-	for _, d := range raw {
+	for _, b := range resp.Data {
 		dramas = append(dramas, models.Drama{
-			BookID: "hishort:" + d.Slug,
-			Judul:  d.Title,
-			Cover:  p.proxyImage(d.Poster),
+			BookID:    "hishort:" + strconv.Itoa(b.ID),
+			Judul:     b.Title,
+			Cover:     p.proxyImage(b.Cover),
+			Deskripsi: b.Desc,
 		})
 	}
 	return dramas, nil
 }
 
 func (p *HiShortProvider) GetDetail(id string) (*models.Drama, []models.Episode, error) {
-	// Endpoint: /hishort/api/drama/{id}?lang=in
-	urlDetail := fmt.Sprintf("%s/drama/%s?lang=in", HiShortAPI, id)
-	bodyDetail, err := p.fetch(urlDetail)
+	// /video/{id} for detail
+	url := fmt.Sprintf("%s/video/%s", HiShortAPI, id)
+	body, err := p.fetch(url)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	var rawDetail hsDetail
-	if err := json.Unmarshal(bodyDetail, &rawDetail); err != nil {
+	var resp hsDetailResp
+	if err := json.Unmarshal(body, &resp); err != nil {
 		return nil, nil, err
 	}
+	d := resp.Data
 
 	drama := models.Drama{
-		BookID:       "hishort:" + id, // Slug is ID
-		Judul:        rawDetail.Title,
-		Cover:        p.proxyImage(rawDetail.Poster),
-		Deskripsi:    rawDetail.Synopsis,
-		TotalEpisode: strconv.Itoa(len(rawDetail.Episodes)),
+		BookID:    "hishort:" + strconv.Itoa(d.ID),
+		Judul:     d.Title,
+		Cover:     p.proxyImage(d.Cover),
+		Deskripsi: d.Desc,
 	}
 
-	var episodes []models.Episode
-	for _, ep := range rawDetail.Episodes {
-		episodes = append(episodes, models.Episode{
-			BookID:       "hishort:" + id,
-			EpisodeIndex: ep.Number - 1,
-			EpisodeLabel: fmt.Sprintf("Episode %d", ep.Number),
-		})
+	// Playlist: /video/{id}/playlist
+	urlPlay := fmt.Sprintf("%s/video/%s/playlist", HiShortAPI, id)
+	bodyPlay, err := p.fetch(urlPlay)
+	if err == nil {
+		var respPlay hsPlaylistResp
+		if json.Unmarshal(bodyPlay, &respPlay) == nil {
+			drama.TotalEpisode = strconv.Itoa(len(respPlay.Data))
+			var episodes []models.Episode
+			for i, _ := range respPlay.Data {
+				epNum := i + 1
+				episodes = append(episodes, models.Episode{
+					BookID:       "hishort:" + id,
+					EpisodeIndex: i,
+					EpisodeLabel: fmt.Sprintf("Episode %d", epNum),
+				})
+			}
+			return &drama, episodes, nil
+		}
 	}
 
-	return &drama, episodes, nil
+	return &drama, nil, nil
 }
 
 func (p *HiShortProvider) GetStream(id, epIndex string) (*models.StreamData, error) {
+	// /video/{id}?ep={ep}
 	idx, _ := strconv.Atoi(epIndex)
 	epNum := idx + 1
-	// Endpoint: /hishort/api/episode/{id}_{epNum}?lang=in
-	// Note: HiShort uses underscore format for episode ID: "3688_1"
-	url := fmt.Sprintf("%s/episode/%s_%d?lang=in", HiShortAPI, id, epNum)
+
+	url := fmt.Sprintf("%s/video/%s?ep=%d", HiShortAPI, id, epNum)
 	body, err := p.fetch(url)
 	if err != nil {
 		return nil, err
 	}
 
-	var raw hsStreamResponse
-	if err := json.Unmarshal(body, &raw); err != nil {
+	var resp hsDetailResp
+	if err := json.Unmarshal(body, &resp); err != nil {
 		return nil, err
 	}
 
-	videoURL := ""
-	// Prioritize HLS
-	for _, srv := range raw.Servers {
-		if srv.Type == "hls" {
-			videoURL = srv.URL
-			break
-		}
-	}
-	// Fallback first
-	if videoURL == "" && len(raw.Servers) > 0 {
-		videoURL = raw.Servers[0].URL
-	}
-
-	if videoURL == "" {
-		return nil, fmt.Errorf("stream url empty")
+	if resp.Data.VideoUrl == "" {
+		return nil, fmt.Errorf("no video url")
 	}
 
 	return &models.StreamData{
@@ -212,7 +220,7 @@ func (p *HiShortProvider) GetStream(id, epIndex string) (*models.StreamData, err
 		Chapter: models.ChapterData{
 			Index: idx,
 			Video: models.VideoData{
-				M3u8: videoURL, // HiShort primarily returns HLS
+				Mp4: resp.Data.VideoUrl,
 			},
 		},
 	}, nil
