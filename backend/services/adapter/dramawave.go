@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -79,11 +78,11 @@ type dwModule struct {
 }
 
 type dwDrama struct {
-	Key       string `json:"key"` // ID is string
-	Title     string `json:"title"`
-	Cover     string `json:"cover"`
-	Desc      string `json:"desc"`
-	EpCount   int    `json:"episode_count"`
+	Key     string `json:"key"` // ID is string
+	Title   string `json:"title"`
+	Cover   string `json:"cover"`
+	Desc    string `json:"desc"`
+	EpCount int    `json:"episode_count"`
 }
 
 // Detail: /dramas/{id}
@@ -91,13 +90,13 @@ type dwDetailResp struct {
 	Data dwDetailData `json:"data"`
 }
 type dwDetailData struct {
-	ID           string   `json:"key"` // assume key matches
-	Title        string   `json:"title"`
-	Cover        string   `json:"cover"`
-	Introduction string   `json:"introduction"` // or desc?
-	EpisodeCount int      `json:"episode_count"`
-	Episodes     []dwEp   `json:"episodes"` 
-	// Or maybe episode info is nested differently. 
+	ID           string `json:"key"` // assume key matches
+	Title        string `json:"title"`
+	Cover        string `json:"cover"`
+	Introduction string `json:"introduction"` // or desc?
+	EpisodeCount int    `json:"episode_count"`
+	Episodes     []dwEp `json:"episodes"`
+	// Or maybe episode info is nested differently.
 	// But let's assume standard based on user endpoint play/1 implies index 1.
 }
 type dwEp struct {
@@ -189,7 +188,8 @@ func (p *DramaWaveProvider) Search(query string) ([]models.Drama, error) {
 	// Let's assume generic parsing or look at user request list (Get search/hot implies similar struct)
 	// We'll try same dwFeedResponse first.
 	var resp dwFeedResponse
-	if err := json.Unmarshal(body, &resp) != nil || len(resp.Data.Items) == 0 {
+	err := json.Unmarshal(body, &resp)
+	if err != nil || len(resp.Data.Items) == 0 {
 		// Fallback: maybe raw items list?
 		var rawList struct {
 			Data []dwDrama `json:"data"`
@@ -240,11 +240,13 @@ func (p *DramaWaveProvider) GetDetail(id string) (*models.Drama, []models.Episod
 		return nil, nil, err
 	}
 	d := resp.Data
-	
+
 	// If ID is empty in struct, maybe field name mismatch (e.g. "key" vs "id")
 	// We use passed ID as backup
 	dramaID := d.ID
-	if dramaID == "" { dramaID = id }
+	if dramaID == "" {
+		dramaID = id
+	}
 
 	desc := d.Introduction
 	if desc == "" {
@@ -293,7 +295,7 @@ func (p *DramaWaveProvider) GetStream(id, epIndex string) (*models.StreamData, e
 	// /dramas/{id}/play/{ep}?lang=id
 	idx, _ := strconv.Atoi(epIndex)
 	epNum := idx + 1 // 1-based API
-	
+
 	url := fmt.Sprintf("%s/dramas/%s/play/%d?lang=id", DramaWaveAPI, id, epNum)
 	body, err := p.fetch(url)
 	if err != nil {
@@ -304,18 +306,24 @@ func (p *DramaWaveProvider) GetStream(id, epIndex string) (*models.StreamData, e
 	if err := json.Unmarshal(body, &resp); err != nil {
 		return nil, err
 	}
-	
+
 	videoURL := resp.Data.PlayUrl
-	if videoURL == "" { videoURL = resp.Data.Url }
-	if videoURL == "" { videoURL = resp.Data.M3u8 }
-	
+	if videoURL == "" {
+		videoURL = resp.Data.Url
+	}
+	if videoURL == "" {
+		videoURL = resp.Data.M3u8
+	}
+
 	if videoURL == "" {
 		// Inspect map
 		var raw map[string]interface{}
 		json.Unmarshal(body, &raw)
 		if data, ok := raw["data"].(map[string]interface{}); ok {
 			// Maybe it returns 'resource_url' ?
-			if val, ok := data["resource_url"].(string); ok { videoURL = val }
+			if val, ok := data["resource_url"].(string); ok {
+				videoURL = val
+			}
 		}
 	}
 
