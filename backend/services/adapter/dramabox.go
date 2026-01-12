@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -72,6 +73,15 @@ func (p *DramaboxProvider) fetch(url string) ([]byte, error) {
 		return body, nil
 	}
 	return nil, lastErr
+}
+
+// Helper to proxy images
+func (p *DramaboxProvider) proxyImage(originalURL string) string {
+	if originalURL == "" {
+		return ""
+	}
+	// Use wsrv.nl for caching, resizing and CORS proxy
+	return "https://wsrv.nl/?url=" + strings.ReplaceAll(originalURL, "https://", "") + "&output=jpg"
 }
 
 // --- Internal Models ---
@@ -146,7 +156,7 @@ func (p *DramaboxProvider) GetTrending() ([]models.Drama, error) {
 		dramas = append(dramas, models.Drama{
 			BookID:    "dramabox:" + b.BookID,
 			Judul:     b.BookName,
-			Cover:     b.Cover,
+			Cover:     p.proxyImage(b.Cover),
 			Deskripsi: b.Introduction,
 		})
 	}
@@ -179,7 +189,7 @@ func (p *DramaboxProvider) GetLatest(page int) ([]models.Drama, error) {
 		dramas = append(dramas, models.Drama{
 			BookID:    "dramabox:" + b.BookID,
 			Judul:     b.BookName,
-			Cover:     b.Cover,
+			Cover:     p.proxyImage(b.Cover),
 			Deskripsi: b.Introduction,
 		})
 	}
@@ -188,13 +198,7 @@ func (p *DramaboxProvider) GetLatest(page int) ([]models.Drama, error) {
 
 func (p *DramaboxProvider) Search(query string) ([]models.Drama, error) {
 	// Endpoint: /search/{query}/1
-	// Note: URL encoding for query is important
-	// Assuming fixed page 1 for now
 	urlSearch := fmt.Sprintf("%s/search/%s/1", DramaboxAPI, query)
-	// Need to ensure query path is safe, usually path params are not url encoded in the typical sense of query params, but spaces should be %20
-	// Ideally use url.PathEscape, but let's try simple replace for now if standard libraries are tricky in this context string
-	// Go's url.PathEscape is good.
-	// But wait, the user example is: /search/cinta/1.
 
 	body, err := p.fetch(urlSearch)
 	if err != nil {
@@ -206,17 +210,12 @@ func (p *DramaboxProvider) Search(query string) ([]models.Drama, error) {
 		return nil, err
 	}
 
-	// Search might return slightly different structure 'searchResult' based on user logs?
-	// User didn't give JSON sample for search, but 'dbSearchList' struct assumes 'searchResult' key based on common patterns or previous logs?
-	// Actually user just gave URLs.
-	// Let's assume it's like 'data': { 'list': [...] } or 'data': { 'searchResult': [...] }
-	// I'll try to decode into dbBookList first (key 'list')
-
 	var data dbBookList
+	// Try 'list' key first
 	if err := json.Unmarshal(resp.Data, &data); err == nil && len(data.List) > 0 {
 		// Found it
 	} else {
-		// Try searchResult key
+		// Try 'searchResult' key
 		var searchData dbSearchList
 		if err2 := json.Unmarshal(resp.Data, &searchData); err2 == nil {
 			data.List = searchData.List
@@ -228,7 +227,7 @@ func (p *DramaboxProvider) Search(query string) ([]models.Drama, error) {
 		dramas = append(dramas, models.Drama{
 			BookID:    "dramabox:" + b.BookID,
 			Judul:     b.BookName,
-			Cover:     b.Cover,
+			Cover:     p.proxyImage(b.Cover),
 			Deskripsi: b.Introduction,
 		})
 	}
@@ -273,7 +272,7 @@ func (p *DramaboxProvider) GetDetail(id string) (*models.Drama, []models.Episode
 	drama := models.Drama{
 		BookID:       "dramabox:" + detail.BookID,
 		Judul:        detail.BookName,
-		Cover:        detail.Cover,
+		Cover:        p.proxyImage(detail.Cover),
 		Deskripsi:    detail.Introduction,
 		TotalEpisode: strconv.Itoa(len(chapData.ChapterList)),
 	}
@@ -282,9 +281,7 @@ func (p *DramaboxProvider) GetDetail(id string) (*models.Drama, []models.Episode
 	for _, ch := range chapData.ChapterList {
 		episodes = append(episodes, models.Episode{
 			BookID:       "dramabox:" + detail.BookID,
-			EpisodeIndex: ch.ChapterIndex, // Usually 0-based or 1-based? User logs showed 1-based in URL /watch/player?index=1, but 0 in JSON response?
-			// Log: "chapterIndex":0
-			// Let's trust the JSON value.
+			EpisodeIndex: ch.ChapterIndex,
 			EpisodeLabel: fmt.Sprintf("Episode %d", ch.ChapterIndex+1),
 		})
 	}
@@ -294,7 +291,6 @@ func (p *DramaboxProvider) GetDetail(id string) (*models.Drama, []models.Episode
 
 func (p *DramaboxProvider) GetStream(id, epIndex string) (*models.StreamData, error) {
 	// Endpoint: /watch/player?bookId={id}&index={index}&lang=in
-	// NOTE: epIndex param is usually 0-based from our defined Episode model
 	idx, _ := strconv.Atoi(epIndex)
 
 	urlPlay := fmt.Sprintf("%s/watch/player?bookId=%s&index=%d&lang=in", DramaboxAPI, id, idx)
