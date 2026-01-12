@@ -64,17 +64,10 @@ func (p *FlickReelsProvider) proxyImage(originalURL string) string {
 
 // --- Models ---
 // Endpoint: /home?page=1&page_size=10&lang=6
-// Response guess: { code: 0, msg: "success", data: [...] } or { data: [...] }
-// Based on others: likely { data: { list: [...] } } or { data: [...] }
 
-// Let's assume standard response based on query params pattern
 type frResponse struct {
 	Data frListWrapper `json:"data"`
 }
-
-// Or maybe Data is direct list?
-// Let's create a flexible unmarshal logic or assume wrap first.
-// Actually, user provided /home params `page=1`. So likely a list response.
 
 type frListWrapper struct {
 	List []frBook `json:"list"` // Guessing 'list' key
@@ -251,7 +244,7 @@ func (p *FlickReelsProvider) GetStream(id, epIndex string) (*models.StreamData, 
 
 	// Find episode
 	var videoURL string
-	targetEp := idx + 1 // 1-based usually
+	// Removed unused targetEp
 
 	// Try to find by index matching
 	if len(resp.Data.EpisodeList) > idx {
