@@ -8,11 +8,12 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 type StarshortProvider struct{}
 
-const StarshortAPI = "https://sapimu.au/starshort/api/v1"
+const StarshortAPI = "https://dramabos.asia/api/starshort/api/v1"
 
 func NewStarshortProvider() *StarshortProvider {
 	return &StarshortProvider{}
@@ -32,10 +33,12 @@ func (p *StarshortProvider) fetch(targetURL string) ([]byte, error) {
 		return nil, err
 	}
 
-	// Headers
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+	// Browser-like headers
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 	req.Header.Set("Accept", "application/json, text/plain, */*")
-	req.Header.Set("Authorization", "Bearer 0ebd6cfdd8054d2a90aa2851532645211aeaf189fa1aed62c53e5fd735af8649")
+	req.Header.Set("Accept-Language", "en-US,en;q=0.9,id;q=0.8")
+	req.Header.Set("Referer", "https://dramabos.asia/")
+	req.Header.Set("Origin", "https://dramabos.asia")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -60,153 +63,171 @@ func (p *StarshortProvider) proxyImage(originalURL string) string {
 
 // --- Internal Models ---
 
+type sHomeResponse struct {
+	// Data is a map of category names to list of dramas
+	Data map[string][]sDrama `json:"data"`
+}
+
+type sSearchResponse struct {
+	// Search usually returns just a list of dramas in 'data' or similar structure
+	// Let's assume standard response wrapper or list
+	Data []sDrama `json:"data"`
+}
+
 type sDrama struct {
-	ID    string   `json:"id"`
-	Title string   `json:"title"`
-	Cover string   `json:"cover"`
-	Tags  []string `json:"tags"`
+	ID       int      `json:"id"` // ID is int in JSON
+	FakeID   string   `json:"fakeId"`
+	Title    string   `json:"title"`
+	Cover    string   `json:"cover"`
+	Episodes int      `json:"episodes"`
+	Views    int      `json:"views"`
+	Tags     []string `json:"tags"`
+	Summary  string   `json:"summary"`
 }
 
-type sDetail struct {
-	ID            string   `json:"id"`
-	Title         string   `json:"title"`
-	Description   string   `json:"description"`
-	Cover         string   `json:"cover"`
-	TotalEpisodes int      `json:"total_episodes"`
-	FreeEpisodes  int      `json:"free_episodes"`
-	Tags          []string `json:"tags"`
+type sDetailResponse struct {
+	Data sDetailData `json:"data"`
 }
 
-type sEpisodeResponse struct {
-	DramaID  string     `json:"drama_id"`
-	Title    string     `json:"title"`
-	Total    int        `json:"total"`
-	Episodes []sEpisode `json:"episodes"`
+type sDetailData struct {
+	ID            int    `json:"id"`
+	Title         string `json:"title"`
+	Summary       string `json:"summary"`
+	Cover         string `json:"cover"`
+	TotalEpisodes int    `json:"episodes"`
+	// API might differ slightly, inferred from 'episodes' in Home
+	Tags []string `json:"tags"`
+}
+
+// Episode list response ?
+// User URL: /api/v1/episodes/myn
+type sEpisodeListResponse struct {
+	Data []sEpisode `json:"data"`
 }
 
 type sEpisode struct {
-	Episode int  `json:"episode"`
-	Free    bool `json:"free"`
-	// Price field ignored
+	ID      int `json:"id"`
+	Episode int `json:"name"`   // Often "name" represents index or number
+	Locked  int `json:"locked"` // 1 or 0
 }
 
-type sStreamResponse struct {
-	VideoURL  string `json:"video_url"`
-	ExpiresIn string `json:"expires_in"`
+// Stream response
+// User URL: /api/v1/play/myn?ep=1
+type sPlayResponse struct {
+	Data struct {
+		URL string `json:"url"` // Similar to Melolo
+	} `json:"data"`
 }
 
 // --- Implementation ---
 
 func (p *StarshortProvider) GetTrending() ([]models.Drama, error) {
-	// Use /dramas/rising as trending
-	body, err := p.fetch(StarshortAPI + "/dramas/rising?lang=3")
+	// Use /home?lang=4 for Trending
+	body, err := p.fetch(StarshortAPI + "/home?lang=4")
 	if err != nil {
 		return nil, err
 	}
 
-	var raw []sDrama
+	var raw sHomeResponse
 	if err := json.Unmarshal(body, &raw); err != nil {
 		return nil, err
 	}
 
 	var dramas []models.Drama
-	for _, d := range raw {
-		dramas = append(dramas, models.Drama{
-			BookID: "starshort:" + d.ID,
-			Judul:  d.Title,
-			Cover:  p.proxyImage(d.Cover),
-			Genre:  "", // Tags not joined here to match simple list, or could join d.Tags
-		})
+	// Flatten all categories
+	for _, list := range raw.Data {
+		for _, d := range list {
+			dramas = append(dramas, models.Drama{
+				BookID:       "starshort:" + strconv.Itoa(d.ID),
+				Judul:        d.Title,
+				Cover:        p.proxyImage(d.Cover),
+				Deskripsi:    d.Summary,
+				TotalEpisode: strconv.Itoa(d.Episodes),
+				Genre:        strings.Join(d.Tags, ", "),
+			})
+		}
 	}
 	return dramas, nil
 }
 
 func (p *StarshortProvider) GetLatest(page int) ([]models.Drama, error) {
-	// Use /dramas/new
-	body, err := p.fetch(StarshortAPI + "/dramas/new?lang=3")
-	if err != nil {
-		return nil, err
-	}
-
-	var raw []sDrama
-	if err := json.Unmarshal(body, &raw); err != nil {
-		return nil, err
-	}
-
-	var dramas []models.Drama
-	for _, d := range raw {
-		dramas = append(dramas, models.Drama{
-			BookID: "starshort:" + d.ID,
-			Judul:  d.Title,
-			Cover:  p.proxyImage(d.Cover),
-		})
-	}
-	return dramas, nil
+	// Use same as trending for now as no explicit latest pagination in user provided endpoints
+	// Or maybe one of the categories in Home is "New"?
+	return p.GetTrending()
 }
 
 func (p *StarshortProvider) Search(query string) ([]models.Drama, error) {
-	url := fmt.Sprintf("%s/dramas/search?q=%s&lang=3", StarshortAPI, url.QueryEscape(query))
-	body, err := p.fetch(url)
+	// Endpoint: /search?q=cinta&lang=4
+	urlSearch := fmt.Sprintf("%s/search?q=%s&lang=4", StarshortAPI, url.QueryEscape(query))
+	body, err := p.fetch(urlSearch)
 	if err != nil {
 		return nil, err
 	}
 
-	var raw []sDrama
+	// Search response might be wrapped in {data: []} or just []
+	// Let's assume {data: []} first based on Home
+	var raw sSearchResponse
 	if err := json.Unmarshal(body, &raw); err != nil {
-		// Return empty on error or empty body
-		return []models.Drama{}, nil
+		return nil, err
 	}
 
 	var dramas []models.Drama
-	for _, d := range raw {
+	for _, d := range raw.Data {
 		dramas = append(dramas, models.Drama{
-			BookID: "starshort:" + d.ID,
-			Judul:  d.Title,
-			Cover:  p.proxyImage(d.Cover),
+			BookID:       "starshort:" + strconv.Itoa(d.ID),
+			Judul:        d.Title,
+			Cover:        p.proxyImage(d.Cover),
+			Deskripsi:    d.Summary,
+			TotalEpisode: strconv.Itoa(d.Episodes),
+			Genre:        strings.Join(d.Tags, ", "),
 		})
 	}
 	return dramas, nil
 }
 
 func (p *StarshortProvider) GetDetail(id string) (*models.Drama, []models.Episode, error) {
-	// 1. Fetch Detail Info
-	urlDetail := fmt.Sprintf("%s/dramas/%s?lang=3", StarshortAPI, id)
-	bodyDetail, err := p.fetch(urlDetail)
+	// 1. Fetch Detail Info: /drama/{id}?lang=4
+	urlDetail := fmt.Sprintf("%s/drama/%s?lang=4", StarshortAPI, id)
+	body, err := p.fetch(urlDetail)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	var rawDetail sDetail
-	if err := json.Unmarshal(bodyDetail, &rawDetail); err != nil {
+	var raw sDetailResponse
+	if err := json.Unmarshal(body, &raw); err != nil {
 		return nil, nil, err
 	}
+	d := raw.Data
 
 	drama := models.Drama{
-		BookID:       "starshort:" + rawDetail.ID,
-		Judul:        rawDetail.Title,
-		Cover:        p.proxyImage(rawDetail.Cover),
-		Deskripsi:    rawDetail.Description,
-		TotalEpisode: strconv.Itoa(rawDetail.TotalEpisodes),
-		// Tags to Genre?
+		BookID:       "starshort:" + strconv.Itoa(d.ID),
+		Judul:        d.Title,
+		Cover:        p.proxyImage(d.Cover),
+		Deskripsi:    d.Summary,
+		TotalEpisode: strconv.Itoa(d.TotalEpisodes),
+		Genre:        strings.Join(d.Tags, ", "),
 	}
 
-	// 2. Fetch Episodes List
-	urlEp := fmt.Sprintf("%s/dramas/%s/episodes?lang=4", StarshortAPI, id)
+	// 2. Fetch Episodes List: /episodes/{id}?lang=4
+	urlEp := fmt.Sprintf("%s/episodes/%s?lang=4", StarshortAPI, id)
 	bodyEp, err := p.fetch(urlEp)
 	if err != nil {
-		return &drama, nil, nil // Return what we have if ep fail
+		return &drama, nil, err
 	}
 
-	var rawEp sEpisodeResponse
+	// Episode response likely {data: [...]}
+	var rawEp sEpisodeListResponse
 	if err := json.Unmarshal(bodyEp, &rawEp); err != nil {
-		return &drama, nil, nil
+		// Fallback: maybe just []sEpisode?
+		// But let's assume consistent Data wrapper
+		return &drama, nil, err
 	}
 
 	var episodes []models.Episode
-	for _, ep := range rawEp.Episodes {
+	for _, ep := range rawEp.Data {
 		episodes = append(episodes, models.Episode{
 			BookID:       "starshort:" + id,
-			EpisodeIndex: ep.Episode - 1, // 0-based for internal logic
+			EpisodeIndex: ep.Episode - 1, // Assuming 'name' or 'episode' is 1-based index
 			EpisodeLabel: fmt.Sprintf("Episode %d", ep.Episode),
 		})
 	}
@@ -215,22 +236,23 @@ func (p *StarshortProvider) GetDetail(id string) (*models.Drama, []models.Episod
 }
 
 func (p *StarshortProvider) GetStream(id, epIndex string) (*models.StreamData, error) {
+	// Endpoint: /play/{id}?ep={ep}&lang=4
 	idx, _ := strconv.Atoi(epIndex)
-	epNum := idx + 1 // API uses 1-based episode number
+	epNum := idx + 1 // API uses 1-based param based on user url example: ep=1
 
-	url := fmt.Sprintf("%s/dramas/%s/episodes/%d?lang=4", StarshortAPI, id, epNum)
-	body, err := p.fetch(url)
+	urlPlay := fmt.Sprintf("%s/play/%s?ep=%d&lang=4", StarshortAPI, id, epNum)
+	body, err := p.fetch(urlPlay)
 	if err != nil {
 		return nil, err
 	}
 
-	var raw sStreamResponse
+	var raw sPlayResponse
 	if err := json.Unmarshal(body, &raw); err != nil {
 		return nil, err
 	}
 
-	if raw.VideoURL == "" {
-		return nil, fmt.Errorf("stream url empty")
+	if raw.Data.URL == "" {
+		return nil, fmt.Errorf("no video url found")
 	}
 
 	return &models.StreamData{
@@ -238,7 +260,7 @@ func (p *StarshortProvider) GetStream(id, epIndex string) (*models.StreamData, e
 		Chapter: models.ChapterData{
 			Index: idx,
 			Video: models.VideoData{
-				Mp4: raw.VideoURL,
+				Mp4: raw.Data.URL,
 			},
 		},
 	}, nil
